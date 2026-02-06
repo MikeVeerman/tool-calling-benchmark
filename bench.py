@@ -136,6 +136,24 @@ RESTRAINT_INDICES = {4, 8}
 TOOL_CALL_INDICES = {0, 1, 2, 5, 6, 3, 7}  # 7 prompts
 
 # ---------------------------------------------------------------------------
+# Backend display names
+# ---------------------------------------------------------------------------
+
+BACKEND_DISPLAY = {
+    "ollama":     ("Ollama",     "native-tools"),
+    "ollama_raw": ("Ollama",     "raw-schema"),
+    "bitnet":     ("bitnet.cpp", "openai-compat"),
+}
+
+P8_REQUIRED_TOOLS = {"search_files", "get_weather"}
+
+
+def get_backend_display(model_info: dict) -> tuple[str, str]:
+    """Return (backend_name, mode) for display purposes."""
+    return BACKEND_DISPLAY[model_info["backend"]]
+
+
+# ---------------------------------------------------------------------------
 # Models to benchmark
 # ---------------------------------------------------------------------------
 
@@ -253,6 +271,7 @@ def run_one_ollama(model: str, prompt: str) -> dict:
             "latency_ms": round(elapsed),
             "error": str(e),
             "raw_content": None,
+            "all_tool_calls": [],
         }
     elapsed = (time.perf_counter() - t0) * 1000
 
@@ -265,25 +284,31 @@ def run_one_ollama(model: str, prompt: str) -> dict:
             "latency_ms": round(elapsed),
             "error": None,
             "raw_content": resp.message.content,
+            "all_tool_calls": [],
         }
 
-    tc = tool_calls[0]
-    fname = tc.function.name
-    args = tc.function.arguments
+    # Build list of all tool calls
+    all_tc = []
+    for tc in tool_calls:
+        fname = tc.function.name
+        args = tc.function.arguments
+        try:
+            json.dumps(args)
+            valid = True
+        except (TypeError, ValueError):
+            valid = False
+        all_tc.append({"name": fname, "arguments": args, "valid": valid})
 
-    try:
-        json.dumps(args)
-        valid = True
-    except (TypeError, ValueError):
-        valid = False
-
+    # First call populates the existing top-level fields
+    first = all_tc[0]
     return {
         "tool_called": True,
-        "tool_name": fname,
-        "valid_args": valid,
+        "tool_name": first["name"],
+        "valid_args": first["valid"],
         "latency_ms": round(elapsed),
         "error": None,
         "raw_content": resp.message.content,
+        "all_tool_calls": all_tc,
     }
 
 
@@ -307,31 +332,32 @@ def run_one_bitnet(prompt: str) -> dict:
     except Exception as e:
         elapsed = (time.perf_counter() - t0) * 1000
         return {
-            "tool_called": False,
-            "tool_name": None,
-            "valid_args": None,
-            "latency_ms": round(elapsed),
-            "error": str(e),
-            "raw_content": None,
+            "tool_called": False, "tool_name": None, "valid_args": None,
+            "latency_ms": round(elapsed), "error": str(e), "raw_content": None,
+            "all_tool_calls": [],
         }
     elapsed = (time.perf_counter() - t0) * 1000
 
     content = data["choices"][0]["message"]["content"]
 
+    all_parsed = _parse_all_tool_calls_from_text(content)
     parsed = _parse_tool_call_from_text(content)
     if not parsed:
         return {
             "tool_called": False, "tool_name": None, "valid_args": None,
             "latency_ms": round(elapsed), "error": None, "raw_content": content,
+            "all_tool_calls": all_parsed,
         }
     if not parsed["valid"]:
         return {
             "tool_called": True, "tool_name": None, "valid_args": False,
             "latency_ms": round(elapsed), "error": None, "raw_content": content,
+            "all_tool_calls": all_parsed,
         }
     return {
         "tool_called": True, "tool_name": parsed["name"], "valid_args": True,
         "latency_ms": round(elapsed), "error": None, "raw_content": content,
+        "all_tool_calls": all_parsed,
     }
 
 
@@ -366,6 +392,49 @@ def _parse_tool_call_from_text(content: str) -> dict | None:
         return {"name": None, "arguments": None, "valid": False}
 
 
+def _parse_all_tool_calls_from_text(content: str) -> list[dict]:
+    """Parse ALL <tool_call> blocks from raw text. Returns list of parsed dicts.
+
+    Handles sequential <tool_call> blocks with or without closing </tool_call> tags,
+    newline-separated JSON calls, and skips invalid JSON blocks.
+    """
+    results = []
+    search_start = 0
+    while True:
+        idx = content.find("<tool_call>", search_start)
+        if idx == -1:
+            break
+        rest = content[idx + len("<tool_call>"):].lstrip()
+        if not rest.startswith("{"):
+            search_start = idx + len("<tool_call>")
+            continue
+        # Count braces to find the complete JSON object
+        depth = 0
+        end = -1
+        for i, c in enumerate(rest):
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end == -1:
+            search_start = idx + len("<tool_call>")
+            continue
+        try:
+            call = json.loads(rest[:end])
+            fname = call.get("name", "")
+            args = call.get("arguments", {})
+            json.dumps(args)  # validate serialisable
+            results.append({"name": fname, "arguments": args, "valid": True})
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass  # skip invalid block, continue to next
+        # Advance past this block
+        search_start = idx + len("<tool_call>") + end
+    return results
+
+
 def run_one_ollama_raw(model: str, prompt: str) -> dict:
     """Run a prompt via Ollama WITHOUT native tool API — use system prompt and parse text."""
     messages = [
@@ -381,27 +450,32 @@ def run_one_ollama_raw(model: str, prompt: str) -> dict:
         return {
             "tool_called": False, "tool_name": None, "valid_args": None,
             "latency_ms": round(elapsed), "error": str(e), "raw_content": None,
+            "all_tool_calls": [],
         }
     elapsed = (time.perf_counter() - t0) * 1000
 
     content = resp.message.content or ""
+    all_parsed = _parse_all_tool_calls_from_text(content)
     parsed = _parse_tool_call_from_text(content)
 
     if not parsed:
         return {
             "tool_called": False, "tool_name": None, "valid_args": None,
             "latency_ms": round(elapsed), "error": None, "raw_content": content,
+            "all_tool_calls": all_parsed,
         }
 
     if not parsed["valid"]:
         return {
             "tool_called": True, "tool_name": None, "valid_args": False,
             "latency_ms": round(elapsed), "error": None, "raw_content": content,
+            "all_tool_calls": all_parsed,
         }
 
     return {
         "tool_called": True, "tool_name": parsed["name"], "valid_args": True,
         "latency_ms": round(elapsed), "error": None, "raw_content": content,
+        "all_tool_calls": all_parsed,
     }
 
 
@@ -421,14 +495,70 @@ def run_one(model_info: dict, prompt: str) -> dict:
 # Scoring
 # ---------------------------------------------------------------------------
 
+def compute_action_score(results_for_model: list[dict]) -> float:
+    """Action Score = correct_tool_calls / 7 (actionable prompts P1-P4, P6-P8)."""
+    rs = results_for_model
+    n_valid_tool = sum(1 for idx in TOOL_CALL_INDICES if rs[idx]["valid_args"])
+    return round(n_valid_tool / len(TOOL_CALL_INDICES), 3)
+
+
+def compute_restraint_score(results_for_model: list[dict]) -> float:
+    """Restraint Score = correct_refusals / 2 (restraint prompts P5, P9)."""
+    rs = results_for_model
+    restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
+    return round(restraint_pass / len(RESTRAINT_INDICES), 3)
+
+
 def compute_agent_score(results_for_model: list[dict]) -> float:
-    """Compute agent score: (valid_tool_calls / 7) * 0.5 + (restraint / 2) * 0.5"""
+    """Agent Score = Action * 0.5 + Restraint * 0.5 (derived composite).
+
+    Uses raw (unrounded) action and restraint to avoid double-rounding.
+    """
     rs = results_for_model
     n_valid_tool = sum(1 for idx in TOOL_CALL_INDICES if rs[idx]["valid_args"])
     restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
     accuracy = n_valid_tool / len(TOOL_CALL_INDICES)
     restraint = restraint_pass / len(RESTRAINT_INDICES)
     return round(accuracy * 0.5 + restraint * 0.5, 3)
+
+
+def compute_reliability(all_runs_for_model: list[list[dict]], num_runs: int) -> float:
+    """Reliability = average per-prompt (successful_runs / total_runs).
+
+    "Successful" means valid_args for actionable prompts, not tool_called for restraint.
+    Requires per-run data (not majority-voted).
+    """
+    num_prompts = len(all_runs_for_model[0]) if all_runs_for_model else 0
+    prompt_reliabilities = []
+    for pi in range(num_prompts):
+        successes = 0
+        for ri in range(num_runs):
+            r = all_runs_for_model[ri][pi]
+            if pi in RESTRAINT_INDICES:
+                if not r["tool_called"]:
+                    successes += 1
+            else:  # actionable prompt
+                if r["valid_args"]:
+                    successes += 1
+        prompt_reliabilities.append(successes / num_runs)
+    return round(sum(prompt_reliabilities) / num_prompts, 3) if prompt_reliabilities else 0.0
+
+
+def compute_multi_tool_accuracy(results_for_model: list[dict], model_info: dict) -> float | None:
+    """Multi-Tool Accuracy for P8 (index 7): len(called_tools & P8_REQUIRED_TOOLS) / 2.
+
+    Returns None for backend == "ollama" (native API only captures first call).
+    """
+    if model_info["backend"] == "ollama":
+        return None  # native API returns only first tool call
+    p8 = results_for_model[7]  # P8 is index 7
+    all_tc = p8.get("all_tool_calls", [])
+    if not all_tc:
+        # Fall back: if we have a single tool_name, use that
+        called_tools = {p8["tool_name"]} if p8.get("tool_name") else set()
+    else:
+        called_tools = {tc["name"] for tc in all_tc if tc.get("valid")}
+    return round(len(called_tools & P8_REQUIRED_TOOLS) / len(P8_REQUIRED_TOOLS), 3)
 
 
 # ---------------------------------------------------------------------------
@@ -439,21 +569,21 @@ def compute_agent_score(results_for_model: list[dict]) -> float:
 _ORIGIN_MAP = {m["name"]: m["origin"] for m in ALL_MODELS}
 
 
-def fmt_table(results: dict, model_list: list[dict]):
-    """Print an ASCII summary table."""
+def fmt_table(results: dict, model_list: list[dict], scores: dict | None = None):
+    """Print an ASCII summary table. If scores dict provided, show extended columns."""
     prompt_labels = [f"P{i+1}" for i in range(len(TEST_PROMPTS))]
     model_names = [m["name"] for m in model_list]
 
-    print("\n" + "=" * 120)
+    print("\n" + "=" * 160)
     print("TEST PROMPTS")
-    print("=" * 120)
+    print("=" * 160)
     for i, p in enumerate(TEST_PROMPTS):
         restraint_tag = " [RESTRAINT]" if i in RESTRAINT_INDICES else ""
         print(f"  P{i+1}: {p}{restraint_tag}")
 
-    print("\n" + "=" * 120)
+    print("\n" + "=" * 160)
     print("DETAILED RESULTS")
-    print("=" * 120)
+    print("=" * 160)
 
     hdr = f"{'Model':<20} {'Prompt':<6} {'Called?':<8} {'Tool':<20} {'Args OK':<8} {'ms':>6}"
     print(hdr)
@@ -470,80 +600,134 @@ def fmt_table(results: dict, model_list: list[dict]):
         print("-" * len(hdr))
 
     # Summary table sorted by Agent Score
-    print("\n" + "=" * 120)
+    print("\n" + "=" * 160)
     print("SUMMARY (sorted by Agent Score)")
-    print("=" * 120)
+    print("=" * 160)
 
-    shdr = (f"{'Model':<20} {'Origin':<9} {'Tool calls':<12} {'Valid args':<12} "
-            f"{'Avg ms':>8} {'Restraint':>10} {'Agent Score':>12}")
-    print(shdr)
-    print("-" * len(shdr))
+    if scores:
+        shdr = (f"{'Model':<20} {'Backend':<12} {'Mode':<14} {'Origin':<9} "
+                f"{'Action':>7} {'Restraint':>10} {'Reliability':>12} {'Multi-Tool':>11} "
+                f"{'Agent Score':>12} {'Avg ms':>8}")
+        print(shdr)
+        print("-" * len(shdr))
 
-    # Build rows with scores, then sort
-    rows = []
-    for name in model_names:
-        rs = results[name]
-        n_called = sum(1 for r in rs if r["tool_called"])
-        n_valid = sum(1 for r in rs if r["valid_args"])
-        avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
-        restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
-        restraint_total = len(RESTRAINT_INDICES)
-        score = compute_agent_score(rs)
-        origin = _ORIGIN_MAP.get(name, "??")
-        rows.append((name, origin, n_called, len(rs), n_valid, n_called, avg_ms,
-                      restraint_pass, restraint_total, score))
+        rows = []
+        for name in model_names:
+            rs = results[name]
+            avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
+            s = scores[name]
+            rows.append((name, s["backend"], s["mode"], _ORIGIN_MAP.get(name, "??"),
+                         s["action"], s["restraint"], s["reliability"],
+                         s["multi_tool"], s["agent_score"], avg_ms))
 
-    rows.sort(key=lambda r: r[9], reverse=True)
+        rows.sort(key=lambda r: r[8], reverse=True)
 
-    for (name, origin, n_called, total, n_valid, n_called_denom,
-         avg_ms, rpass, rtotal, score) in rows:
-        print(
-            f"{name:<20} {origin:<9} {n_called:>3}/{total:<8} "
-            f"{n_valid:>3}/{n_called_denom if n_called_denom else 0:<8} "
-            f"{avg_ms:>7} {rpass:>3}/{rtotal}      {score:>8.3f}"
-        )
+        for (name, backend, mode, origin, action, restraint, reliability,
+             multi_tool, agent_score, avg_ms) in rows:
+            mt_str = f"{multi_tool:.3f}" if multi_tool is not None else "N/A*"
+            print(
+                f"{name:<20} {backend:<12} {mode:<14} {origin:<9} "
+                f"{action:>7.3f} {restraint:>10.3f} {reliability:>12.3f} {mt_str:>11} "
+                f"{agent_score:>12.3f} {avg_ms:>7}"
+            )
+    else:
+        shdr = (f"{'Model':<20} {'Origin':<9} {'Tool calls':<12} {'Valid args':<12} "
+                f"{'Avg ms':>8} {'Restraint':>10} {'Agent Score':>12}")
+        print(shdr)
+        print("-" * len(shdr))
+
+        rows = []
+        for name in model_names:
+            rs = results[name]
+            n_called = sum(1 for r in rs if r["tool_called"])
+            n_valid = sum(1 for r in rs if r["valid_args"])
+            avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
+            restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
+            restraint_total = len(RESTRAINT_INDICES)
+            score = compute_agent_score(rs)
+            origin = _ORIGIN_MAP.get(name, "??")
+            rows.append((name, origin, n_called, len(rs), n_valid, n_called, avg_ms,
+                          restraint_pass, restraint_total, score))
+
+        rows.sort(key=lambda r: r[9], reverse=True)
+
+        for (name, origin, n_called, total, n_valid, n_called_denom,
+             avg_ms, rpass, rtotal, score) in rows:
+            print(
+                f"{name:<20} {origin:<9} {n_called:>3}/{total:<8} "
+                f"{n_valid:>3}/{n_called_denom if n_called_denom else 0:<8} "
+                f"{avg_ms:>7} {rpass:>3}/{rtotal}      {score:>8.3f}"
+            )
 
     print()
 
 
-def fmt_edge_leaderboard(results: dict, model_list: list[dict]):
+def fmt_edge_leaderboard(results: dict, model_list: list[dict], scores: dict | None = None):
     """Print a mini leaderboard of sub-2B 'edge agent' models."""
     edge_models = [m for m in model_list if m["name"] in EDGE_MODELS]
     if not edge_models:
         return
 
-    print("\n" + "=" * 120)
+    print("\n" + "=" * 160)
     print("EDGE AGENT MINI LEADERBOARD (sub-2B models)")
-    print("=" * 120)
+    print("=" * 160)
 
-    shdr = (f"{'#':<4} {'Model':<20} {'Origin':<9} {'Tool calls':<12} {'Valid args':<12} "
-            f"{'Avg ms':>8} {'Restraint':>10} {'Agent Score':>12}")
-    print(shdr)
-    print("-" * len(shdr))
+    if scores:
+        shdr = (f"{'#':<4} {'Model':<20} {'Backend':<12} {'Mode':<14} {'Origin':<9} "
+                f"{'Action':>7} {'Restraint':>10} {'Reliability':>12} {'Multi-Tool':>11} "
+                f"{'Agent Score':>12} {'Avg ms':>8}")
+        print(shdr)
+        print("-" * len(shdr))
 
-    rows = []
-    for m in edge_models:
-        name = m["name"]
-        rs = results[name]
-        n_called = sum(1 for r in rs if r["tool_called"])
-        n_valid = sum(1 for r in rs if r["valid_args"])
-        avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
-        restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
-        restraint_total = len(RESTRAINT_INDICES)
-        score = compute_agent_score(rs)
-        origin = _ORIGIN_MAP.get(name, "??")
-        rows.append((name, origin, n_called, len(rs), n_valid, n_called, avg_ms,
-                      restraint_pass, restraint_total, score))
+        rows = []
+        for m in edge_models:
+            name = m["name"]
+            rs = results[name]
+            avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
+            s = scores[name]
+            rows.append((name, s["backend"], s["mode"], _ORIGIN_MAP.get(name, "??"),
+                         s["action"], s["restraint"], s["reliability"],
+                         s["multi_tool"], s["agent_score"], avg_ms))
 
-    rows.sort(key=lambda r: r[9], reverse=True)
+        rows.sort(key=lambda r: r[8], reverse=True)
 
-    for rank, (name, origin, n_called, total, n_valid, n_called_denom,
-               avg_ms, rpass, rtotal, score) in enumerate(rows, 1):
-        print(
-            f"{rank:<4} {name:<20} {origin:<9} {n_called:>3}/{total:<8} "
-            f"{n_valid:>3}/{n_called_denom if n_called_denom else 0:<8} "
-            f"{avg_ms:>7} {rpass:>3}/{rtotal}      {score:>8.3f}"
-        )
+        for rank, (name, backend, mode, origin, action, restraint, reliability,
+                   multi_tool, agent_score, avg_ms) in enumerate(rows, 1):
+            mt_str = f"{multi_tool:.3f}" if multi_tool is not None else "N/A*"
+            print(
+                f"{rank:<4} {name:<20} {backend:<12} {mode:<14} {origin:<9} "
+                f"{action:>7.3f} {restraint:>10.3f} {reliability:>12.3f} {mt_str:>11} "
+                f"{agent_score:>12.3f} {avg_ms:>7}"
+            )
+    else:
+        shdr = (f"{'#':<4} {'Model':<20} {'Origin':<9} {'Tool calls':<12} {'Valid args':<12} "
+                f"{'Avg ms':>8} {'Restraint':>10} {'Agent Score':>12}")
+        print(shdr)
+        print("-" * len(shdr))
+
+        rows = []
+        for m in edge_models:
+            name = m["name"]
+            rs = results[name]
+            n_called = sum(1 for r in rs if r["tool_called"])
+            n_valid = sum(1 for r in rs if r["valid_args"])
+            avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
+            restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
+            restraint_total = len(RESTRAINT_INDICES)
+            score = compute_agent_score(rs)
+            origin = _ORIGIN_MAP.get(name, "??")
+            rows.append((name, origin, n_called, len(rs), n_valid, n_called, avg_ms,
+                          restraint_pass, restraint_total, score))
+
+        rows.sort(key=lambda r: r[9], reverse=True)
+
+        for rank, (name, origin, n_called, total, n_valid, n_called_denom,
+                   avg_ms, rpass, rtotal, score) in enumerate(rows, 1):
+            print(
+                f"{rank:<4} {name:<20} {origin:<9} {n_called:>3}/{total:<8} "
+                f"{n_valid:>3}/{n_called_denom if n_called_denom else 0:<8} "
+                f"{avg_ms:>7} {rpass:>3}/{rtotal}      {score:>8.3f}"
+            )
 
     print()
 
@@ -600,6 +784,7 @@ def main():
         print("BitNet server stopped.\n")
 
     # Build averaged results
+    model_info_map = {m["name"]: m for m in ALL_MODELS}
     avg_results = {}
     for name in model_names:
         avg_results[name] = []
@@ -612,6 +797,17 @@ def main():
             tool_name = max(set(tool_names), key=tool_names.count) if tool_names else None
             n_valid = sum(1 for e in entries if e["valid_args"])
             valid = n_valid > 0 if called else None
+            # Propagate all_tool_calls: union valid tools appearing in >50% of runs
+            all_tc_union = []
+            if called:
+                tool_counts = {}
+                for e in entries:
+                    for tc in e.get("all_tool_calls", []):
+                        if tc.get("valid") and tc.get("name"):
+                            tool_counts[tc["name"]] = tool_counts.get(tc["name"], 0) + 1
+                for tc_name, count in tool_counts.items():
+                    if count > num_runs / 2:
+                        all_tc_union.append({"name": tc_name, "valid": True})
             avg_results[name].append({
                 "tool_called": called,
                 "tool_name": tool_name if called else None,
@@ -619,7 +815,23 @@ def main():
                 "latency_ms": avg_lat,
                 "error": None,
                 "raw_content": None,
+                "all_tool_calls": all_tc_union,
             })
+
+    # Compute extended scores
+    scores = {}
+    for name in model_names:
+        mi = model_info_map[name]
+        backend_name, mode = get_backend_display(mi)
+        scores[name] = {
+            "action": compute_action_score(avg_results[name]),
+            "restraint": compute_restraint_score(avg_results[name]),
+            "reliability": compute_reliability(all_runs[name], num_runs),
+            "multi_tool": compute_multi_tool_accuracy(avg_results[name], mi),
+            "agent_score": compute_agent_score(avg_results[name]),
+            "backend": backend_name,
+            "mode": mode,
+        }
 
     # Print per-run detail
     for run in range(num_runs):
@@ -646,13 +858,13 @@ def main():
         print("-" * len(hdr))
 
     # Print averaged summary
-    print("\n" + "=" * 120)
+    print("\n" + "=" * 160)
     print(f"AVERAGED SUMMARY ({num_runs} runs)")
-    print("=" * 120)
-    fmt_table(avg_results, ALL_MODELS)
+    print("=" * 160)
+    fmt_table(avg_results, ALL_MODELS, scores=scores)
 
     # Print edge agent mini leaderboard
-    fmt_edge_leaderboard(avg_results, ALL_MODELS)
+    fmt_edge_leaderboard(avg_results, ALL_MODELS, scores=scores)
 
     # Print raw BitNet 2B-4T outputs for P1, P6, P8 (indices 0, 5, 7)
     print("\n" + "=" * 120)
@@ -677,5 +889,74 @@ def main():
         print()
 
 
+def _self_test():
+    """Validate parser and scoring functions against known data."""
+    # Test _parse_all_tool_calls_from_text with known BitNet P8 output
+    p8_output = (
+        '<tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}\n'
+        '<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}'
+    )
+    parsed = _parse_all_tool_calls_from_text(p8_output)
+    assert len(parsed) == 2, f"Expected 2 tool calls, got {len(parsed)}"
+    assert parsed[0]["name"] == "search_files"
+    assert parsed[1]["name"] == "get_weather"
+    assert all(tc["valid"] for tc in parsed)
+
+    # Test with closing tags
+    p8_with_tags = (
+        '<tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}</tool_call>\n'
+        '<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}</tool_call>'
+    )
+    parsed2 = _parse_all_tool_calls_from_text(p8_with_tags)
+    assert len(parsed2) == 2, f"Expected 2 tool calls with tags, got {len(parsed2)}"
+
+    # Test with one invalid block
+    mixed = (
+        '<tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}\n'
+        '<tool_call>invalid json here\n'
+        '<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}'
+    )
+    parsed3 = _parse_all_tool_calls_from_text(mixed)
+    assert len(parsed3) == 2, f"Expected 2 valid calls from mixed input, got {len(parsed3)}"
+
+    # Test backward compat: compute_agent_score still produces correct values
+    # Simulate a model with 6/7 action correct, 2/2 restraint → 0.929
+    mock_results = [
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P1
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P2
+        {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P3
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P4
+        {"tool_called": False, "valid_args": None, "tool_name": None},           # P5 restraint
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P6
+        {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P7
+        {"tool_called": False, "valid_args": None, "tool_name": None},           # P8 (missed)
+        {"tool_called": False, "valid_args": None, "tool_name": None},           # P9 restraint
+    ]
+    assert compute_agent_score(mock_results) == 0.929, f"Expected 0.929, got {compute_agent_score(mock_results)}"
+    assert compute_action_score(mock_results) == 0.857, f"Expected 0.857, got {compute_action_score(mock_results)}"
+    assert compute_restraint_score(mock_results) == 1.0, f"Expected 1.0, got {compute_restraint_score(mock_results)}"
+
+    # Test 7/7 action, 0/2 restraint → 0.500 (llama3.2 pattern)
+    llama_results = [
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P1
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P2
+        {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P3
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P4
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P5 (should restrain)
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P6
+        {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P7
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P8
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P9 (should restrain)
+    ]
+    assert compute_agent_score(llama_results) == 0.5, f"Expected 0.5, got {compute_agent_score(llama_results)}"
+    assert compute_action_score(llama_results) == 1.0
+    assert compute_restraint_score(llama_results) == 0.0
+
+    print("All self-tests passed.")
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
+        _self_test()
+    else:
+        main()

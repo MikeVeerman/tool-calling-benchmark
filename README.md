@@ -79,76 +79,75 @@ The benchmark uses 9 prompts that escalate in difficulty:
 
 ## What we measure
 
-- **Tool calls:** Did the model call a tool? Which one?
-- **Valid args:** Were the arguments well-formed JSON with the right fields?
+- **Action Score:** correct_tool_calls / 7. How many of the 7 actionable prompts produced valid tool calls. Measures execution capability.
+- **Restraint Score:** correct_refusals / 2. How many of the 2 restraint prompts (P5, P9) were correctly left without a tool call. Measures policy calibration.
+- **Reliability:** Average per-prompt (successful_runs / 3). Computed from per-run data *before* majority voting. A model that passes a prompt in 2 of 3 runs gets 0.67 reliability for that prompt, even though majority voting calls it a pass. Measures deployability.
+- **Multi-Tool Accuracy:** correct_tools / required_tools for P8 (dual-tool prompt). P8 requires both `search_files` and `get_weather`. Ollama's native tool API returns only the first tool call, so this is N/A for native-tools models.
+- **Agent Score:** A derived composite: `Action * 0.5 + Restraint * 0.5`. Retained for backward compatibility. A model that calls tools on everything maxes out at 0.500. You need both action and restraint to score well.
 - **Latency:** Wall-clock time per inference call (milliseconds).
-- **Restraint:** On prompts where the correct answer is "don't call a tool," did the model correctly abstain? Scored as X/2 (P5 and P9).
-- **Agent Score:** A composite metric: `(valid_tool_calls / 7) * 0.5 + (restraint / 2) * 0.5`. Weights accuracy and restraint equally. A model that calls tools on everything maxes out at 0.500. You need both to score well.
 
-Everything is run 3 times with majority-vote aggregation to smooth out non-determinism.
+Everything is run 3 times. Correctness uses majority-vote aggregation; reliability uses per-run data.
 
 ## Results at a glance
 
-| Rank | Model | Origin | Tool Calls | Valid Args | Avg Latency | Restraint | Agent Score |
-|---|---|---|---|---|---|---|---|
-| 1 | qwen2.5:3b | CN | 6/9 | 6/6 | 3,861 ms | 2/2 | **0.929** |
-| 1 | qwen2.5:0.5b | CN | 6/9 | 6/6 | 1,351 ms | 2/2 | **0.929** |
-| 1 | smollm2:1.7b | US | 6/9 | 6/6 | 2,437 ms | 2/2 | **0.929** |
-| 1 | phi4-mini:3.8b | US | 6/9 | 6/6 | 5,723 ms | 2/2 | **0.929** |
-| 5 | ministral-3:3b | FR | 5/9 | 5/5 | 10,571 ms | 2/2 | **0.857** |
-| 6 | qwen2.5:1.5b | CN | 4/9 | 4/4 | 3,126 ms | 2/2 | 0.786 |
-| 7 | bitnet-2B-4T | US | 8/9 | 8/8 | 2,806 ms | 1/2 | 0.750 |
-| 8 | llama3.2:3b | US | 9/9 | 9/9 | 2,786 ms | 0/2 | 0.500 |
-| 8 | deepseek-r1:1.5b | CN | 0/9 | 0/0 | 7,535 ms | 2/2 | 0.500 |
-| 8 | gemma3:1b | US | 0/9 | 0/0 | 4,139 ms | 2/2 | 0.500 |
-| 8 | bitnet-3B | US | 0/9 | 0/0 | 16,046 ms | 2/2 | 0.500 |
+| Rank | Model | Backend | Mode | Origin | Action | Restraint | Reliability | Multi-Tool | Agent Score |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | qwen2.5:3b | Ollama | native-tools | CN | 0.857 | 1.000 | 0.815 | N/A* | **0.929** |
+| 1 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.857 | 1.000 | 0.852 | N/A* | **0.929** |
+| 1 | smollm2:1.7b | Ollama | native-tools | US | 0.857 | 1.000 | 0.889 | N/A* | **0.929** |
+| 1 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.857 | 1.000 | 0.926 | N/A&dagger; | **0.929** |
+| 5 | ministral-3:3b | Ollama | native-tools | FR | 0.714 | 1.000 | 0.778 | N/A* | **0.857** |
+| 6 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.571 | 1.000 | 0.704 | N/A* | 0.786 |
+| 7 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 1.000 | 0.500 | 0.926 | 1.000 | 0.750 |
+| 8 | llama3.2:3b | Ollama | native-tools | US | 1.000 | 0.000 | 0.778 | N/A* | 0.500 |
+| 8 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0.222 | N/A&dagger; | 0.500 |
+| 8 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0.259 | N/A&dagger; | 0.500 |
+| 8 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0.222 | N/A&dagger; | 0.500 |
+
+\*Ollama native-tools API returns only the first tool call. &dagger;Raw output not preserved from original run.
 
 ### Edge agent mini leaderboard (sub-2B models)
 
-| Rank | Model | Avg Latency | Restraint | Agent Score |
-|---|---|---|---|---|
-| 1 | qwen2.5:0.5b | 1,351 ms | 2/2 | **0.929** |
-| 2 | smollm2:1.7b | 2,437 ms | 2/2 | **0.929** |
-| 3 | qwen2.5:1.5b | 3,126 ms | 2/2 | 0.786 |
-| 4 | bitnet-2B-4T | 2,806 ms | 1/2 | 0.750 |
-| 5 | deepseek-r1:1.5b | 7,535 ms | 2/2 | 0.500 |
-| 6 | gemma3:1b | 4,139 ms | 2/2 | 0.500 |
+| Rank | Model | Backend | Mode | Action | Restraint | Reliability | Multi-Tool | Agent Score |
+|---|---|---|---|---|---|---|---|---|
+| 1 | qwen2.5:0.5b | Ollama | native-tools | 0.857 | 1.000 | 0.852 | N/A* | **0.929** |
+| 2 | smollm2:1.7b | Ollama | native-tools | 0.857 | 1.000 | 0.889 | N/A* | **0.929** |
+| 3 | qwen2.5:1.5b | Ollama | native-tools | 0.571 | 1.000 | 0.704 | N/A* | 0.786 |
+| 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | 1.000 | 0.500 | 0.926 | 1.000 | 0.750 |
+| 5 | deepseek-r1:1.5b | Ollama | raw-schema | 0.000 | 1.000 | 0.222 | N/A&dagger; | 0.500 |
+| 6 | gemma3:1b | Ollama | raw-schema | 0.000 | 1.000 | 0.259 | N/A&dagger; | 0.500 |
 
 ## What we learned
 
-### 1. A 400MB model ties a 3.8B model on agent quality
+### 1. Reliability separates the 0.929 club
 
-Qwen 0.5B and Phi4-mini both score 0.929. One runs in 1.35 seconds, the other in 5.7. The small model isn't "good for its size" -- it's just good. Same tool-call accuracy, same restraint, 4x faster. SmolLM2 at 1.7B also ties them. Four models from three different organisations (Alibaba, HuggingFace, Microsoft) all converged on the same score using different architectures and training approaches. The ceiling on this benchmark isn't parameter count -- it's the prompts.
+Four models share a 0.929 Agent Score, but reliability tells a different story. phi4-mini (0.926) is rock-solid -- only one failure across 27 calls. smollm2 (0.889) is close behind. qwen2.5:0.5b (0.852) drops further. qwen2.5:3b (0.815) is the least reliable of the group -- its P9 restraint failed in 2 of 3 runs, masked by majority voting. Same score, meaningfully different deployment risk.
 
-### 2. Instruction-tuned BitNet does tool calling
+### 2. A 400MB model ties a 3.8B model on agent quality
 
-This is the headline result. BitNet-2B-4T went from literal word salad (the base model produces things like "8.- the: ( with a eight the a to as") to 8/8 valid JSON arguments across 9 prompts. A 1.58-bit model -- every weight constrained to {-1, 0, 1}, no floating-point multiplication -- producing perfectly structured `{"name": "get_weather", "arguments": {"city": "Antwerp"}}` on CPU at 2.8 seconds average. As far as we can tell, nobody has benchmarked structured tool-calling on 1-bit models before.
+Qwen 0.5B and Phi4-mini both score 0.929. One runs in 1.35 seconds, the other in 5.7. The small model isn't "good for its size" -- it's just good. Same Action Score, same Restraint Score, 4x faster. SmolLM2 at 1.7B also ties them. Four models from three different organisations (Alibaba, HuggingFace, Microsoft) all converged on the same score using different architectures and training approaches. The ceiling on this benchmark isn't parameter count -- it's the prompts.
 
-The restraint problem (1/2 -- it called a hallucinated tool on the meta-question P5) is solvable with fine-tuning. The core capability -- understanding a tool schema from a system prompt, selecting the right tool, extracting parameters from natural language, serialising them as valid JSON -- is definitively there at 1.58 bits.
+### 3. Instruction-tuned BitNet is a strong actuator with weak policy calibration
 
-### 3. The 1-bit model understood the hardest prompt better than anyone
+BitNet-2B-4T: Action 1.000 (perfect execution), Restraint 0.500 (P5 fails), Reliability 0.926, Multi-Tool 1.000 (the only model to correctly emit both tools on P8). A 1.58-bit model -- every weight constrained to {-1, 0, 1}, no floating-point multiplication -- producing perfectly structured JSON on CPU at 2.8 seconds average. Its weakness is policy calibration (it doesn't know when *not* to call a tool), not execution capability. As far as we can tell, nobody has benchmarked structured tool-calling on 1-bit models before.
 
-P8 asks for two tools at once: "Search for all files matching '*.py' and also tell me the weather in Paris." Every Ollama model -- Qwen, LLaMA, SmolLM, Ministral, Phi4 -- returned a single tool call. That's not a model limitation, it's an API one: Ollama's native tool-calling interface returns only the first tool call, and the raw prompt models only had the first `<tool_call>` tag parsed.
+### 4. The 1-bit model understood the hardest prompt better than anyone
 
-BitNet 2B-4T was the only model that emitted two tool calls back-to-back:
-```
-<tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}
-<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}
-```
+P8 asks for two tools at once. Every Ollama model returned a single tool call -- some due to API constraints (native-tools only returns the first call), some due to parser limitations. BitNet 2B-4T emitted both calls back-to-back, consistently across all 3 runs, achieving Multi-Tool Accuracy of 1.000. The other models' Multi-Tool scores are N/A because the native API didn't capture the second call.
 
-It did this consistently across all 3 runs. That's not a parsing detail -- it means the 1.58-bit model understood the dual intent of the prompt better than models 6x its effective size. The other models have this capability locked behind API constraints; BitNet, running through raw text generation, wasn't limited by them.
+### 5. This benchmark tests model-protocol pairs, not models in isolation
+
+phi4-mini went from 0.571 to 0.929 by switching from Ollama's native tool API to a raw system prompt. The Backend and Mode columns in the leaderboard exist to make this dependency explicit. Comparing models without noting their interaction contract is misleading.
 
 ### Other findings
 
-**LLaMA 3.2 calls tools on everything.** 9/9 tool calls, 0/2 restraint. It called `search_files` when asked "What tools do you have access to?" and again when asked to write a Python script. It's a hammer that sees every prompt as a nail. Perfect accuracy, zero judgment. Agent Score: 0.500.
-
-**The right backend matters as much as the model.** Phi4-mini scored 0.571 using Ollama's native tool API (it only called 1 tool in 9 prompts). Switching to the raw prompt backend -- same model, same prompts, just a system prompt instead of the `tools=` parameter -- brought it to 0.929. Three models (deepseek-r1, gemma3, phi4-mini) had to be moved off the native API entirely because they either errored or refused to use it.
+**LLaMA 3.2 calls tools on everything.** Action 1.000, Restraint 0.000, Reliability 0.778. It called `search_files` when asked "What tools do you have access to?" and again when asked to write a Python script. Perfect execution, zero judgment. Agent Score: 0.500.
 
 **Chain-of-thought doesn't help tool calling at small scale.** DeepSeek-R1:1.5B thinks hard (7.5s average latency) and produces responses like `get_weather(Antwerp)` -- it understands the concept but can't produce the JSON format. The reasoning overhead crowds out format compliance at 1.5B params.
 
 **Gemma3:1B gets tantalizingly close.** It outputs `<tool_call>get_weather(city: Antwerp)</tool_call>` -- right tags, right tool, right argument, wrong serialisation (Python kwargs instead of JSON). A custom parser for its format could potentially recover these calls.
 
-**Ministral-3:3B is accurate but slow.** 5/5 valid args, perfect restraint, but 10.6s average latency with some prompts taking 30+ seconds. The EU sovereignty candidate works, but you'll wait for it.
+**Ministral-3:3B is accurate but slow.** Action 0.714, Restraint 1.000, but 10.6s average latency with some prompts taking 30+ seconds. The EU sovereignty candidate works, but you'll wait for it.
 
 **P9 remains the best discriminator prompt.** "Can you write a Python script that checks the weather using an API?" cleanly separates models that understand user intent from models that pattern-match on keywords. Only LLaMA 3.2 failed it consistently.
 
