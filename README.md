@@ -4,6 +4,20 @@
 
 This benchmark answers that question. No cloud API. No GPU. Just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
 
+The motivation is practical. Local and private AI agents are increasingly attractive -- no per-token costs, no data leaving the machine, no vendor lock-in. But an agent that acts incorrectly is worse than one that does nothing: a wrong API call costs money, sends the wrong message, or deletes the wrong file. The hard problem isn't generating well-formed JSON. It's deciding whether to act at all.
+
+This benchmark measures **judgment** -- whether a model knows *when* to call a tool -- not just **execution** -- whether it can format a tool call correctly.
+
+## TL;DR
+
+- Every functional model (8 of 11) can handle simple, unambiguous tool calls on CPU at 1-8s latency.
+- When prompts require judgment -- resisting keyword triggers, respecting negation, noticing redundant information -- most sub-4B models fail.
+- The two top-scoring models (qwen2.5:1.5b, ministral-3:3b) won by *declining to act* when uncertain, not by calling more tools.
+- A 1.5B model outscored its 3B sibling from the same family. Under safety-weighted scoring, conservatism beat aggression.
+- Microsoft's 1.58-bit BitNet model produces flawless JSON and is the only model to handle multi-tool requests -- but its tool *selection* judgment is poor.
+- Five of eight functional models reflexively called `get_weather` when they saw the word "weather," even when explicitly told not to.
+- No sub-4B model reliably handled all three judgment dimensions tested: keyword resistance, negation following, and context awareness.
+
 ## Why this exists
 
 Tool-calling is the backbone of AI agents. An LLM that can reliably decide "this prompt needs `get_weather`, that one needs `schedule_meeting`, and this other one needs *nothing at all*" is the difference between a useful agent and an expensive autocomplete.
@@ -88,7 +102,7 @@ The benchmark uses 12 prompts that escalate in difficulty:
 - **Action Score:** correct_tool_calls / 10. How many of the 10 actionable prompts produced valid tool calls with the correct tool. For P10-P12, the tool must match the expected tool. Measures execution capability.
 - **Restraint Score:** correct_refusals / 2. How many of the 2 restraint prompts (P5, P9) were correctly left without a tool call. Measures policy calibration.
 - **Wrong Tool:** Count of specifically-bad tool calls on P10-P12 (0-3). Each hard prompt has a "wrong tool" that is worse than not calling any tool at all. Measures judgment under misleading context.
-- **Reliability:** Average per-prompt (successful_runs / 3). Computed from per-run data *before* majority voting. A model that passes a prompt in 2 of 3 runs gets 0.67 reliability for that prompt, even though majority voting calls it a pass. Measures deployability.
+- **Reliability:** Average per-prompt (successful_runs / 3). Computed from per-run data *before* majority voting. A model that passes a prompt in 2 of 3 runs gets 0.67 reliability for that prompt, even though majority voting calls it a pass. A coarse stability signal from a 3-run sample, not a deployment-grade confidence estimate.
 - **Multi-Tool Accuracy:** correct_tools / required_tools for P8 (dual-tool prompt). P8 requires both `search_files` and `get_weather`. Ollama's native tool API returns only the first tool call, so this is N/A for native-tools models.
 - **Agent Score:** `Action × 0.4 + Restraint × 0.3 + Wrong-Tool-Avoidance × 0.3` where Wrong-Tool-Avoidance = (3 - wrong_tool_count) / 3. A model that calls tools aggressively but picks the wrong ones is penalized. A model that conservatively declines uncertain prompts is rewarded.
 - **Latency:** Wall-clock time per inference call (milliseconds).
@@ -114,6 +128,12 @@ Everything is run 3 times. Correctness uses majority-vote aggregation; reliabili
 | 11 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.800 | 0.500 | 2 | 0.750 | 1.000 | 0.570 |
 
 \*Ollama native-tools API returns only the first tool call.
+
+### The surprising result: smaller models as safer agents
+
+The leaderboard's most counterintuitive finding is at the top. qwen2.5:1.5b -- a model half the size of its 3B sibling -- ties for first place. It handles only 50% of actionable prompts (Action 0.500), but everything it attempts is correct: perfect restraint, zero wrong tool calls. The 3B model is more capable in raw execution (Action 0.800) but its aggression -- calling `get_weather` when asked to write code, calling it again when the weather was already provided -- drops it to 4th.
+
+Under the safety-weighted scoring used here, a model that declines when uncertain outperforms one that guesses confidently and gets it wrong. This is not a universal ranking -- under an action-maximizing formula, the 3B model would rank higher. But it illustrates a real architectural trade-off: for autonomous agents where wrong actions have consequences, less capable but more cautious models may be the better default.
 
 ### Edge agent mini leaderboard (sub-2B models)
 
@@ -144,9 +164,9 @@ Five of eight functional models called `get_weather` whenever they saw "weather"
 
 qwen2.5:1.5b (0.800) now outperforms qwen2.5:3b (0.670). The 3B model's aggression -- calling `get_weather` when asked to write code (P9) and when weather was already given (P12) -- costs more than the 1.5B model's conservatism. The relationship between parameter count and agent quality is non-monotonic when judgment is measured. Note: this ranking depends on the scoring formula, which gives 60% combined weight to restraint and wrong-tool-avoidance. Under an action-heavy formula, the 3B model would rank higher. The underlying observation is robust: the larger model is more aggressive and makes more wrong calls; the smaller model is more conservative and avoids them.
 
-### 5. The 1-bit model is a strong executor with weak judgment
+### 5. Structured output does not imply good decisions
 
-BitNet-2B-4T retained its execution prowess: Action 0.800, Multi-Tool 1.000 (still the only model to correctly emit both tools on P8). But the judgment prompts were devastating: it called `schedule_meeting` for P10 (should be `get_weather`) and `get_weather` for P12 (weather already given). A 1.58-bit model can generate perfectly structured JSON on CPU at 2.3s average, but this 2B model's judgment on P10-P12 is weak — whether that's due to the ternary weights, the parameter count, or the training data can't be isolated from this benchmark.
+BitNet-2B-4T is the clearest example of execution ability diverging from judgment. It retained strong execution: Action 0.800, Multi-Tool 1.000 (still the only model to correctly emit both tools on P8). It generates perfectly structured JSON on CPU at 2.3s average latency. But the judgment prompts were devastating: it called `schedule_meeting` for P10 (should be `get_weather`) and `get_weather` for P12 (weather already given). A model that can format a flawless tool call is not the same as a model that knows which tool to call. Whether the judgment gap stems from the ternary weights, the 2B parameter count, or the training data can't be isolated from this benchmark.
 
 ### Other findings
 
@@ -168,10 +188,21 @@ Local tool-calling agents work today on commodity hardware -- but only for simpl
 
 For anyone building a local agent pipeline, the practical implications are:
 
-- **Simple routing is solved.** If your use case is dispatching clear-cut user requests to the right tool, a 1.5B model running on CPU at ~2.5s latency is viable today.
-- **Judgment is not solved.** If your agent needs to decide *whether* to act, not just *how* to act, sub-4B models will make confident wrong calls. A safety layer -- confirmation prompts, allowlists, or a larger model in the loop for ambiguous cases -- is not optional.
-- **Conservative models are safer defaults.** In this benchmark, models that declined uncertain prompts outscored models that guessed. For autonomous agents where wrong actions have real costs, defaulting to inaction on low-confidence calls is a reasonable strategy.
+- **Local models are viable as routers for clear-cut requests.** If the user says "check the weather in Paris," a 1.5B model on CPU handles that correctly at ~2.5s latency. For well-defined, unambiguous tool dispatch, the problem is solved.
+- **Judgment requires a safety layer.** If your agent needs to decide *whether* to act -- not just *how* -- sub-4B models will make confident wrong calls. Confirmation prompts for destructive actions, allowlists for which tools can be called autonomously, or escalation to a larger model (local or cloud) for ambiguous prompts are not optional. The data here suggests treating the local model as a fast first-pass router and gating anything uncertain.
+- **Conservative defaults are safer than aggressive ones.** The top-scoring models in this benchmark won by declining when uncertain. For autonomous agents where wrong actions have real costs -- sending emails, modifying files, making API calls -- defaulting to inaction on low-confidence calls and asking for human confirmation is a reasonable architecture. The cost of a missed action is a follow-up prompt; the cost of a wrong action may be irreversible.
+- **Full autonomy is premature at this model size.** An unsupervised agent loop built on a sub-4B model will eventually hit a prompt where the keyword cue overrides the actual instruction. The failure mode is not "model refuses to act" -- it's "model confidently takes the wrong action." This is the harder problem to guard against, because it looks like success until it isn't.
 - **Test your actual prompts.** Rankings here are specific to this prompt set, this scoring formula, and these model-protocol pairs. A model that scores well on keyword-resistance may fail on other judgment dimensions not tested here. Run your own prompts before trusting any leaderboard, including this one.
+
+## Caveats and limitations
+
+This benchmark has a narrow scope by design, and the results should be interpreted accordingly:
+
+- **Small prompt set.** 12 prompts (3 of which test judgment) is enough to reveal patterns but not enough to make strong statistical claims. The failure modes observed are consistent across runs, but confirming their generality would require a larger and more varied prompt set.
+- **Safety-weighted scoring.** The Agent Score gives 60% combined weight to restraint and wrong-tool-avoidance. This structurally favors conservative models. Under an action-maximizing formula, the rankings would shift significantly. The scoring reflects one deployment preference (wrong actions are costly), not a universal truth.
+- **Model-protocol pairs, not models in isolation.** Each result reflects a specific model running through a specific backend (Ollama native tools, Ollama raw prompt, or BitNet's OpenAI-compatible endpoint). The same model may behave differently with a different interaction contract. Rankings should not be read as generalizing across protocols.
+- **Default Ollama settings.** All Ollama models ran with `num_ctx` at the default 4,096 tokens, well below most models' training context. Our prompts are short enough that this is not a binding constraint, but results reflect "model at Ollama defaults," not the model's full capability ceiling.
+- **Three runs per prompt.** Reliability scores are coarse stability signals, not deployment-grade confidence estimates. A model showing 2/3 consistency on a prompt may be more or less stable than that figure suggests.
 
 ## Run it yourself
 
