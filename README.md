@@ -126,17 +126,17 @@ Everything is run 3 times. Correctness uses majority-vote aggregation; reliabili
 
 ## What we learned
 
-### 1. Hard prompts broke the plateau
+### 1. Hard prompts and revised scoring broke the plateau
 
-In Round 3, four models tied at 0.929 Agent Score. P10-P12 spread them from 0.640 to 0.800, with two new leaders -- qwen2.5:1.5b and ministral-3:3b -- that weren't even in the top group before. The Round 3 ceiling was an artifact of the benchmark not being hard enough. Adding three prompts that test judgment rather than execution completely reshuffled the leaderboard.
+In Round 3, four models tied at 0.929 Agent Score. The combination of P10-P12 (which test judgment, not just execution) and the new wrong-tool penalty in the Agent Score spread them from 0.640 to 0.800, with two new leaders -- qwen2.5:1.5b and ministral-3:3b -- that weren't even in the top group before. The Round 3 ceiling reflected both a lack of judgment-testing prompts and a scoring formula that didn't penalize wrong tool calls.
 
-### 2. Not calling a tool is better than calling the wrong one
+### 2. Under a safety-biased scoring, not calling a tool beats calling the wrong one
 
-The two leaders scored highest by *declining* uncertain prompts rather than guessing wrong. qwen2.5:1.5b missed P10 and P11 entirely (losing Action points) but avoided wrong-tool penalties. ministral-3:3b did the same. Meanwhile, models that aggressively called tools -- qwen2.5:0.5b, smollm2, phi4-mini -- all got 2 wrong tool calls, dropping them below the conservative models. In the real world, an agent that does nothing when confused is safer than one that takes the wrong action.
+The two leaders scored highest by *declining* uncertain prompts rather than guessing wrong. qwen2.5:1.5b missed P10 and P11 entirely (losing Action points) but avoided wrong-tool penalties. ministral-3:3b did the same. Meanwhile, models that aggressively called tools -- qwen2.5:0.5b, smollm2, phi4-mini -- all got 2 wrong tool calls, dropping them below the conservative models. This reflects a deployment preference where wrong actions are costlier than missed ones -- reasonable for autonomous agents, but not a universal truth. Under an action-maximizing formula, aggressive models like llama3.2:3b (Action 0.900) would rank higher.
 
 ### 3. Keyword matching appears to be a common failure pattern
 
-Five of eight functional models called `get_weather` whenever they saw "weather" in the prompt, regardless of context. P11 says "don't check the weather" -- three models called `get_weather` anyway. P12 says "the weather is 8°C and rainy" (already known) -- five models called `get_weather` to look it up again. This is consistent with sub-4B models relying on keyword matching rather than semantic understanding for tool selection, though the sample (3 hard prompts, 3 runs) is small.
+Five of eight functional models called `get_weather` whenever they saw "weather" in the prompt, regardless of context. P11 says "don't check the weather" -- three models called `get_weather` anyway. P12 says "the weather is 8°C and rainy" (already known) -- five models called `get_weather` to look it up again. The keyword cue appears to override explicit negation and contextual redundancy. Whether this reflects shallow keyword matching, weak instruction-priority resolution, or something else can't be determined from three prompts.
 
 ### 4. Bigger isn't always better
 
@@ -150,7 +150,7 @@ BitNet-2B-4T retained its execution prowess: Action 0.800, Multi-Tool 1.000 (sti
 
 **LLaMA 3.2 has better judgment than expected.** Despite zero restraint (calls a tool on every prompt), it correctly picked `search_files` for P11 and `schedule_meeting` for P12 -- the two prompts that tripped up most models. Action 0.900 is the highest in the benchmark. Its problem is restraint (0.000), not tool selection.
 
-**P12 is the best discriminator.** "The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" Only 2 of 11 models correctly called `schedule_meeting`. It simultaneously tests context awareness, keyword resistance, and action identification.
+**P12 is the strongest discriminator in this prompt set.** "The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" Only 2 of 11 models correctly called `schedule_meeting`. It simultaneously tests context awareness, keyword resistance, and action identification.
 
 **P10 is the hardest prompt.** Only 1 model (qwen2.5:3b) called the correct tool. "Should I take the train or cycle?" requires inferring that transport depends on weather -- a reasoning chain no other model made.
 
