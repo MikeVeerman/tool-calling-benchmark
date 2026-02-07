@@ -7,7 +7,7 @@ import re
 import sys
 from datetime import datetime
 
-from bench_config import (
+from lib.bench_config import (
     TEST_PROMPTS,
     RESTRAINT_INDICES,
     EXPECTED_TOOLS,

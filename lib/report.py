@@ -6,7 +6,7 @@ import io
 import os
 import sys
 
-from bench_config import (
+from lib.bench_config import (
     TEST_PROMPTS,
     RESTRAINT_INDICES,
     TOOL_CALL_INDICES,
@@ -18,7 +18,7 @@ from bench_config import (
     EDGE_MODELS,
     get_backend_display,
 )
-from run_helpers import (
+from lib.run_helpers import (
     compute_bench_version,
     load_model_results,
     aggregate_runs,

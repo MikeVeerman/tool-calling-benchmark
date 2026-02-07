@@ -1,7 +1,7 @@
 """Validate parser and scoring functions against known data."""
 
-from bitnet_backend import _parse_all_tool_calls_from_text
-from report import (
+from lib.bitnet_backend import _parse_all_tool_calls_from_text
+from lib.report import (
     compute_action_score,
     compute_restraint_score,
     compute_wrong_tool,

@@ -9,8 +9,8 @@ import time
 
 import ollama
 
-from bench_config import TEST_PROMPTS, ALL_MODELS, TOOLS
-from bitnet_backend import (
+from lib.bench_config import TEST_PROMPTS, ALL_MODELS, TOOLS
+from lib.bitnet_backend import (
     BITNET_SYSTEM_PROMPT,
     start_bitnet_server,
     stop_bitnet_server,
@@ -18,8 +18,8 @@ from bitnet_backend import (
     _parse_tool_call_from_text,
     _parse_all_tool_calls_from_text,
 )
-from report import generate_summary
-from run_helpers import (
+from lib.report import generate_summary
+from lib.run_helpers import (
     compute_bench_version,
     model_name_to_filename,
     find_model,
@@ -27,7 +27,7 @@ from run_helpers import (
     load_model_results,
     aggregate_runs,
 )
-from self_test import run as run_self_test
+from lib.self_test import run as run_self_test
 
 # ---------------------------------------------------------------------------
 # Fake tool implementations
