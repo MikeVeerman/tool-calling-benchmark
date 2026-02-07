@@ -1,0 +1,344 @@
+{
+  "model_name": "bitnet-3B",
+  "model_info": {
+    "name": "bitnet-3B",
+    "backend": "bitnet",
+    "origin": "US/1bit",
+    "model_path": "/home/mike/projects/bitnet/models/bitnet_b1_58-3B/ggml-model-i2_s.gguf"
+  },
+  "bench_version": "ea21e11afd31",
+  "num_runs": 3,
+  "timestamp": "2026-02-07T23:44:44",
+  "runs": [
+    [
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 6614,
+        "error": null,
+        "raw_content": "60 or or  (\n-. the use I ( (\n B - E R le Sk ma e e m m Ma  Al Ma Felix P di e ex)\n Par a P e\n . a P et ex\n\n with well-\n\n a, side\nG ( a F the\n\n  a andw )\n and long e\n\n\n-\n ( ( use a R ) in) long st.. st (\n isos a\n\n\nios ma%\n\ns a the,\n\ng.s the\n\n a. a\n\n no\n\ng e e\n\n\n all all\n\n\n bel\n\n\n\n\n prob a d\n\n\ng a your back in ever part\n\n reg your a\n\n all b\n\n your ent a\n\n theasach first first first\naf it a\n\n something a\n\naf\n\n all all retireda ever, men,\n",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 9089,
+        "error": null,
+        "raw_content": "8, female or,.\n..,..,\n,,..,,.478,.\n.,,,. a., and...,,.......,..,,..,..,..,,...,,.,.,.., da. in.\n by and\n. his and rare,5888, and are some or.  they with and past so. they he and people at in ( and a    a ( not) the all, all ( the st st  it st, the the in with and from the and is a ex, is a e, \u201c st qu qu qu qu. or the the the i i the and a a without a with, the, with part for, the and the long and and a a with and, ( ( the in st with st88). all and the i \u2013 is the and, i st st out st st with st, the, st, like ( and st -- but and long, st the and to st. s and the, and is a, a, w ( i with st l l st,, the the and, 1 g ( g ( \" \") with). and, ( the, u,, ( ( it the st back back, in",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2950,
+        "error": null,
+        "raw_content": "8, with B B s s s., look, a, it ex6 (1 the 80 the),),..,..,.,.,,,.,..,,,,.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 3642,
+        "error": null,
+        "raw_content": "When., about...,.., about.., \u201cb.,, long,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.\nI with the 8  and  a a a and part with ter are Mont. the and",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2570,
+        "error": null,
+        "raw_content": "8. back........,..,...,..,......,..........,.\nh",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 16239,
+        "error": null,
+        "raw_content": "4 back back with ever bl e from , all  ( with, use.\n the, the, all, and all all and all  also all.in.ine.\n., the. all,. a,,,,,,.,,,.,,,. the, s, a.\n\n all - e. and ex,\n everywhere all back a  . back back a a, in, (\n all, all the first st st st, ( all st - st st st a). st,\n that in the st and out everyone a st ex\n a a the i back back in ( st st st st st, ( st- a8\n st,. . light re is\n st ( get st st -- st  -- ( (, and a ()) l ( ( ( back back back ( ( ( w\" la training st (\n like,, everything back (ez1\n)\"ip with i pic\n &.a 31.  ... ent   a ro e.\n that. g stan and\n a. in   \n111. a he a back back and back\n back ( far ( ro (, rest la st st real w\n\n ( ( a ter g w wfe st gra fe/ an re back\nto out sport st gra\n\n all. gra gra gra gra gra gra gra gra gra gra gra gra.. to the the,\n\n real to, ter a  so back a dec a ter, at dec,, real a\n to is dec dec dec, g mar in a  far a a far st\npas back back back g st w and no g st and st everything. is with st and with to the dec, people w years no in her in dec the first first to comes back\n no back st a someone back back re and g point the, or  dec it\nall, st the three three the different and dec isat, the the her, a ( withassarit1ant,, of, the every, alwaysom i, time is the,w, as i longaz a  it a, men pay fig c u i c everything, c- w,, with her the with in in she every so in  the a, a, a w the i in hllm, the can, equal is in afford and, st the, st always, is every i every the every",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 9286,
+        "error": null,
+        "raw_content": "big, Before ent First B ro'B RRRRRRRRRRRRRRRRRRRWith exzB ex1Ww8R ,.... \u2013 and wandals, ST,\nAnd,Th\nB,RED BREDST RRRRRRRRRRR, M SO, B B Part F B. B for\nH,H,About,K --\nB, Stanley (ZK)K ( B\nB (P R P R P R B\nB -- B) B Gra\nB bel (A ( ( () ( e m ( et -- e e e i)) e e ) e and a B e i u) st.) i) ( B\") ( ( ( ( ( ( -- st -- -- -- -- -- -- -- -- i -- -- - - - - -) --\n -- --) -- -- - --, -,, ( ( bel st,\n). (),,,). -- ( ( ( (),), and.,.. ( ( ( st-/ ()), and,., the,) ( (), ( ( ( ( ( ()) ( (,,h -- etc,),, &,ender, i i), /,,),",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15785,
+        "error": null,
+        "raw_content": "8 B part up22 a a of partong B5. where. em say B Element\nB. men,..... with.,.......,,..,..,,.,,,....,,,,,.\n,.B\nb glad the666..a. E all,w,\nhe.m......, E.b,.m...,. -bia to. all the. with.--..,,b.. all.\nb. where...,.g la and e e the, andb28.pp. all the all all.\nb were and the they.b. and, all all all around around but and theople bel and the bel,\n_ first as and the first \u2013 theP ex and long and and and su and so in as the and a with with the the su a  without back the and a i the back or the st cl -- out -- a -- back -- the you i a i a or a, as v a the (  the, 86 and and, the a ( w ofm i a i i\nb i the i i the just \u2014 P the in l l the i st \u2014 and the, to \u2014, e the i st with i and in i the a an a / the e ( ( w i i i the,\n\n back back first our i g back back m a ca the\n\n ( back ( c ( ( ( g big m long ( back ( back he there master back back a back  back back gra ro ro, a to m a back back back back back for t y st st up\n ent back a back back back back back everything back back st ent up far st st st back st st st everything a ent and back the an st st st st st st st st an the the l the the st in ent w\n\n  the\n\n, st st st st st st st, st st st st st everything st or st up the\nandar theou of ro  i the. or c c out was l her l and a l i back back g a i or care c br c st ( m st w i a a or back back or or m m w a from at best at m everything all the no the i \u2014 stands i st  i she",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2734,
+        "error": null,
+        "raw_content": "4,1 u, with.,,,\nW, ro a,ins,,,.,,,,.,,,,,,,,,,,,,,,,,,,,,.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 4345,
+        "error": null,
+        "raw_content": "8. to le the.,. (ass with\nB af (B. ,. R (B.).\nM (B.\nB. (A m m m... --. -........ B. . .B B back ... B B\nB B B B\nB\"\n\nB U (\n\n (.\n engace .\n )  a e),\"..\n6 part back - the  and  B (\n",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15789,
+        "error": null,
+        "raw_content": "6. And d they \u2013. . a imm (M b F B B ( Back ( M S M \n , Every S\n, Iw . . .\n , a. F,W. I P,W.A. Ex K M Con Back B. It.\n came. . . . . . . - w/. 2.116586 a 08 or (1\n B P st ( ( B  + a g m st   a st st st - e e\n  rev st st g, st ant gra st de an  dec a  an  a actually\n a l ent all at a,) with \n l sl R st st w (/ mur,9 i st st st // st / / part / ) a a is\n9 her mean  with with me she 6666 ( st (\n ( ret m st st -  - / / a a mar  is\n8 men, l  subject dec )& time 1 people dec,\n\n ( dec st, s,  dec 8 dec st st st second second neg. long\nand. with with an her long dec w sl sl sl sl. a an dec dec dec and\nand real with imp dec dec st dec st8a an long dec dec dec dec the\nat dec dec everything as scr to with a give back with long back old\nand total my my my inod dec dec dec a dec l net and and dec\n\n you say bel a dec dec i dec dec i part co a co thought dec dec\nurnurn first half famous tri i i i st the no c pro carrying st carry long\n age grasp c always past long fashion a not back subject to i i\n always\n past a figure long first ten care age st people soon a fol\n\n res the a a c no c or w a a back but the co figure is part is co people\n the a w a a part a g people leaves in lap the master the place l the co co\n i new gra\n files the co our big training personal the c not the forever in always gra i\n\n co i most kid a a c now c the l l can l a travel and best first be beat l l w al\n always the a part side its w co always always always always i my\n half part bound under i overask always always always always anything i in i i\n\n co three travel",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15907,
+        "error": null,
+        "raw_content": " , on a (,, with, with, their..,.g,), and I a .ac,\n.- men,. ( pl imm. ...,,,.\nI all a. something m G8 a.. a. a.,,., (G.Ia.AlAafaf). a and sure B.N a contract,\nhe andO and ster all (\nI. men fat conf6 a - and,.a-B and. --B bel red -- and qu trans --)ak a. ins, --.,\n\" --is a the --I part (\nEx su\n8 an they an.a) an the -- -- -- figures G long -- everywhere long (\n) backak six\u04416\nhe pass\u201d\na- bel\n\n the b -- --\nG long.\n and e percent under the all\n new\nand ( al ex c\n a all 00 p\n\nG ( ( d7 late in in)\n) -- bel\n\u201c bel review\n the you R in bel with ( ( the st st))  time under\u201d  bel all the and  Mo st something\n (  bel Mo\n and data b ex \n ( i bel Bel) tr ( ( day a   n) la la la))\n b b i i li 2 st e B B  of to\n ex ex ( b second, n B (  B i B P ) and  bur of. (  and two B B) get 17\n b 126 for\n- 26, pass ( and cross b an. bo ( b gasop a  bel the iold  finally fe is,\n\nta trainingx-)\n a a.b ( ( for (  in all back in first half training st ca  the fully a  aod wur\n\n way e a y all. training ter, a od a a tr st aw a,-ob a work\nb st c\n a S B Bw aa world the\n bel bel of. things  little  a are) b bel world women rout c\ni secondsi. a. n su, un equal n\nb a under  the the am a past a\n\n belll a late c.\nG the, as\n bel and with with c the a\n a. neg c",
+        "all_tool_calls": []
+      }
+    ],
+    [
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15643,
+        "error": null,
+        "raw_content": "6 with with... with with ( with ( e e ( S S\n\ng all... the.. everywhere they\n, ret to - -- st )\n\n a --\n e e e, e,\n -- the..\n all.\n\n a..\n part\n e e. is car e  past e (\n\na (\na -bps -- ) and ro first . . - a just -- -- --\n b  back -- -- -- g\n   back. be -- and -- -- back. and l --\n a -- --.\n with with (\n (as-wacaby88, and all half and a late, and of --in\nand,) by the the world, a v with -- of the),\n b ret for the a -- second\n with -- to figure f and -- with god -- away)\n with the -- with e, the ret with the one the with all. with a\n the the and -- best and the -- and with u long and the six a\n the back with sn at the re half the early half half the showing tri re po \u2014\n a  half \u2014 all people , different the with\n in every and the a \u2014 \u2014 gra gra2 neg my the\n deb in half me ( neg run g v \u2014 --  an --\nme in. ro the\n, the out i a\n ( i n swe3 u lim the v swe ( go st u u m st\n unodod in\n an with aicom,\n a g pl a late to re back twice past\n or g l, swe up in\n u in the first\n a re in\n or u awize side the the\n neg ret fol as ent i the\n mar the a in back ever and to\n best she c an a back in a g a\n a all tr i i a a the in\nemb all carry of and u cap i w others\nim than fol in ever ever ever as use v an the in or all we in she people fol in and i in\n as there her in. draw me i in the i i use be in the new swe fol  i what in the past fol and\n her a use and c cap it time a use back mar and a g back in back b bu its use the in a the the\n i there v a the go c what my l as that a theemb a age a light a her wed",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 12481,
+        "error": null,
+        "raw_content": "6. with mean (.pspsps)),,.. (\n.la... probandand a). (gastast witha),.\u201d.........,...,.,,,,,. (\ng..,,, a..,.., a..,... and.. and), and, the.. with, and all.\nw e e.), e.. ( ( and. the),), ( with with, and,. with,,), and, with with with (\n\nw and w. and ( and and as the and ( and and,). and and with with and with (\n and), and ( and and so. ( and and P and and and and), and and and. and\n). and and ( and ( T ( and ( T ( and e), A ()., + All ( ( a),), and,\nAG),), ( and ( Back in ( ( M, M back (   g, u, ex.  a, ex ex ,\n a, a in, a. i ro.,,, a, a in, T\n L, R ( the,,, b,,, pro,,,, st,, mar.,,,,,,, stan, stan, g,\n stan,  a,,,,\n,,, on,, stan,,,,\n,. g, ro and st st st st, g. on, ad, a,,., di  to to to,\n that and  or object,  to to, real, o the,\nB, and and a / ( as, la., mar mar,  or (w (1, w race a,p (,\n mar mar mar w, w ( prime, ( back (  la (",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 16132,
+        "error": null,
+        "raw_content": "4.,,,......,....,.. where..,,..,,......,,.,.,.,,,,,,,,,,,,,,,,,,\n\n\n\n- (S)   of\n ( ( ( ( ( ( ( ( House ( ( ( ( ( ( Lymm the i and, m mo car m the all mo a mo a this i i i i a. i i and ter ter. i i i i on ( i t ex st a R and mo a da y with mo a mo mo with da a ( a o ro y mo mo mo with a with a a. a to  back back and ro st en st, st the,man11man, ter, \"man, ter,),da,man,,,.\n\n,\nand,'|))e., and\n\n), (\n\n  sun,,\n\n\n individual a\n\n i, ( new ( a ( st, the new new, pre, the, st st st st st, a. w a, with, back.  at five, back, with back. other w a, a ter,\n will the w in, the, in a up l a a st, st,. gra, back, and up ter, / and w. / ( in or or l\n and, the, the, or from.\n and w, pal a, at, up, and,,,, and and, the,\nace,\n et, real, or, her, a at a, hundred\nback the in a, and a, and, a an, far, a, particular is i,, a as, un,, or, her ( / ( i in, st, is, wps w w w w all w w w w real, course w i w w w w in, first w w w used special in l w w w w w w w w w w will w\n the, w gra everything w / p a and w w a / w w w w w w w w, w in is  at w in a, w, or\n a w / / w,\n,, un ever, i is a sen m i in red, ten w always, a l w w a every w (b en w than",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15784,
+        "error": null,
+        "raw_content": ". where. with long, with. with, with, etc.\nRe  with ex of, the, long second, with, always, with,, with. etc, the, dec, a,\n.,,.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, all de a\n,,,,,,,\n\n\n all period,,,,,,\n\n the, all,\n\n\n part the, all, P \n\n\n  \u2013 P Ch\n\n in the, the in, say\n in, ( and M a\n\n Best -- --\n, ial P6\n\n and\n first\n\n P A\n\n\n\n --\n\n\n S\n\n, --\n\n\n P\n\n\n\n\n R\n\n\n (\n and B\n\n\n\n P back\n and\n (\n\n S\n\n\n\n\n\n \n\n\n\n\n\n\n\n \n\n\n\n\n (\n\n\n w\n\n\n\n\n a\n\n\n\n e\n\n\n \n\n\n\n\n \n\n\n\n\n\n\n\n\n \n\n\n\n\n\n\n\n\n\n\n\n,\n\n\n a\n\n\n the (\n P\n\n a I\n\n\n\n\n a,\n\n\n\n / / /,,....,\n I I\n\n\n  R.\n\n\n a,\n\n S, \u2013 ( a), back\n and,\n, in-\n in the both  in in in ex\n in F \n\n ( in e ( E special, ( ( ( ( M   ( (, a\n\u2019,- And,,aac,im)  i ,.. a . \n B st and. ,,\n\n B\n & from, R ( I E O. S  ( ( M a The, .\n\n the. St on st... for, o. co in in, (\n\n a st\nag,,, o, the,,,,,,\nand ,,. all /\n\n\n and on. g, a.,)\n\n\n) the P and R\nPS,,I,,,,,,, of,\n re (",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15671,
+        "error": null,
+        "raw_content": "5.7 or. st,.\n.ek of. B R. The, of. R cred, late ex,, a a, B B., B, and,.w,\nW. ex the a, back long a\n, de a. back ex ex.\n, c, et e and. R by R.. a R the R looking. ex,\n b and e.. the e. R back ex ( or ( long ex ex a\n e.- ex ex, ex.\n a ex,, ex, ex st st-- ex b bill ex R big.\n or ex) and.\n all or back ex. e the ex ex i the ex\u2014 ex.\n and ( ( ex ex st ex\u2014 ( ex ex,) and and. or called\u2014 ex, ex ( ( ( long ex (, i i all st st st st st all st st st st st st st st all st st st sue real st st st st st, big w st st st st st st the st st dec st st st st st st st st st st, in\n the in and w man st st st st of big sal er in in the a and\n you you i the the a a and back and st a for, get, a st and st,\n you and i the\u2014 and a i\u2014 and e, red subject is er i a with, a\u2014 and s e e both e c three and while e st and and back is the ex s the g, the all and l a, and the,\n a, a ever with of the i i with\n back. and with everything, \u201c first with and p as black right in ( ( back  ( ( ( ( ( ( ( deal everything  new--\n  i- and aptpt+-if##c#arrem|exp+12471680nisquareerafeanddecbbcappembffagac\u0446agepphouseandentbempthandunsunsaskparcapaskabcomiamunitawasthiantallslaburgardenhgandallarandususajallpaargust2wellremrealseeaskaskohac or long care important popularacanticoutrealandake important forevercareaw forever orideshstandixohllascideshandat or aw i care c c c under thousands the, or look, stwiseandparafpsgpp",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 16247,
+        "error": null,
+        "raw_content": "8 or he str u u. or.  The the par sale as  , back always a R R \u2013 P, never m di.   cl big, B men \u2013 \u2013.\n all a88 long9 9. a.. a., s --b not all all ent say all every every every cha ( the long.bek st\n a the\n the ( w back w always  there st  non the waiting a _w in \n I time, apart di to a a4a81 gra c\n for a well time R in 88 \n well always st w i\n all in7 a bel i u\n looking the 82888 l st\n l all all6689.\n so l and e in neg neg st st a.\n all all around a2\n l l e a neg a a ro l n w\n b all all\n always surr aroundpp a all di ex.  the with l su  cont su su bel bel sm  a an a c a best pas\n pas. with. w\n different a8 and as\n under. w in a new bel m first with  waiting a under bel b new, so long and the about a m different  ent, in all the conf w c out c the a  bur it out all the always c the a the a a al a a c in rich g a you B in there st the everything every gra people a every they men a the the plus w the for c fi c big the so first her a best first a the the the w in the a every  s co the gra gra cl a every part st gra ( so every gra gra so st. grand in st l the every people st  a part c c the long st bu the st sure every he c bu part c or everything can all a everything a time cl and st'' st will st  a every- or ret a mean st ( the every looking,-te-bb the st classic aFA the the the the decx (z reach all c cz alwayslocl a backh back l bitalalal st c someone there all (m the best l l stands the st a stand worldalal dem men wmach the finally c back c will st i backh a l rout u as up you a back (backlass a (mpiepaar cut allwwpsneralalalnernerner",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 4452,
+        "error": null,
+        "raw_content": "big and use. ever.b.:\u2019/,, (:,,,,),,,,\nman,:,,,,\nLike di. and.?. and to, not. R, three.\n with the, about.\n and the, a with his.\n a\u201d ex the\n\u201c, his\nH he\n\nA\n B\n\n,\n\nA the,\n\n he,\n\nAl,\n\n his,\n",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15569,
+        "error": null,
+        "raw_content": " Par half,.., with., em,,,,. by-,  --,. ., with. part all. stad,.,..,.,,... where,.. la, b the the long m  b where st, a. e e p more ch  say ch the st, best in long all \u2013 all \u2013 \u2013 and \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 \u2013 and w the the the side and long long and with a, car the and, to tr tr ro about, er, ever ro ro s, i a he a a, side \u2013 and st ( ( \u201c \u201c \u2014,\u2019,,, mean\u201d) the the st w w  ( and\n to ( and, are \u2013,, c,, ent w \u201c.) gra  i ( g (hold l \u201c the, a back in st st st - a da st late late ent ro st away z big late re, ( st ups st st co to,, ( from l st st st st , in very out twice the22 in side to to use in a ent with with   ent with ter easy a st four a the car\n63 the the side with here l gra and a ter ro the, a ( ( or backg a car1 a,,  so here in l,1 world6\n and in so g66 and up gmmwanp13wac11ac\n and ent the un un a every back  so, he\n, ( ro stands ro un back ( eye58w st st st coPAPA3. st st st amaz91 st. st eliFA ent, st st wbm+ st lif st st un backI ca the st.picom st will sthb28hhviewace gra6 and st.g wm st ever st ever/p utop three a the st- village/ as",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15818,
+        "error": null,
+        "raw_content": "It, with,. with,\u2019, \nCon with part, par. e, R .,,,,.,,,.,,,,.,\n, the, I, with, a, a,,,,.\n, the,,,, out ( ( M  a  a\n  ex ( B A a  m,\n ( ( P -- Part  f in  I in I e e., e e e i, i the e\n- a.). Eo  e. w ( w am st- e e..,) with with men,\n\n) ( on the ( ( e, st st st, ( ( about. a. with, all with. res / g. st e for, gra e,\ngraomm on a the on a. with, ( ( ro lm la,\n lap la mar chu,\n a with, maround la, a with. ( ( res res the everyos and left,\nipople all ro. re i\n mar ( ro ( ( ex no ex,,\n g out, ( st ( back  a the\nip in mar\n g out la la with w the the\n64 now a st st st addition in is\n mar and the mar ent ent entcom\n\n real an back Men back to.ople the the. the real st the real. ( ( res st st / la (\n la la special la st / st the / w real real w / ( all back back dec it la la la\n\n real a g1  y a.. back back you st st stps the /\n low a  em the st st st gps w- im wwise with w places re st st ever\n un to the dec w no to mar\n always to every, st st out mar / back back review / gra actually st st\nrev l or the all and mar st st firstm. the the the of course g\n ro w a that mar always always to, a all all and dec here a the around a her we or g all fine\n\n always and never with on you here top the ten tr w out gra best a for l a end back first ten three always gra p funb for b a ent always always always always mar always always always always always en al m half half2 g ever i always or never i well with best everything up  always there c  what pay c ",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2577,
+        "error": null,
+        "raw_content": "7. with, and.gspt.-,.P.+,J buction (7 - by mission i \u2013 \u2013.,, \u2013,,,). with,",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15804,
+        "error": null,
+        "raw_content": "8. Reg B with,. with the. looks (, b the the B b B ( B N a\n . . P .  B long quot Ch et B B B ( -- -- -- -- a\n B -- -- -- -- b -- -- -- - -- a -- -- -- -- -- --\n a., a.\n -- -- -- -- -- -- -- -- -- -- -- -- --. -- --\n\n -- the the, ( or a -- --\n -- --. -- -- -- -- -- -- -- --. -- the the\n\n -- -- -- -- -- -- -- -- -- -- -- -- -- -- --\n --, -- -- -- -- -- the-- and -- -- -- -- -- -- -- -- -- --,,\n -- -- -- -- -- -- -- the and and -- -- --. -- -- -- -- -- -- -- -- --\n\n (. all a ( and ro of i -- -- -- -- -- a, and b i -- -- -- -- -- -- the --\n -- -- a -- --\n -- very, -- and and the -- the -- and the -- the -- the i the -- ( the really I --\n\n\n -- --, -- up at and\n, as you all all, so long a and b' in ( with in so part is,, and world -- the a i\n, a,\n, a  first ( ( yet b in out out, -- --, st st -- for long with back back in v mar\n a con in\n\n & -- great late long the -- --, only long long late, in the and and under figure\n and back /, up in for, i the. for s... st ( and b only -- the un / c i g i we w w w in s w c\n out long every,, and red ( back in g the -- in all st i i R a in ever so i or i far\n so w, c w w something,  out outside h all up in a in, always all  in a ever with i she very w\n\nb, red outside h with every i i a first there i ( there two first with a with i b with w so re so\n st, always g with with with gra and w w w with w a  with best g g she fl\n b g a all in red as w best and every w fl with red red we st always and always in I\n very always in\n in red always,",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15852,
+        "error": null,
+        "raw_content": " Pass with a.., with a a, , as in men K women J women jointi long. ( ( har a a a, (\n\n b B b b st\n\n a\n P B m\n\n\n -- J a\n\nR the am af bel in.\n a. J\nS.an. a\n\n K\n Silva\n\n -- a\n\n a ai I\n\n,ni a a I a.\n\n\n a all a8\n\n A\n\ng i\n\n e the b a.. a B\n a a I\n\n a a a.\n\nb a e\n\n a st B e.\n\n belong. a,\n back a\n\n a af af\n\n a ( backmmmore specialre1 c\n e c c, still lapap60 rea. ST I, two at out  and aask,\n\nand them building on R big\n\n building:\n\n all get what ourm training\n\n the st and the\n\nw one. use a and with with\nandat the and wpound big big st\n\nb a what and aada a\n\n withach\n\n use inagurn and u u i u u u u u a. iw (\n\n w a the andaag th,\n\n the a the or m\u201cand_\u201cas..,. as. reg,. w. is.\nw. w.if a. c, or  w (re-p a bel bel ab.p. as l a. wh eapw or.\ng.m st bel (bong andu loundwps) and. g-hc it ound g-p vap l- and use l l ( er pro in where. (, c ()))b a c a ( ( re l ir a v ( (af a bel5 n l l um st\n ( lym a n,wws).( res w\n and i l am l the\ngccac ste l st a  or b a p ( a g \u2014 g un u . thehew i\ni get  a g a a ca w\n\n the \u2014 aw i to a\n, ( im e st naturalwpro in2 ini shortwwimcwewbaftb i i i awh",
+        "all_tool_calls": []
+      }
+    ],
+    [
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 7907,
+        "error": null,
+        "raw_content": "6 and one with\n1 half half with (\n with (\n ( the they .\n ( ( e all . . . . . . . . . . . . . . . - e - - m - g are all .\n a a, a all\n a a all a a - with part - b with\n\na partand the in ter. ( a all to - a a a to a a no no,\n a.\n all a a the to a.. da side, long the and.\n to id\n at a,\n a a all to to, as - and\n\neep i. and ( data a -- in st long part.\n ex  so, a to ( the a.), back c, six part part, back a...,. past,,\n long long is st -- and long -- long long long 8 years men is the,. long pr\n long --  the -- use st we, pre and with -- re the the ( eng th a st th m -- -- st so big -- st huge huge big huge to they ( best big59824, )itt, la.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 1887,
+        "error": null,
+        "raw_content": "1,8.611 of to\n1576 of",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 16089,
+        "error": null,
+        "raw_content": "Re look B B pass, and, of until.,.--St81 to...,,,,,.,,,,,.,,,,,,,,,,,, (. the, J...., cl cl. ex back.....,.........a.,. S.w.w...w (b a \" \" the...be. since (ere. first no to)),pl,. and bel)B....,.,.,. in (D)B ex all.\nD (B ex- ( (D B P () ( scr scr P), ( ( highest ro E Part). ( all at w st-) and to) w and o w \u2013 ( ( B ex L l. ( ( M B P st st,) g).) ( and st da ( L back back ( and a  back,, a one, R one without ( a st st st gra, st st st st,. one,.., ( a ter the, st st st st,, one, /\n ( three, st st,,,).,, spread even,, a,) no. ( and l ro p ter a -be, exceed de.,,,,,,,, ( with.)ps or,.. to to to st.\n) long ( long,)), a and back, bel ( and ret c center the ( ( res P real to st st short w / w -) /\nB from Is. ( ( Pl l l tr w + ( ( B exter R a w,gege w / M B st st ( scr e I, ) with ( B t st st  / / ,, g.,, real  back back un ten1  all men st st st st st st,...,. entall / / / / andus the thearch. g Par, M a.., M,st both /\nman is.6,)),,,, (pre, highestsembs)).),is back &, and the, (-, un / ex ( ( res mean c5 w ( more, all is is st grand ro gra. g st w w we. w3 w a, w  a l l w st w ",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15838,
+        "error": null,
+        "raw_content": "2. part with of b.in.,,,, \u2013,. a, a, a,b, b -b a b even.\nb the, not ( ( - B a, B - - -- ex -- all -- --  - --\n  -- - --) -- -- ex -- -- -- -- -\nb. - -- -- - -,.\n-- -- -- -- -- -- -- -- -- -- -- -- - --\n\n\n\n ( ( and -- -- - - -- - -- -- -- - -- -- - - -)) - --\n\n ( ( ( ( ( ( back -- -- -- -- -- -- - - - ( -- -- -- - - - -,) - -,, - - - - - -).). ( ( ( ( ( ( ( ( ( -, - -- -- - -,,,,, w - ().-) ( parad ( am a a fer ent w wil), and ed i i i st all for turn.  and i the back in for. of out for the.\n to. the. a, just a with, th the st st an the to. exceed. gster, and and. e7 un the and., at ( and ro and w% his st st st, un g and un ( g I, (anteante, a, and up st g st,,,w  and and dec, and back so massive and en topointw1all2. w , it the,point, uns so st st st l, w w w w w, and tow twoirdirds so, and is band,,,andand,,,,,,,, I, all and as so andreal7,and and and,, and, is is, and w,, double,, and allllcom, and and so st st st st so in and is so, and way and,,, le and and and and and and and and, and and and, and as and and and so, and and and and and, and and and and and and and and and and and and and and and and and and and and and and and and and and and and and and and and and, the and and and,, and as,, and\n and and,,\n\n, the,\n\n: ),,\n\n\n\n\n\n\n\n\n\n\n a <\n\n",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15617,
+        "error": null,
+        "raw_content": "2....\n....\n.,....\n....\n.....\n......\n,.......\n......\n......\n....\n\n..\n,.\n,\nem.\n6\n3 i\n\nem,\n\n\n\n\n\n\n. .\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n ( ( ( ( and (.. () (. (.). .) Man (, P\nG ( P  Ch All, p p p p, back  p  and all st.) p on we, a a a and w.) l, ,, p, s, s,  and,,, l, s, and a a,,, and a a a i st st and a a a,) ( st st, a,,, a,, with, gra, le a and,,,, a, with and, (,,,,,,, with,,.,\n the,,., a, and i,, le.,,. ( ( ()., ( ( at at to all all, on. (  a - and a the or,stand. the  &, &, with / /, e e so from re the, . the the, a, the, different and different / / or the re st the the different, old to re always back or long the (cho just fr way a and andante, always always always a always (but ( the theittetheretheremb always always always always always always always always always always and the the wcomwisewise, four br or back\n\nand,redachall entire Triboul the in and in the every a every always always always i back the thehold the every well the the a the use always always all a down the P whether than or than way the rid always big a a up in a it a O pro a back or an, a is rid the have or first the B far far J is at at ever is I or always, I and personal,oundoundppsath and and of the",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15775,
+        "error": null,
+        "raw_content": "5. not., with5 \u2013, about, in. about .,...,, by. they. . n,. (b, ( st big) R a. ( a, e, -- -- -- P Par) men men men. a., ( a ( ( P P)) ( man ( ( ( back w ( ( R real master.)  ( store the., time e ch ch) in. and all) and with,  e e  e i on e e, a b a i   back back is. and, real i st with with, e a with. ... e a. the fol ss. and best without. back ( first in, st, d to, ( a, st st st, aw st w w w w, a, gra gra gra gra gra gra gra gra gra gra gra will,,\nb a,,, no,ey,, will,,,,, the st st st st,\n back back la a,\n and,,, a is, st st st st st, the with, the w\n and l the g back back eng a and and l a w the the a, first b st e & i three ( in the, in st everything all back back un a back short v back back others a is back back car, people in the so w the the m1 half st a over st w back st the we st\n back st the everything is tr the the with with as and e st back back back st everything back in and g for, ever was or or\n with with for best a ex i i i equal the six g st u u, cl in a ever or st  i\n prime w\n, a a, w c the, w, b.  first first a an every gra\n w. (b\n g never  men always gra always or under new new god of al dec\n gra always always re he\n or back u ep w\n\n w., for ever or gra\n first u famous in u tr a a m g a g c as ever to a a w a p\n c ( i c g i l a m m m ent a  g w ent w\n b c p back first a or g g g\n gh with ro new\n u g b c i m in un\n under b a ent to ever ever back\n\n ha un \u2014 u as\n health the an m",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2209,
+        "error": null,
+        "raw_content": "big and together: pass last:. (\n",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 17254,
+        "error": null,
+        "raw_content": "8, look,. before,,.,,,,,,,,,,.,,,,.,,,.. a with. all while bel bel bel  \u2013 and R b his b, with best so and and, everywhere all st the the ch, he look, a the a \u2013 back ( and a a, back a and ( and  a, -- back, and,.\n and \u2013 is sal, the a, the the \u2013 but st80, st ( to e e e e8.) and st8,, a st \u2013 the st, back ( in l, ( st st st-)) \u201c ( back back w fr the w the \u2013back.    all the,  8 to back back b m and in\n all,  to,  the \u2013 \u2013 looking,\n and,, looking K6\n and iace rev for (  and back, ca,,\u2019,8 st l m st stps ( wongpers,\n \u201c, the, ex \u2013 \u2013 st thereMA B B from with back. a,w a, a, BestPS with1, in \n far her others- with , back in past ( use in ex -- and stPPI., in , co i past , so, la and a backW more.\n,-, in ( ( than use st st st st in  real st st st \u2013)PAand with\n a  in ( ( c all small late late ro st st st st stps  st ro w- recent big sl a late.. but gra will light big. st st st co big.  gra, ent w use fun.\npic a with \u2014,, y back with others back a ( every,  back ( wasak big co st  b in6 re - g%\nmm his ak st big acc\nO\n different gra51 st bel of / with the\nongp a3 or p  in\nallmm2 ( (gp ge826 folp6516 with126 6 wsheid b208 different R st2)pie2p \n and others the i side a of far a of of w L always ( ( him st p   he in people people ( always and st / a  half much people the2 w st others others far men men.top men ( m",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15709,
+        "error": null,
+        "raw_content": "8, par two 86\nD, con\n., P., deep e. ., gra, R.,,,,..,,.,,,.,,. . . e,,.\n\n07 e  partial R summer not (\n start er ( a ( back  B Th  B P and B e a e e e e  e e e e e e e e e e)B an B a B a always e a, a e e ( e v) they a they and e the --w/ back48 the  b e)-  - e -- and -- -- --  get -- (\n  ( ( the mound) P first realw  everything all  first the.) ( soos -- and),  second\u2014 and, a8 (8888 P and and and R),-and w1 ( ( ( ( a P Pen (  second\u043c\u04301 ( L Be L V emp Pr hel and ter e Par w  a terwwwwwwwwwwwwwwwww Par Par par  st st  Par Par\n fe a- + par, ter\nound. stan ant,.,, the,ps, and ro a, a g,\nand a ( ro l\n) and, a is /, ( ( ( R gch stan, ( ( R ( and ro (), real every the a ten ro ( (, planman men ten ten to wbert w z dream w m si roww a. gra gra dec w totalw)), the backendb1standw1stand men,-end prime old,.G five w it here w different theittittpie the different thefer notishigh st and /wment and. (G ilate ro7 ( gherehere13 af)stand.bothboth).fa and))) and sim and ( (rev3 ( scr5 review), gaz gaz3 six five six ten no one every and l l ten and g at so all g,j of gra gra here y, is a l mar mar special ( first,, ten five three gaz ( gaz out her twenty years st nine it the, mar ( the, w today b, late w the w mar mar time a late and so wap new w that you men back three three with w a ro and c c ro, so a ten two",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2091,
+        "error": null,
+        "raw_content": "%.A1A\nA, ((\n\n.., J\n\n,",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15759,
+        "error": null,
+        "raw_content": "2, p B u B B big part B ever  K (b B B B) ancient \n. (  the a  ( R ever w  R past (\naitit146-2ac -- world st st st).poan26 a all el\nw the all bel al back\n) real even j\nhe. . w, u i\nequal or (8, no, at c\n\ni world ( (\nb B st st labe.)) in~ i (\n), a a2 ( a, pass,,\ufb01 pays (\n&. all bel h,  (\nafafaf mastera b))oud bel bel. ), (\n so st (\n a)) so fall or st long. a, with bel the.. ( back people bel qu qu st four. with st (\ncom8 to, fall neg big re  in st people (\nand bel big (\n) (b867848 six long\n gross big6)  a late par in) and.\u201d\u201d  re ( qu sound. bel strong (\n bel out em - old old a on) with all\u201dold late smooth\nandalls the back tri l, eight and bel qu un\nascena double w past pay so all back\n even in of\nhe all back swe,88asholdold ster st all ma with\nandhold say all bel ter\nwas to rest with\n with with equally with6 she\n always em B whether big em33 b than st st big big2 st c\n path -- long\n bur first with,  time all in past secondold. with a in as c it a always dec c best best tolbitsbits\n equal \n in in second in past scr ( (geag) st st big -- l big b bigger back old is past in different\n village B im6\n always\n always in ( time in can h reading) second  in in., tr the b and wunderus holdpar3 tr in a  in a\n, back in screen, b i- past a at a past w in. c first a a s in w- for a in in bel \u2014 in a first to a l out  \n c under  a  r a, z- in a a  \u2014 b u u v past ever a for a the st  u big it st st u l a u u wood or",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 15913,
+        "error": null,
+        "raw_content": "b in  with (w aobag,.other a  (sub  b N st B B B B b b andBBB a BBB b m m (B aA B\nB (a st A.\nB b b\n in -- l m. st g st....... st\nB. a b.\n\n g a.. b st.\n\nan --\n B st. to back (B a b.\n\n st.B).. B B a.., st st..B (B B. B st ex.. a. (B a B,\n\n --\n Ex--\n\n . the\n\n ( -- --). and and.\n\n -- -- and\n\n a the B B \n\n\n a.\n\n ( (w -- big -- -- new F)\n\n  a Sol Sol and a i one (  Sol (\n\nA) B a and as, a -- people -- and things. a b\n\n back (\n\nG\n\n\n Back B of ( (\nS B B B\n ( ) B --\nST i of (\nG  a the e. ( in, as past -- ex and in (), a a. as, ( () grand, ( Just -- and --, late late the .\n1 -- l a w, and , l and,) ( all and. A just R ( back (\nmodel, e c new in, rest, atachage), it, just i, ro, po, ( () the l (), ent bel, in, ( () price ( P and six are R ( ( wwwww,), rest, andac ( soian work,.) wwwwst w w w).) un di16 ( ()) ( (),ac second ( () stan, work is, st so re  ( ( gra, big, all, ro all, three get eight grand ed w wbwww one ed w w four wgra.B) allach pas T adjust R st st a B a al for ar l  all.w) but. ex, un ( ( un \u2014 late go re use ( al, and a sl h al, R l ent a R al al al ro ent ent gra gra to gra)all st mar a.ww) work that is of",
+        "all_tool_calls": []
+      }
+    ]
+  ]
+}

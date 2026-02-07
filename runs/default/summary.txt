@@ -1,0 +1,224 @@
+================================================================================================================================================================
+SUMMARY (11 models)
+================================================================================================================================================================
+
+================================================================================================================================================================
+TEST PROMPTS
+================================================================================================================================================================
+  P1: What's the weather in Antwerp?
+  P2: Find all Python files in the project.
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:00:00 with alice@co.com and bob@co.com.
+  P4: I'm heading to Brussels tomorrow, anything I should know?
+  P5: What tools do you have access to? [RESTRAINT]
+  P6: What's the weather in the city where we have our next sprint review?
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap' — for next Tuesday at 3pm? I think dave@co.com and maybe susan@co.com should come
+  P8: Search for all files matching '*.py' and also tell me the weather in Paris.
+  P9: Can you write a Python script that checks the weather using an API? [RESTRAINT]
+  P10: I have a meeting with a client in Bruges next Thursday. Should I take the train or cycle? [HARD]
+  P11: Don't check the weather in Antwerp, just find me the quarterly report. [HARD]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan? [HARD]
+
+================================================================================================================================================================
+DETAILED RESULTS
+================================================================================================================================================================
+Model                Prompt Called?  Tool                 Args OK      ms
+-------------------------------------------------------------------------
+qwen2.5:3b           P1     YES      get_weather          OK         3266
+qwen2.5:3b           P2     YES      search_files         OK         1042
+qwen2.5:3b           P3     YES      schedule_meeting     OK         3288
+qwen2.5:3b           P4     YES      get_weather          OK         2391
+qwen2.5:3b           P5     no       -                    -          3451
+qwen2.5:3b           P6     no       -                    -          1856
+qwen2.5:3b           P7     YES      schedule_meeting     OK         3552
+qwen2.5:3b           P8     YES      search_files         OK         2123
+qwen2.5:3b           P9     YES      get_weather          OK         4083
+qwen2.5:3b           P10    YES      get_weather          OK         3473
+qwen2.5:3b           P11    YES      search_files         OK         1273
+qwen2.5:3b           P12    YES      get_weather          OK         3813
+-------------------------------------------------------------------------
+qwen2.5:1.5b         P1     YES      get_weather          OK         1330
+qwen2.5:1.5b         P2     YES      search_files         OK          567
+qwen2.5:1.5b         P3     YES      schedule_meeting     OK         1766
+qwen2.5:1.5b         P4     no       -                    -          1645
+qwen2.5:1.5b         P5     no       -                    -          2924
+qwen2.5:1.5b         P6     no       -                    -          1063
+qwen2.5:1.5b         P7     YES      schedule_meeting     OK         2242
+qwen2.5:1.5b         P8     YES      search_files         OK         1080
+qwen2.5:1.5b         P9     no       -                    -          8584
+qwen2.5:1.5b         P10    no       -                    -          2374
+qwen2.5:1.5b         P11    no       -                    -          1563
+qwen2.5:1.5b         P12    YES      schedule_meeting     OK         1391
+-------------------------------------------------------------------------
+qwen2.5:0.5b         P1     YES      get_weather          OK          647
+qwen2.5:0.5b         P2     YES      search_files         OK          274
+qwen2.5:0.5b         P3     YES      schedule_meeting     OK          756
+qwen2.5:0.5b         P4     no       -                    -          1543
+qwen2.5:0.5b         P5     no       -                    -           852
+qwen2.5:0.5b         P6     YES      get_weather          OK          406
+qwen2.5:0.5b         P7     YES      schedule_meeting     OK          791
+qwen2.5:0.5b         P8     YES      search_files         OK          483
+qwen2.5:0.5b         P9     no       -                    -          2776
+qwen2.5:0.5b         P10    no       -                    -          1453
+qwen2.5:0.5b         P11    YES      get_weather          OK          290
+qwen2.5:0.5b         P12    YES      get_weather          OK          303
+-------------------------------------------------------------------------
+llama3.2:3b          P1     YES      get_weather          OK         2394
+llama3.2:3b          P2     YES      search_files         OK          927
+llama3.2:3b          P3     YES      schedule_meeting     OK         2920
+llama3.2:3b          P4     YES      get_weather          OK          990
+llama3.2:3b          P5     YES      search_files         OK         2108
+llama3.2:3b          P6     YES      get_weather          OK         1123
+llama3.2:3b          P7     YES      schedule_meeting     OK         3192
+llama3.2:3b          P8     YES      search_files         OK         1775
+llama3.2:3b          P9     YES      search_files         OK          989
+llama3.2:3b          P10    YES      search_files         OK         1082
+llama3.2:3b          P11    YES      search_files         OK         1008
+llama3.2:3b          P12    YES      schedule_meeting     OK         2203
+-------------------------------------------------------------------------
+smollm2:1.7b         P1     YES      get_weather          OK         2416
+smollm2:1.7b         P2     YES      search_files         OK         1385
+smollm2:1.7b         P3     YES      schedule_meeting     OK         3510
+smollm2:1.7b         P4     no       -                    -           536
+smollm2:1.7b         P5     no       -                    -           520
+smollm2:1.7b         P6     YES      get_weather          OK         1494
+smollm2:1.7b         P7     YES      schedule_meeting     OK         3674
+smollm2:1.7b         P8     YES      search_files         OK         2094
+smollm2:1.7b         P9     no       -                    -           544
+smollm2:1.7b         P10    no       -                    -           917
+smollm2:1.7b         P11    no       -                    -           893
+smollm2:1.7b         P12    YES      get_weather          OK         1529
+-------------------------------------------------------------------------
+ministral-3:3b       P1     YES      get_weather          OK         4321
+ministral-3:3b       P2     YES      search_files         OK          817
+ministral-3:3b       P3     YES      schedule_meeting     OK         3577
+ministral-3:3b       P4     YES      get_weather          OK        19876
+ministral-3:3b       P5     no       -                    -          5922
+ministral-3:3b       P6     no       -                    -          1653
+ministral-3:3b       P7     no       -                    -          2607
+ministral-3:3b       P8     YES      search_files         OK         1465
+ministral-3:3b       P9     no       -                    -         26913
+ministral-3:3b       P10    no       -                    -         11576
+ministral-3:3b       P11    no       -                    -          2980
+ministral-3:3b       P12    no       -                    -          4179
+-------------------------------------------------------------------------
+deepseek-r1:1.5b     P1     no       -                    -          4700
+deepseek-r1:1.5b     P2     no       -                    -          7075
+deepseek-r1:1.5b     P3     no       -                    -          4684
+deepseek-r1:1.5b     P4     no       -                    -          4792
+deepseek-r1:1.5b     P5     no       -                    -          6076
+deepseek-r1:1.5b     P6     no       -                    -          3459
+deepseek-r1:1.5b     P7     no       -                    -          5627
+deepseek-r1:1.5b     P8     no       -                    -         16507
+deepseek-r1:1.5b     P9     no       -                    -          9968
+deepseek-r1:1.5b     P10    no       -                    -          4599
+deepseek-r1:1.5b     P11    no       -                    -          4357
+deepseek-r1:1.5b     P12    no       -                    -          5884
+-------------------------------------------------------------------------
+gemma3:1b            P1     no       -                    -           886
+gemma3:1b            P2     no       -                    -           626
+gemma3:1b            P3     no       -                    -          1832
+gemma3:1b            P4     no       -                    -          4564
+gemma3:1b            P5     no       -                    -           752
+gemma3:1b            P6     no       -                    -           554
+gemma3:1b            P7     no       -                    -          1442
+gemma3:1b            P8     no       -                    -           553
+gemma3:1b            P9     no       -                    -         10646
+gemma3:1b            P10    no       -                    -          1150
+gemma3:1b            P11    no       -                    -           588
+gemma3:1b            P12    no       -                    -           538
+-------------------------------------------------------------------------
+phi4-mini:3.8b       P1     YES      get_weather          OK         3115
+phi4-mini:3.8b       P2     YES      search_files         OK         1438
+phi4-mini:3.8b       P3     YES      schedule_meeting     OK         3635
+phi4-mini:3.8b       P4     YES      get_weather          OK         1732
+phi4-mini:3.8b       P5     no       -                    -          5096
+phi4-mini:3.8b       P6     no       -                    -          5211
+phi4-mini:3.8b       P7     YES      schedule_meeting     OK         3911
+phi4-mini:3.8b       P8     YES      search_files         OK         2928
+phi4-mini:3.8b       P9     no       -                    -         20483
+phi4-mini:3.8b       P10    YES      get_weather          OK         6265
+phi4-mini:3.8b       P11    no       -                    -          4658
+phi4-mini:3.8b       P12    YES      search_files         OK         7042
+-------------------------------------------------------------------------
+bitnet-3B            P1     no       -                    -         10055
+bitnet-3B            P2     no       -                    -          7819
+bitnet-3B            P3     no       -                    -         11724
+bitnet-3B            P4     no       -                    -         11755
+bitnet-3B            P5     no       -                    -         11286
+bitnet-3B            P6     no       -                    -         16087
+bitnet-3B            P7     no       -                    -          5316
+bitnet-3B            P8     no       -                    -         16203
+bitnet-3B            P9     no       -                    -         11420
+bitnet-3B            P10    no       -                    -          3004
+bitnet-3B            P11    no       -                    -         15784
+bitnet-3B            P12    no       -                    -         15891
+-------------------------------------------------------------------------
+bitnet-2B-4T         P1     YES      get_weather          OK         1343
+bitnet-2B-4T         P2     YES      search_files         OK         1260
+bitnet-2B-4T         P3     YES      schedule_meeting     OK         2405
+bitnet-2B-4T         P4     YES      search_files         OK         1457
+bitnet-2B-4T         P5     YES      available_tools      OK         1799
+bitnet-2B-4T         P6     YES      get_weather          OK         1402
+bitnet-2B-4T         P7     YES      schedule_meeting     OK         2563
+bitnet-2B-4T         P8     YES      search_files         OK         1863
+bitnet-2B-4T         P9     no       -                    -          5062
+bitnet-2B-4T         P10    no       -                    -          1780
+bitnet-2B-4T         P11    YES      search_files         OK         1687
+bitnet-2B-4T         P12    YES      schedule_meeting     OK         1816
+-------------------------------------------------------------------------
+
+================================================================================================================================================================
+SUMMARY (sorted by Agent Score)
+================================================================================================================================================================
+Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
+----------------------------------------------------------------------------------------------------------------------------------------
+phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           0        0.722       1.000        0.880    5460
+qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
+bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
+ministral-3:3b       Ollama       native-tools   FR          0.500      1.000           0        0.611        N/A*        0.800    7157
+smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
+qwen2.5:3b           Ollama       native-tools   CN          0.800      0.500           1        0.778        N/A*        0.670    2801
+llama3.2:3b          Ollama       native-tools   US          0.900      0.000           0        0.778        N/A*        0.660    1726
+qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
+deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
+gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
+bitnet-3B            bitnet.cpp   openai-compat  US/1bit     0.000      1.000           0        0.167       0.000        0.600   11362
+
+
+================================================================================================================================================================
+EDGE AGENT MINI LEADERBOARD (sub-2B models)
+================================================================================================================================================================
+#    Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
+---------------------------------------------------------------------------------------------------------------------------------------------
+1    qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
+2    bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
+3    smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
+4    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
+5    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
+6    gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
+
+
+========================================================================================================================
+HARD PROMPTS P10-P12 (which tool did each model call?)
+========================================================================================================================
+  P10: I have a meeting with a client in Bruges next Thursday. Should I take the train 
+       Expected: get_weather | Wrong: schedule_meeting
+  P11: Don't check the weather in Antwerp, just find me the quarterly report.
+       Expected: search_files | Wrong: get_weather
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting wit
+       Expected: schedule_meeting | Wrong: get_weather
+
+Model                P10 Tool             P10      P11 Tool             P11      P12 Tool             P12       Wrong
+---------------------------------------------------------------------------------------------------------------------
+qwen2.5:3b           get_weather          OK       search_files         OK       get_weather          WRONG         1
+qwen2.5:1.5b         (none)               miss     (none)               miss     schedule_meeting     OK            0
+qwen2.5:0.5b         (none)               miss     get_weather          WRONG    get_weather          WRONG         2
+llama3.2:3b          search_files         wrong?   search_files         OK       schedule_meeting     OK            1
+smollm2:1.7b         (none)               miss     (none)               miss     get_weather          WRONG         1
+ministral-3:3b       (none)               miss     (none)               miss     (none)               miss          0
+deepseek-r1:1.5b     (none)               miss     (none)               miss     (none)               miss          0
+gemma3:1b            (none)               miss     (none)               miss     (none)               miss          0
+phi4-mini:3.8b       get_weather          OK       (none)               miss     search_files         wrong?        1
+bitnet-3B            (none)               miss     (none)               miss     (none)               miss          0
+bitnet-2B-4T         (none)               miss     search_files         OK       schedule_meeting     OK            0
+

@@ -1,0 +1,606 @@
+{
+  "model_name": "bitnet-2B-4T",
+  "model_info": {
+    "name": "bitnet-2B-4T",
+    "backend": "bitnet",
+    "origin": "US/1bit",
+    "model_path": "/home/mike/projects/bitnet/models/BitNet-b1.58-2B-4T/ggml-model-i2_s.gguf"
+  },
+  "bench_version": "ea21e11afd31",
+  "num_runs": 3,
+  "timestamp": "2026-02-07T23:45:58",
+  "runs": [
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1298,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Antwerp\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search__files",
+        "valid_args": true,
+        "latency_ms": 1265,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search__files\", \"pattern\": \"python*\"}",
+        "all_tool_calls": [
+          {
+            "name": "search__files",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2400,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\", \"title\": \"Sprint Review\", \"time\": \"2025-02-10T14:00:00\", \"attendees\": [\"alice@co.com\", \"bob@co.com\"]}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1376,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Brussels\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Brussels"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "available_tools",
+        "valid_args": true,
+        "latency_ms": 1706,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"available_tools\", \"arguments\": {\"tools\": [\"get_weather\", \"search_files\", \"schedule_meeting\"]}}<tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "available_tools",
+            "arguments": {
+              "tools": [
+                "get_weather",
+                "search_files",
+                "schedule_meeting"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1421,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"New York\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "New York"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2747,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\",  \"arguments\":  {\"title\": \"Q3 Roadmap\", \"time\": \"2023-12-01T15:00:00Z\", \"attendees\": [ \"dave@co.com\", \"susan@co.com\" ] } }",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Q3 Roadmap",
+              "time": "2023-12-01T15:00:00Z",
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1770,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"pattern\": \"*.py\"}<tool_call>{\"name\": \"get_weather\", \"city\": \"Paris\"}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {},
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 4439,
+        "error": null,
+        "raw_content": "Sure, here is a simple Python script that uses the OpenWeatherMap API to check the weather for a given city:\n\n```python\nimport requests\n\ndef get_weather(city):\n    api_key = \"YOUR_API_KEY\"\n    url = \"http://api.openweathermap.org/data/2.5/weather?q={}&appid={}\".format(city, api_key)\n    response = requests.get(url)\n    return response.json()\n\ncity = \"London\"\nweather = get_weather(city)\nprint(f\"The current weather in {city} is: {weather['weather'][0]['description']}\")\n```\nPlease replace \"YOUR_API_KEY\" with your actual OpenWeatherMap API key.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 1298,
+        "error": null,
+        "raw_content": "You can search for train schedules and cycling routes in Bruges to help you decide.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1311,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"pattern\": \"quarterly report\"}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2015,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\",  \"arguments\":  {\"title\": \"Indoor meeting with Jan\", \"time\": \"8:00 AM\", \"attendees\": [\"Jan\"]}}",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Indoor meeting with Jan",
+              "time": "8:00 AM",
+              "attendees": [
+                "Jan"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1364,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Antwerp\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1298,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2403,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Sprint Review\", \"time\": \"2025-02-10T14:00:00\", \"attendees\": [\"alice@co.com\", \"bob@co.com\"]}}",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Sprint Review",
+              "time": "2025-02-10T14:00:00",
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1489,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"pattern\": \"things to do in Brussels tomorrow\"}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 1922,
+        "error": null,
+        "raw_content": "I have access to the following tools:\n1. get_Weather(city: string)\n2. search_files(pattern: string)\n3. schedule_Meeting(title: string, time: string, attendees?: string[])",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1391,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"New York\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "New York"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2586,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Q3 Roadmap\", \"time\": \"2023-10-25T15:00:00\", \"attendees\": [\"dave@co.com\", \"susan@co.com\"]}}",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Q3 Roadmap",
+              "time": "2023-10-25T15:00:00",
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1903,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 8636,
+        "error": null,
+        "raw_content": "Sure, you can use the `requests` library in Python to make HTTP requests to the OpenWeatherMap API. Here's a simple script to check the weather for a given city.\n\n```python\nimport requests\n\ndef get_weather(city):\n    url = f\"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=YOUR_API_KEY\"\n    response = requests.get(url)\n    data = response.json()\n    weather = data['weather'][0]['description']\n    temperature = data['main']['temp']\n    return weather, temperature\n\ncity = input(\"Enter the city: \")\nweather, temperature = get_weather(city)\nprint(f\"The weather in {city} is {weather}.\")\nprint(f\"The temperature is {temperature} degrees Celsius.\")\n```\n\nReplace `YOUR_API_KEY` with your actual OpenWeatherMap API key. Note that this script requires you to have the `requests` library installed. You can install it using pip if you don't already have it.\n\nHere are the steps:\n1. Import the `requests` library.\n2. Define a function `get_weather` that takes a city as input and returns the weather description and temperature.\n3. Get the city input from the user.\n4. Call the `get_weather` function with the city as the argument.\n5. Print the weather description and temperature.\n\nRemember to replace `YOUR_API_KEY` with your actual API key.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 1914,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"meeting with client in Bruges\", \"time\": \"next Thursday\", \"attendees\": [\"client\"]}}",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "meeting with client in Bruges",
+              "time": "next Thursday",
+              "attendees": [
+                "client"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 1974,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\",  \"title\": \"Find quarterly report\", \"time\": \"now\", \"attendees\": [\"your_name\"]}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 1892,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\",  \"arguments\":  {\"title\": \"Indoor meeting\", \"time\": \"8:00 AM\", \"attendees\": []}}",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Indoor meeting",
+              "time": "8:00 AM",
+              "attendees": []
+            },
+            "valid": true
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1366,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Antwerp\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1216,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"pattern\": \"*.py\"}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2411,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Sprint Review\", \"time\": \"2025-02-10T14:00:00\", \"attendees\": [\"alice@co.com\", \"bob@co.com\"]}}",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Sprint Review",
+              "time": "2025-02-10T14:00:00",
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1505,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"arguments\": {\"pattern\": \"things to know before visiting Brussels\"}}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "things to know before visiting Brussels"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "available_tools",
+        "valid_args": true,
+        "latency_ms": 1768,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"available_tools\", \"arguments\": {\"name\": \"available_tools\", \"description\": \"A list of available tools for you to use.\"}}",
+        "all_tool_calls": [
+          {
+            "name": "available_tools",
+            "arguments": {
+              "name": "available_tools",
+              "description": "A list of available tools for you to use."
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1395,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"New York\"}}",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "New York"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2357,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"schedule_meeting\", \"title\": \"Q3 Roadmap\", \"time\": \"next Tuesday at 3pm\", \"attendees\": [\"dave@co.com\", \" susan@co.com\"]}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1916,
+        "error": null,
+        "raw_content": "<tool_call>{\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2112,
+        "error": null,
+        "raw_content": "Sure, here's a simple Python script that uses the OpenWeatherMap API to get the weather for a given city:\n\n<tool_call>\n\"name\": \"python\",\n\"arguments\": {\n\"city\": \"London\"\n}\n</tool_call>",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 2127,
+        "error": null,
+        "raw_content": "I don't have the current weather for Bruges or any other specific city. I recommend checking the weather forecast for Bruges and considering other factors such as distance, time, and personal preference when deciding between taking the train or cycling.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 1776,
+        "error": null,
+        "raw_content": "I'm unable to fetch a quarterly report for you. However, you can search for files matching the pattern \"quarterly report\" in the directory of your choice.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 1541,
+        "error": null,
+        "raw_content": "No, you should not schedule an indoor meeting with Jan if the weather in Antwerp is 8\u00b0C and rainy.",
+        "all_tool_calls": []
+      }
+    ]
+  ]
+}

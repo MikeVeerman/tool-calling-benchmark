@@ -1,0 +1,686 @@
+{
+  "model_name": "llama3.2:3b",
+  "model_info": {
+    "name": "llama3.2:3b",
+    "backend": "ollama",
+    "origin": "US"
+  },
+  "bench_version": "ea21e11afd31",
+  "num_runs": 3,
+  "timestamp": "2026-02-07T23:24:15",
+  "runs": [
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 5242,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 920,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2942,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"alice@co.com\", \"bob@co.com\"]",
+              "time": "2025-02-10T14:00:00",
+              "title": "Sprint Review"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 922,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Brussels"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 927,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1125,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "sprint review location"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3137,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"dave@co.com\", \"susAN@co.com\"]",
+              "time": "2024-03-26T15:00:00",
+              "title": "Q3 Roadmap"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1775,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 990,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1069,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.txt"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1006,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.pdf"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2042,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"Jan\"]",
+              "time": "10:00:00",
+              "title": "Indoor Meeting"
+            },
+            "valid": true
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 966,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 933,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2882,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"alice@co.com\", \"bob@co.com\"]",
+              "time": "2025-02-10T14:00:00",
+              "title": "Sprint Review"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1021,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Brussels"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 931,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.txt"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1123,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "sprint review location"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3123,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"dave@co.com\", \"sushan@co.com\"]",
+              "time": "2024-03-12T15:00:00",
+              "title": "Q3 Roadmap"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1772,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 990,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "London"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1068,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1011,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.pdf"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2343,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"Jan\"]",
+              "time": "2023-12-01T10:00:00",
+              "title": "Indoor Meeting"
+            },
+            "valid": true
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 975,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 927,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2935,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"alice@co.com\", \"bob@co.com\"]",
+              "time": "2025-02-10T14:00:00",
+              "title": "Sprint Review"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1027,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Brussels"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 4467,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          },
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\" attendee1@example.com \", \" attendee2@example.com \"],",
+              "time": "2023-12-15T10:00:00+02:00",
+              "title": "Team Meeting"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1121,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "sprint review location"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3316,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"dave@co.com\", \"sus\u00e1n@co.com\"]",
+              "time": "2024-03-19T15:00:00+00:00",
+              "title": "Q3 Roadmap"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1778,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 988,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1110,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Bruges"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1008,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.pdf"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 2223,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": "[\"Jan\"]",
+              "time": "12:00:00+02:00",
+              "title": "Indoor Meeting"
+            },
+            "valid": true
+          }
+        ]
+      }
+    ]
+  ]
+}

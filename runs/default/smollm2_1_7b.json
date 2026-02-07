@@ -1,0 +1,576 @@
+{
+  "model_name": "smollm2:1.7b",
+  "model_info": {
+    "name": "smollm2:1.7b",
+    "backend": "ollama",
+    "origin": "US"
+  },
+  "bench_version": "ea21e11afd31",
+  "num_runs": 3,
+  "timestamp": "2026-02-07T23:25:14",
+  "runs": [
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 4390,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1377,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3512,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ],
+              "time": "2025-02-10T14:00:00",
+              "title": "Sprint Review"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 537,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 522,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1504,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Sprint Review City"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3631,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ],
+              "time": "2023-07-15T15:00:00Z",
+              "title": "Q3 Roadmap"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 2192,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 542,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1553,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "Bruges*"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 566,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1504,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1431,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1391,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3506,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ],
+              "time": "2025-02-10T14:00:00",
+              "title": "Sprint Review"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 536,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 517,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1494,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Sprint Review City"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3796,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ],
+              "time": "2023-10-18T15:00:00+00:00",
+              "title": "Q3 Roadmap"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1918,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          },
+          {
+            "name": "schedule_meeting",
+            "arguments": {},
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 541,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 583,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1467,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1499,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1426,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 1388,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3512,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ],
+              "time": "2025-02-10T14:00:00",
+              "title": "Sprint Review"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 535,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 521,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1483,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Sprint Review City"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 3594,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ],
+              "time": "2023-12-17T15:00:00Z",
+              "title": "Q3 Roadmap"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 2172,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 550,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 615,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 646,
+        "error": null,
+        "raw_content": "The query cannot be answered with the provided tools.",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 1583,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      }
+    ]
+  ]
+}
