@@ -95,6 +95,8 @@ The benchmark uses 12 prompts that escalate in difficulty:
 
 Everything is run 3 times. Correctness uses majority-vote aggregation; reliability uses per-run data.
 
+> **Context-window caveat:** All Ollama models were run with default settings. Ollama defaults to a 4,096-token context window (`num_ctx`), well below the training context of most models tested (e.g. 131,072 for Qwen 2.5). Our prompts are short enough that 4K is not a binding constraint here, but models may behave differently at longer context lengths or with `num_ctx` tuned to match `n_ctx_train`. Results should be read as "this model at Ollama defaults," not as the model's full capability ceiling.
+
 ## Results at a glance
 
 | Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Reliability | Multi-Tool | Agent Score |
@@ -159,6 +161,17 @@ BitNet-2B-4T retained its execution prowess: Action 0.800, Multi-Tool 1.000 (sti
 **Ministral-3:3B is accurate but slow.** Action 0.500, Restraint 1.000, Wrong Tool 0 -- but 8.3s average latency with some prompts taking 29+ seconds. The EU sovereignty candidate works safely, but you'll wait for it.
 
 For the full data -- per-run breakdowns, latency matrices, raw BitNet output samples, hard prompt analysis, failure analysis -- see [REPORT.md](REPORT.md).
+
+## The bottom line
+
+Local tool-calling agents work today on commodity hardware -- but only for simple, unambiguous tasks. Every model tested can parse "What's the weather in Antwerp?" and emit valid JSON. The gap opens when prompts require judgment: resisting a keyword trigger, noticing that information is already provided, or inferring which tool a question actually needs. No sub-4B model handled all three reliably.
+
+For anyone building a local agent pipeline, the practical implications are:
+
+- **Simple routing is solved.** If your use case is dispatching clear-cut user requests to the right tool, a 1.5B model running on CPU at ~2.5s latency is viable today.
+- **Judgment is not solved.** If your agent needs to decide *whether* to act, not just *how* to act, sub-4B models will make confident wrong calls. A safety layer -- confirmation prompts, allowlists, or a larger model in the loop for ambiguous cases -- is not optional.
+- **Conservative models are safer defaults.** In this benchmark, models that declined uncertain prompts outscored models that guessed. For autonomous agents where wrong actions have real costs, defaulting to inaction on low-confidence calls is a reasonable strategy.
+- **Test your actual prompts.** Rankings here are specific to this prompt set, this scoring formula, and these model-protocol pairs. A model that scores well on keyword-resistance may fail on other judgment dimensions not tested here. Run your own prompts before trusting any leaderboard, including this one.
 
 ## Run it yourself
 
