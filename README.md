@@ -134,17 +134,17 @@ In Round 3, four models tied at 0.929 Agent Score. P10-P12 spread them from 0.64
 
 The two leaders scored highest by *declining* uncertain prompts rather than guessing wrong. qwen2.5:1.5b missed P10 and P11 entirely (losing Action points) but avoided wrong-tool penalties. ministral-3:3b did the same. Meanwhile, models that aggressively called tools -- qwen2.5:0.5b, smollm2, phi4-mini -- all got 2 wrong tool calls, dropping them below the conservative models. In the real world, an agent that does nothing when confused is safer than one that takes the wrong action.
 
-### 3. Keyword matching is the dominant failure mode
+### 3. Keyword matching appears to be a common failure pattern
 
-Five of eight functional models called `get_weather` whenever they saw "weather" in the prompt, regardless of context. P11 says "don't check the weather" -- three models called `get_weather` anyway. P12 says "the weather is 8°C and rainy" (already known) -- five models called `get_weather` to look it up again. Sub-4B models primarily use keyword matching rather than semantic understanding for tool selection.
+Five of eight functional models called `get_weather` whenever they saw "weather" in the prompt, regardless of context. P11 says "don't check the weather" -- three models called `get_weather` anyway. P12 says "the weather is 8°C and rainy" (already known) -- five models called `get_weather` to look it up again. This is consistent with sub-4B models relying on keyword matching rather than semantic understanding for tool selection, though the sample (3 hard prompts, 3 runs) is small.
 
 ### 4. Bigger isn't always better
 
-qwen2.5:1.5b (0.800) now outperforms qwen2.5:3b (0.670). The 3B model's aggression -- calling `get_weather` when asked to write code (P9) and when weather was already given (P12) -- costs more than the 1.5B model's conservatism. The relationship between parameter count and agent quality is non-monotonic when judgment is measured.
+qwen2.5:1.5b (0.800) now outperforms qwen2.5:3b (0.670). The 3B model's aggression -- calling `get_weather` when asked to write code (P9) and when weather was already given (P12) -- costs more than the 1.5B model's conservatism. The relationship between parameter count and agent quality is non-monotonic when judgment is measured. Note: this ranking depends on the scoring formula, which gives 60% combined weight to restraint and wrong-tool-avoidance. Under an action-heavy formula, the 3B model would rank higher. The underlying observation is robust: the larger model is more aggressive and makes more wrong calls; the smaller model is more conservative and avoids them.
 
 ### 5. The 1-bit model is a strong executor with weak judgment
 
-BitNet-2B-4T retained its execution prowess: Action 0.800, Multi-Tool 1.000 (still the only model to correctly emit both tools on P8). But the judgment prompts were devastating: it called `schedule_meeting` for P10 (should be `get_weather`) and `get_weather` for P12 (weather already given). A 1.58-bit model can generate perfectly structured JSON on CPU at 2.3s average, but ternary weights aren't enough for the nuanced reasoning P10-P12 require.
+BitNet-2B-4T retained its execution prowess: Action 0.800, Multi-Tool 1.000 (still the only model to correctly emit both tools on P8). But the judgment prompts were devastating: it called `schedule_meeting` for P10 (should be `get_weather`) and `get_weather` for P12 (weather already given). A 1.58-bit model can generate perfectly structured JSON on CPU at 2.3s average, but this 2B model's judgment on P10-P12 is weak — whether that's due to the ternary weights, the parameter count, or the training data can't be isolated from this benchmark.
 
 ### Other findings
 

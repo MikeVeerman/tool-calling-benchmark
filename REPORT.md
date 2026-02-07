@@ -280,7 +280,7 @@ At 0.570 Agent Score and 2,340 ms average latency, BitNet 2B-4T's ranking droppe
 
 ### The Wrong-Tool Trap
 
-P10-P12 revealed a systematic failure mode: keyword-triggered wrong tool calls. Five of eight functional models committed at least one wrong tool call:
+P10-P12 revealed a consistent failure pattern across our 3-run sample: keyword-triggered wrong tool calls. Five of eight functional models committed at least one wrong tool call:
 
 | Model | P11 (negation) | P12 (context) | Pattern |
 |---|---|---|---|
@@ -290,7 +290,7 @@ P10-P12 revealed a systematic failure mode: keyword-triggered wrong tool calls. 
 | qwen2.5:3b | search_files OK | get_weather WRONG | Resisted P11 negation, failed P12 context |
 | bitnet-2B-4T | search_files OK | get_weather WRONG | Resisted P11 negation, failed P12 context |
 
-The pattern is clear: "weather" in the prompt triggers `get_weather` regardless of context. P11's explicit "don't check the weather" was ignored by 3 models. P12's "the weather is 8°C and rainy" (information already provided) triggered a redundant weather check in 5 models. Only qwen2.5:1.5b, ministral-3:3b, and llama3.2:3b avoided all wrong-tool penalties.
+The pattern is consistent across runs: "weather" in the prompt appears to trigger `get_weather` regardless of context. P11's explicit "don't check the weather" was ignored by 3 models. P12's "the weather is 8°C and rainy" (information already provided) triggered a redundant weather check in 5 models. Only qwen2.5:1.5b, ministral-3:3b, and llama3.2:3b avoided all wrong-tool penalties.
 
 ### Models That Failed to Call Tools
 
@@ -351,13 +351,13 @@ Average latency per model across all 12 prompts, 3 runs:
 
 2. **Not calling a tool is better than calling the wrong one.** The new scoring formula (Action × 0.4 + Restraint × 0.3 + Wrong-Tool-Avoidance × 0.3) rewards conservative models. qwen2.5:1.5b and ministral-3:3b scored highest by declining uncertain prompts rather than guessing wrong. This matches real-world agent requirements: an agent that does nothing when confused is safer than one that takes the wrong action.
 
-3. **Keyword matching is the dominant failure mode for small models.** Five of eight functional models called `get_weather` when they saw "weather" in the prompt, regardless of context. P11 ("Don't check the weather") and P12 ("The weather is 8°C and rainy") both triggered reflexive tool calls. This suggests sub-4B models primarily use keyword matching rather than semantic understanding for tool selection.
+3. **Keyword matching appears to be a common failure pattern for small models.** Five of eight functional models called `get_weather` when they saw "weather" in the prompt, regardless of context. P11 ("Don't check the weather") and P12 ("The weather is 8°C and rainy") both triggered reflexive tool calls. This is consistent with sub-4B models relying heavily on keyword matching rather than semantic understanding for tool selection, though confirming this would require a larger prompt set.
 
-4. **Bigger isn't always better within a model family.** qwen2.5:1.5b (0.800) now outperforms qwen2.5:3b (0.670). The 3B model's aggression -- calling `get_weather` for P9 and P12 -- is more costly than the 1.5B model's conservatism. The relationship between parameter count and agent quality is non-monotonic when judgment is measured.
+4. **Bigger isn't always better within a model family.** qwen2.5:1.5b (0.800) now outperforms qwen2.5:3b (0.670). The 3B model's aggression -- calling `get_weather` for P9 and P12 -- is more costly than the 1.5B model's conservatism. The relationship between parameter count and agent quality is non-monotonic when judgment is measured. This ranking is sensitive to the scoring weights: the formula gives 60% combined weight to restraint and wrong-tool-avoidance, which structurally favors conservative models. Under an action-heavy formula the 3B model would rank higher. The underlying observation — that the larger model makes more wrong calls while the smaller model declines more — is robust; which behavior is "better" depends on the deployment context.
 
 5. **Agent behavior separates into four independent capabilities.** Execution (Action), policy calibration (Restraint), judgment (Wrong Tool), and stability (Reliability). These are weakly correlated. BitNet 2B-4T has Action 0.800 but Wrong Tool 2. llama3.2:3b has Action 0.900 but Restraint 0.000. qwen2.5:1.5b has Action 0.500 but perfect on everything else. No single model excels on all four.
 
-6. **1.58-bit weights can still do structured tool calling, but judgment requires more than ternary weights.** BitNet 2B-4T retained strong execution (Action 0.800, Multi-Tool 1.000) but failed the judgment tests (Wrong Tool 2, Restraint 0.500). Ternary weights are sufficient for JSON generation and argument extraction but insufficient for the nuanced reasoning required by P10-P12.
+6. **A 2B model with 1.58-bit weights achieves strong execution but weak judgment on hard prompts.** BitNet 2B-4T retained strong execution (Action 0.800, Multi-Tool 1.000) but failed the judgment tests (Wrong Tool 2, Restraint 0.500). Whether the judgment failures stem from the ternary weight representation, the 2B parameter count, or the training data composition (which differs from the Ollama models) can't be determined from this benchmark alone — isolating the cause would require a 2B model with identical training but conventional weights as a control.
 
 7. **P12 is the single best discriminator prompt.** "The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" Only 2 of 11 models correctly called `schedule_meeting`. It requires reading the provided context (weather is known), ignoring the keyword trigger ("weather"), and identifying the actual action requested (scheduling). This tests three capabilities simultaneously: context awareness, keyword resistance, and action identification.
 
