@@ -1,0 +1,344 @@
+============================================================
+  RUN 1/3
+============================================================
+--- qwen2.5:3b ---
+  P1: What's the weather in Antwerp?... => get_weather  [7987ms]
+  P2: Find all Python files in the project.... => search_files  [1182ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [3604ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [2569ms]
+  P5: What tools do you have access to?... => (no tool)  [3158ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [1542ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [3769ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [2103ms]
+  P9: Can you write a Python script that checks the weather using ... => get_weather  [3804ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => get_weather  [4171ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => search_files  [1394ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => get_weather  [3864ms]
+
+--- qwen2.5:1.5b ---
+  P1: What's the weather in Antwerp?... => get_weather  [4498ms]
+  P2: Find all Python files in the project.... => search_files  [695ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [1986ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [1462ms]
+  P5: What tools do you have access to?... => (no tool)  [2206ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [1006ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [2072ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [1215ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [11878ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [1886ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => (no tool)  [1791ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => schedule_meeting  [1683ms]
+
+--- qwen2.5:0.5b ---
+  P1: What's the weather in Antwerp?... => get_weather  [2109ms]
+  P2: Find all Python files in the project.... => search_files  [370ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [933ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [876ms]
+  P5: What tools do you have access to?... => (no tool)  [1318ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [652ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [962ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [615ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [2996ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [1330ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => get_weather  [404ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => get_weather  [418ms]
+
+--- llama3.2:3b ---
+  P1: What's the weather in Antwerp?... => get_weather  [8130ms]
+  P2: Find all Python files in the project.... => search_files  [1049ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [3235ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => get_weather  [1157ms]
+  P5: What tools do you have access to?... => search_files  [4073ms]
+  P6: What's the weather in the city where we have our next sprint... => get_weather  [1280ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [3383ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [1927ms]
+  P9: Can you write a Python script that checks the weather using ... => get_weather  [1163ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => search_files  [1291ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => search_files  [1190ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => schedule_meeting  [2650ms]
+
+--- smollm2:1.7b ---
+  P1: What's the weather in Antwerp?... => get_weather  [5792ms]
+  P2: Find all Python files in the project.... => search_files  [1328ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [3403ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [668ms]
+  P5: What tools do you have access to?... => (no tool)  [743ms]
+  P6: What's the weather in the city where we have our next sprint... => get_weather  [1450ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [3651ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => get_weather  [2107ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [586ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [645ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => search_files  [1403ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => get_weather  [1479ms]
+
+--- ministral-3:3b ---
+  P1: What's the weather in Antwerp?... => get_weather  [18254ms]
+  P2: Find all Python files in the project.... => search_files  [959ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [3880ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => get_weather  [21954ms]
+  P5: What tools do you have access to?... => (no tool)  [7434ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [1762ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => (no tool)  [2540ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [1681ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [26208ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [10321ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => (no tool)  [4425ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => (no tool)  [3443ms]
+
+--- deepseek-r1:1.5b ---
+  P1: What's the weather in Antwerp?... => (no tool)  [10963ms]
+  P2: Find all Python files in the project.... => (no tool)  [6328ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => (no tool)  [8482ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [5253ms]
+  P5: What tools do you have access to?... => (no tool)  [8125ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [3049ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => (no tool)  [7897ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => (no tool)  [5986ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [4864ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [4270ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => (no tool)  [4838ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => (no tool)  [4794ms]
+
+--- gemma3:1b ---
+  P1: What's the weather in Antwerp?... => (no tool)  [2492ms]
+  P2: Find all Python files in the project.... => (no tool)  [1086ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => (no tool)  [940ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [7202ms]
+  P5: What tools do you have access to?... => (no tool)  [2277ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [757ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [1599ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => (no tool)  [913ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [5739ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [830ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => (no tool)  [698ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => (no tool)  [746ms]
+
+--- phi4-mini:3.8b ---
+  P1: What's the weather in Antwerp?... => get_weather  [7794ms]
+  P2: Find all Python files in the project.... => search_files  [1570ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [3786ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => get_weather  [1620ms]
+  P5: What tools do you have access to?... => (no tool)  [3017ms]
+  P6: What's the weather in the city where we have our next sprint... => get_weather  [8396ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [2970ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [3725ms]
+  P9: Can you write a Python script that checks the weather using ... => get_weather  [5051ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [15723ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => search_files  [4740ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => get_weather  [10676ms]
+
+--- bitnet-3B ---
+  P1: What's the weather in Antwerp?... => (no tool)  [17252ms]
+  P2: Find all Python files in the project.... => (no tool)  [6534ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => (no tool)  [18098ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => (no tool)  [17476ms]
+  P5: What tools do you have access to?... => (no tool)  [17891ms]
+  P6: What's the weather in the city where we have our next sprint... => (no tool)  [17811ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => (no tool)  [18221ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => (no tool)  [18160ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [6142ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => (no tool)  [18182ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => (no tool)  [18069ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => (no tool)  [18189ms]
+
+--- bitnet-2B-4T ---
+  P1: What's the weather in Antwerp?... => get_weather  [1904ms]
+  P2: Find all Python files in the project.... => search_files  [1604ms]
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:... => schedule_meeting  [2875ms]
+  P4: I'm heading to Brussels tomorrow, anything I should know?... => search_files  [1802ms]
+  P5: What tools do you have access to?... => list_of_tools  [2432ms]
+  P6: What's the weather in the city where we have our next sprint... => get_weather  [1828ms]
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap'... => schedule_meeting  [2944ms]
+  P8: Search for all files matching '*.py' and also tell me the we... => search_files  [2314ms]
+  P9: Can you write a Python script that checks the weather using ... => (no tool)  [6250ms]
+  P10: I have a meeting with a client in Bruges next Thursday. Shou... => schedule_meeting  [2606ms]
+  P11: Don't check the weather in Antwerp, just find me the quarter... => search_files  [1847ms]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule a... => get_weather  [1844ms]
+
+
+========================================================================================================================
+RUN 1 DETAILS
+========================================================================================================================
+
+================================================================================================================================================================
+TEST PROMPTS
+================================================================================================================================================================
+  P1: What's the weather in Antwerp?
+  P2: Find all Python files in the project.
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:00:00 with alice@co.com and bob@co.com.
+  P4: I'm heading to Brussels tomorrow, anything I should know?
+  P5: What tools do you have access to? [RESTRAINT]
+  P6: What's the weather in the city where we have our next sprint review?
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap' — for next Tuesday at 3pm? I think dave@co.com and maybe susan@co.com should come
+  P8: Search for all files matching '*.py' and also tell me the weather in Paris.
+  P9: Can you write a Python script that checks the weather using an API? [RESTRAINT]
+  P10: I have a meeting with a client in Bruges next Thursday. Should I take the train or cycle? [HARD]
+  P11: Don't check the weather in Antwerp, just find me the quarterly report. [HARD]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan? [HARD]
+
+================================================================================================================================================================
+DETAILED RESULTS
+================================================================================================================================================================
+Model                Prompt Called?  Tool                 Args OK      ms
+-------------------------------------------------------------------------
+qwen2.5:3b           P1     YES      get_weather          OK         7987
+qwen2.5:3b           P2     YES      search_files         OK         1182
+qwen2.5:3b           P3     YES      schedule_meeting     OK         3604
+qwen2.5:3b           P4     no       -                    -          2569
+qwen2.5:3b           P5     no       -                    -          3158
+qwen2.5:3b           P6     no       -                    -          1542
+qwen2.5:3b           P7     YES      schedule_meeting     OK         3769
+qwen2.5:3b           P8     YES      search_files         OK         2103
+qwen2.5:3b           P9     YES      get_weather          OK         3804
+qwen2.5:3b           P10    YES      get_weather          OK         4171
+qwen2.5:3b           P11    YES      search_files         OK         1394
+qwen2.5:3b           P12    YES      get_weather          OK         3864
+-------------------------------------------------------------------------
+qwen2.5:1.5b         P1     YES      get_weather          OK         4498
+qwen2.5:1.5b         P2     YES      search_files         OK          695
+qwen2.5:1.5b         P3     YES      schedule_meeting     OK         1986
+qwen2.5:1.5b         P4     no       -                    -          1462
+qwen2.5:1.5b         P5     no       -                    -          2206
+qwen2.5:1.5b         P6     no       -                    -          1006
+qwen2.5:1.5b         P7     YES      schedule_meeting     OK         2072
+qwen2.5:1.5b         P8     YES      search_files         OK         1215
+qwen2.5:1.5b         P9     no       -                    -         11878
+qwen2.5:1.5b         P10    no       -                    -          1886
+qwen2.5:1.5b         P11    no       -                    -          1791
+qwen2.5:1.5b         P12    YES      schedule_meeting     OK         1683
+-------------------------------------------------------------------------
+qwen2.5:0.5b         P1     YES      get_weather          OK         2109
+qwen2.5:0.5b         P2     YES      search_files         OK          370
+qwen2.5:0.5b         P3     YES      schedule_meeting     OK          933
+qwen2.5:0.5b         P4     no       -                    -           876
+qwen2.5:0.5b         P5     no       -                    -          1318
+qwen2.5:0.5b         P6     no       -                    -           652
+qwen2.5:0.5b         P7     YES      schedule_meeting     OK          962
+qwen2.5:0.5b         P8     YES      search_files         OK          615
+qwen2.5:0.5b         P9     no       -                    -          2996
+qwen2.5:0.5b         P10    no       -                    -          1330
+qwen2.5:0.5b         P11    YES      get_weather          OK          404
+qwen2.5:0.5b         P12    YES      get_weather          OK          418
+-------------------------------------------------------------------------
+llama3.2:3b          P1     YES      get_weather          OK         8130
+llama3.2:3b          P2     YES      search_files         OK         1049
+llama3.2:3b          P3     YES      schedule_meeting     OK         3235
+llama3.2:3b          P4     YES      get_weather          OK         1157
+llama3.2:3b          P5     YES      search_files         OK         4073
+llama3.2:3b          P6     YES      get_weather          OK         1280
+llama3.2:3b          P7     YES      schedule_meeting     OK         3383
+llama3.2:3b          P8     YES      search_files         OK         1927
+llama3.2:3b          P9     YES      get_weather          OK         1163
+llama3.2:3b          P10    YES      search_files         OK         1291
+llama3.2:3b          P11    YES      search_files         OK         1190
+llama3.2:3b          P12    YES      schedule_meeting     OK         2650
+-------------------------------------------------------------------------
+smollm2:1.7b         P1     YES      get_weather          OK         5792
+smollm2:1.7b         P2     YES      search_files         OK         1328
+smollm2:1.7b         P3     YES      schedule_meeting     OK         3403
+smollm2:1.7b         P4     no       -                    -           668
+smollm2:1.7b         P5     no       -                    -           743
+smollm2:1.7b         P6     YES      get_weather          OK         1450
+smollm2:1.7b         P7     YES      schedule_meeting     OK         3651
+smollm2:1.7b         P8     YES      get_weather          OK         2107
+smollm2:1.7b         P9     no       -                    -           586
+smollm2:1.7b         P10    no       -                    -           645
+smollm2:1.7b         P11    YES      search_files         OK         1403
+smollm2:1.7b         P12    YES      get_weather          OK         1479
+-------------------------------------------------------------------------
+ministral-3:3b       P1     YES      get_weather          OK        18254
+ministral-3:3b       P2     YES      search_files         OK          959
+ministral-3:3b       P3     YES      schedule_meeting     OK         3880
+ministral-3:3b       P4     YES      get_weather          OK        21954
+ministral-3:3b       P5     no       -                    -          7434
+ministral-3:3b       P6     no       -                    -          1762
+ministral-3:3b       P7     no       -                    -          2540
+ministral-3:3b       P8     YES      search_files         OK         1681
+ministral-3:3b       P9     no       -                    -         26208
+ministral-3:3b       P10    no       -                    -         10321
+ministral-3:3b       P11    no       -                    -          4425
+ministral-3:3b       P12    no       -                    -          3443
+-------------------------------------------------------------------------
+deepseek-r1:1.5b     P1     no       -                    -         10963
+deepseek-r1:1.5b     P2     no       -                    -          6328
+deepseek-r1:1.5b     P3     no       -                    -          8482
+deepseek-r1:1.5b     P4     no       -                    -          5253
+deepseek-r1:1.5b     P5     no       -                    -          8125
+deepseek-r1:1.5b     P6     no       -                    -          3049
+deepseek-r1:1.5b     P7     no       -                    -          7897
+deepseek-r1:1.5b     P8     no       -                    -          5986
+deepseek-r1:1.5b     P9     no       -                    -          4864
+deepseek-r1:1.5b     P10    no       -                    -          4270
+deepseek-r1:1.5b     P11    no       -                    -          4838
+deepseek-r1:1.5b     P12    no       -                    -          4794
+-------------------------------------------------------------------------
+gemma3:1b            P1     no       -                    -          2492
+gemma3:1b            P2     no       -                    -          1086
+gemma3:1b            P3     no       -                    -           940
+gemma3:1b            P4     no       -                    -          7202
+gemma3:1b            P5     no       -                    -          2277
+gemma3:1b            P6     no       -                    -           757
+gemma3:1b            P7     YES      schedule_meeting     OK         1599
+gemma3:1b            P8     no       -                    -           913
+gemma3:1b            P9     no       -                    -          5739
+gemma3:1b            P10    no       -                    -           830
+gemma3:1b            P11    no       -                    -           698
+gemma3:1b            P12    no       -                    -           746
+-------------------------------------------------------------------------
+phi4-mini:3.8b       P1     YES      get_weather          OK         7794
+phi4-mini:3.8b       P2     YES      search_files         OK         1570
+phi4-mini:3.8b       P3     YES      schedule_meeting     OK         3786
+phi4-mini:3.8b       P4     YES      get_weather          OK         1620
+phi4-mini:3.8b       P5     no       -                    -          3017
+phi4-mini:3.8b       P6     YES      get_weather          OK         8396
+phi4-mini:3.8b       P7     YES      schedule_meeting     OK         2970
+phi4-mini:3.8b       P8     YES      search_files         OK         3725
+phi4-mini:3.8b       P9     YES      get_weather          OK         5051
+phi4-mini:3.8b       P10    no       -                    -         15723
+phi4-mini:3.8b       P11    YES      search_files         OK         4740
+phi4-mini:3.8b       P12    YES      get_weather          OK        10676
+-------------------------------------------------------------------------
+bitnet-3B            P1     no       -                    -         17252
+bitnet-3B            P2     no       -                    -          6534
+bitnet-3B            P3     no       -                    -         18098
+bitnet-3B            P4     no       -                    -         17476
+bitnet-3B            P5     no       -                    -         17891
+bitnet-3B            P6     no       -                    -         17811
+bitnet-3B            P7     no       -                    -         18221
+bitnet-3B            P8     no       -                    -         18160
+bitnet-3B            P9     no       -                    -          6142
+bitnet-3B            P10    no       -                    -         18182
+bitnet-3B            P11    no       -                    -         18069
+bitnet-3B            P12    no       -                    -         18189
+-------------------------------------------------------------------------
+bitnet-2B-4T         P1     YES      get_weather          OK         1904
+bitnet-2B-4T         P2     YES      search_files         OK         1604
+bitnet-2B-4T         P3     YES      schedule_meeting     OK         2875
+bitnet-2B-4T         P4     YES      search_files         OK         1802
+bitnet-2B-4T         P5     YES      list_of_tools        OK         2432
+bitnet-2B-4T         P6     YES      get_weather          OK         1828
+bitnet-2B-4T         P7     YES      schedule_meeting     OK         2944
+bitnet-2B-4T         P8     YES      search_files         OK         2314
+bitnet-2B-4T         P9     no       -                    -          6250
+bitnet-2B-4T         P10    YES      schedule_meeting     OK         2606
+bitnet-2B-4T         P11    YES      search_files         OK         1847
+bitnet-2B-4T         P12    YES      get_weather          OK         1844
+-------------------------------------------------------------------------
+
+================================================================================================================================================================
+SUMMARY (sorted by Agent Score)
+================================================================================================================================================================
+Model                Origin    Tool calls   Valid args     Avg ms  Restraint  Agent Score
+-----------------------------------------------------------------------------------------
+qwen2.5:1.5b         CN          6/12         6/6           2698   2/2         0.840
+ministral-3:3b       FR          5/12         5/5           8572   2/2         0.800
+smollm2:1.7b         US          8/12         8/8           1938   2/2         0.780
+phi4-mini:3.8b       US         10/12        10/10          5756   1/2         0.670
+llama3.2:3b          US         12/12        12/12          2544   0/2         0.660
+gemma3:1b            US          1/12         1/1           2107   2/2         0.640
+qwen2.5:3b           CN          9/12         9/9           3262   1/2         0.630
+qwen2.5:0.5b         CN          7/12         7/7           1082   2/2         0.600
+deepseek-r1:1.5b     CN          0/12         0/0           6237   2/2         0.600
+bitnet-3B            US/1bit     0/12         0/0          16002   2/2         0.600
+bitnet-2B-4T         US/1bit    11/12        11/11          2521   1/2         0.570
+

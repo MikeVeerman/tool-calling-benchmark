@@ -1,7 +1,7 @@
-# Local LLM Tool-Calling Benchmark Report (Round 3)
+# Local LLM Tool-Calling Benchmark Report (Round 4)
 
-**Date:** 2026-02-06
-**Runs:** 3 per model/prompt combination (297 total inference calls)
+**Date:** 2026-02-07
+**Runs:** 3 per model/prompt combination (396 total inference calls)
 **Hardware:** CPU-only (no GPU acceleration)
 
 ## Machine Specs
@@ -43,9 +43,9 @@ Three inference backends were used:
 - **Ollama (raw prompt):** Models that don't support Ollama's native tool API. Instead, a system prompt embedding the tool schemas is sent via `ollama.chat()` without `tools=`, and `<tool_call>{"name": ..., "arguments": ...}</tool_call>` tags are parsed from the plain-text response.
 - **BitNet (llama-server):** Microsoft's bitnet.cpp `llama-server` running as a subprocess on port 8921. Same raw-prompt-and-parse approach as Ollama raw, but using the OpenAI-compatible `/v1/chat/completions` endpoint.
 
-deepseek-r1:1.5b and gemma3:1b were initially tested with Ollama's native tool API but errored on every call (these models don't support it). phi4-mini:3.8b technically worked with native tools but only produced 1/9 tool calls -- switching to the raw prompt backend brought it to 6/9. All three were moved to the raw prompt backend for the final benchmark.
+deepseek-r1:1.5b and gemma3:1b were initially tested with Ollama's native tool API but errored on every call (these models don't support it). phi4-mini:3.8b technically worked with native tools but produced far fewer tool calls -- switching to the raw prompt backend dramatically improved its output. All three were moved to the raw prompt backend for the final benchmark.
 
-> **Methodology note:** This benchmark evaluates model-protocol pairs rather than models in isolation. Tool-calling behavior is strongly dependent on the interaction contract (native API vs. raw prompt vs. OpenAI-compatible endpoint). phi4-mini going from 0.571 to 0.929 by switching backends is the clearest example: same weights, different interface, different score.
+> **Methodology note:** This benchmark evaluates model-protocol pairs rather than models in isolation. Tool-calling behavior is strongly dependent on the interaction contract (native API vs. raw prompt vs. OpenAI-compatible endpoint). The backend/mode columns in the leaderboard exist to make this dependency explicit.
 
 ## Tools Available
 
@@ -68,109 +68,141 @@ Three mock tools were defined and provided to all models:
 | P7 | "Oh hey, could you maybe like set up a meeting -- 'Q3 Roadmap' -- for next Tuesday at 3pm? I think dave@co.com and maybe susan@co.com should come" | Hard (noisy) | Call `schedule_meeting(...)`, extract params from noise |
 | P8 | "Search for all files matching '*.py' and also tell me the weather in Paris." | Hard (dual-tool) | Call `search_files` and/or `get_weather` |
 | P9 | "Can you write a Python script that checks the weather using an API?" | **Restraint** | Should NOT call any tool (code-writing request) |
+| P10 | "I have a meeting with a client in Bruges next Thursday. Should I take the train or cycle?" | **Hard (implicit reasoning)** | Call `get_weather("Bruges")` -- transport choice depends on weather |
+| P11 | "Don't check the weather in Antwerp, just find me the quarterly report." | **Hard (negation)** | Call `search_files("quarterly report")` -- explicit negation of weather |
+| P12 | "The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" | **Hard (context awareness)** | Call `schedule_meeting(...)` -- weather already provided, action needed |
+
+### What Changed from Round 3
+
+Round 4 adds three "hard" prompts (P10-P12) designed to test whether models can pick the *right* tool when misleading keywords are present. These prompts broke the Round 3 plateau where four models tied at 0.929.
+
+- **P10** mentions a meeting but the correct tool is `get_weather` (transport choice depends on weather). Calling `schedule_meeting` is the worst wrong answer -- the meeting already exists.
+- **P11** explicitly says "don't check the weather" but mentions Antwerp. The correct tool is `search_files`. Calling `get_weather` means the model ignored a direct instruction.
+- **P12** provides the weather in the prompt itself. The correct action is `schedule_meeting`. Calling `get_weather` means the model didn't read the context.
 
 ## Scoring
 
-Four metrics capture independent capabilities:
+Five metrics capture independent capabilities:
 
-- **Action Score** = correct_tool_calls / 7. How many of the 7 actionable prompts (P1, P2, P3, P4, P6, P7, P8) produced valid tool calls with parseable arguments. Measures execution capability.
+- **Action Score** = correct_tool_calls / 10. How many of the 10 actionable prompts (P1-P4, P6-P8, P10-P12) produced valid tool calls with the correct tool. For P10-P12, the tool must match the expected tool to count as correct. Measures execution capability.
 - **Restraint Score** = correct_refusals / 2. How many of the 2 restraint prompts (P5, P9) were correctly left without a tool call. Measures policy calibration.
-- **Reliability** = average per-prompt (successful_runs / 3). Computed from per-run data before majority voting. "Successful" = valid_args for actionable prompts, not-tool-called for restraint prompts. Measures deployability.
+- **Wrong Tool** = count of specifically-bad tool calls on P10-P12. Each hard prompt has a "wrong tool" that is worse than not calling any tool at all (e.g., calling `get_weather` on P11 when explicitly told "don't check the weather"). Range: 0-3. Measures judgment under misleading context.
+- **Reliability** = average per-prompt (successful_runs / 3). Computed from per-run data before majority voting. For P10-P12, "successful" means calling the correct expected tool. Measures deployability.
 - **Multi-Tool Accuracy** = correct_tools / required_tools for P8 only. P8 requires both `search_files` and `get_weather`. Ollama's native tool API returns only the first tool call, so this metric is N/A for native-tools models.
-- **Agent Score** = Action x 0.5 + Restraint x 0.5. A derived composite, retained for backward compatibility but no longer the primary metric.
+- **Agent Score** = Action × 0.4 + Restraint × 0.3 + Wrong-Tool-Avoidance × 0.3. Where Wrong-Tool-Avoidance = (3 - wrong_tool_count) / 3. The three-part composite weights execution (40%), policy calibration (30%), and judgment (30%).
 
-> An agent requires both policy calibration (restraint) and execution capability (action). These are independent skills and should not be averaged into a single number without understanding what each component contributes.
+> The Agent Score formula changed from Round 3's `Action × 0.5 + Restraint × 0.5` to incorporate wrong-tool penalties. A model that calls tools aggressively but picks the wrong ones is now penalized. A model that conservatively declines uncertain prompts is rewarded for avoiding wrong tools.
 
 > Majority voting reflects correctness. Reliability reflects deployability. Agents fail in production from rare errors, not average ones.
 
 Results are averaged across 3 runs using majority voting (tool_called if called in >50% of runs, tool_name by most-common, valid_args if any run produced valid args). Reliability is computed before majority voting to capture per-run instability.
 
-**Note on P4:** P4 ("I'm heading to Brussels tomorrow, anything I should know?") is ambiguous. Calling `get_weather("Brussels")` is reasonable, and declining is also reasonable. Both are scored as correct in the Action Score (P4 is in `TOOL_CALL_INDICES` for consistency with the original benchmark, so calling a tool is the "correct" action, but declining should not be interpreted as a failure of understanding).
+**Note on P4:** P4 ("I'm heading to Brussels tomorrow, anything I should know?") is ambiguous. Calling `get_weather("Brussels")` is reasonable, and declining is also reasonable. Calling any tool with valid arguments counts as correct for the Action Score.
 
 ## Results
 
 ### Full Leaderboard (sorted by Agent Score)
 
-| Rank | Model | Backend | Mode | Origin | Action | Restraint | Reliability | Multi-Tool | Agent Score |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | qwen2.5:3b | Ollama | native-tools | CN | 0.857 | 1.000 | 0.815 | N/A* | **0.929** |
-| 1 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.857 | 1.000 | 0.852 | N/A* | **0.929** |
-| 1 | smollm2:1.7b | Ollama | native-tools | US | 0.857 | 1.000 | 0.889 | N/A* | **0.929** |
-| 1 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.857 | 1.000 | 0.926 | N/A&dagger; | **0.929** |
-| 5 | ministral-3:3b | Ollama | native-tools | FR | 0.714 | 1.000 | 0.778 | N/A* | **0.857** |
-| 6 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.571 | 1.000 | 0.704 | N/A* | **0.786** |
-| 7 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 1.000 | 0.500 | 0.926 | 1.000 | **0.750** |
-| 8 | llama3.2:3b | Ollama | native-tools | US | 1.000 | 0.000 | 0.778 | N/A* | 0.500 |
-| 8 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0.222 | N/A&dagger; | 0.500 |
-| 8 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0.259 | N/A&dagger; | 0.500 |
-| 8 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0.222 | N/A&dagger; | 0.500 |
+| Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Reliability | Multi-Tool | Agent Score |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.500 | 1.000 | 0 | 0.611 | N/A* | **0.800** |
+| 1 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.583 | N/A* | **0.800** |
+| 3 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 2 | 0.750 | 0.500 | **0.680** |
+| 4 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.722 | N/A* | 0.670 |
+| 5 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.722 | N/A* | 0.660 |
+| 6 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.667 | N/A* | 0.640 |
+| 6 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.694 | N/A* | 0.640 |
+| 8 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 |
+| 8 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.194 | 0.000 | 0.600 |
+| 8 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 |
+| 11 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.800 | 0.500 | 2 | 0.750 | 1.000 | 0.570 |
 
-\*Ollama native-tools API returns only the first tool call. &dagger;Raw output not preserved from original run.
+\*Ollama native-tools API returns only the first tool call.
 
 ### Edge Agent Mini Leaderboard (sub-2B models)
 
-| Rank | Model | Backend | Mode | Origin | Action | Restraint | Reliability | Multi-Tool | Agent Score |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.857 | 1.000 | 0.852 | N/A* | **0.929** |
-| 2 | smollm2:1.7b | Ollama | native-tools | US | 0.857 | 1.000 | 0.889 | N/A* | **0.929** |
-| 3 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.571 | 1.000 | 0.704 | N/A* | 0.786 |
-| 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 1.000 | 0.500 | 0.926 | 1.000 | 0.750 |
-| 5 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0.222 | N/A&dagger; | 0.500 |
-| 6 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0.259 | N/A&dagger; | 0.500 |
+| Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Reliability | Multi-Tool | Agent Score |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.500 | 1.000 | 0 | 0.611 | N/A* | **0.800** |
+| 2 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.667 | N/A* | 0.640 |
+| 2 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.694 | N/A* | 0.640 |
+| 4 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 |
+| 4 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.194 | 0.000 | 0.600 |
+| 6 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.800 | 0.500 | 2 | 0.750 | 1.000 | 0.570 |
+
+### Hard Prompts P10-P12 (detailed)
+
+| Model | P10 Tool | P10 | P11 Tool | P11 | P12 Tool | P12 | Wrong |
+|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | get_weather | OK | search_files | OK | get_weather | WRONG | 1 |
+| qwen2.5:1.5b | (none) | miss | (none) | miss | schedule_meeting | OK | 0 |
+| qwen2.5:0.5b | (none) | miss | get_weather | WRONG | get_weather | WRONG | 2 |
+| llama3.2:3b | search_files | wrong? | search_files | OK | schedule_meeting | OK | 0 |
+| smollm2:1.7b | (none) | miss | get_weather | WRONG | get_weather | WRONG | 2 |
+| ministral-3:3b | (none) | miss | (none) | miss | (none) | miss | 0 |
+| deepseek-r1:1.5b | (none) | miss | (none) | miss | (none) | miss | 0 |
+| gemma3:1b | (none) | miss | (none) | miss | (none) | miss | 0 |
+| phi4-mini:3.8b | (none) | miss | get_weather | WRONG | get_weather | WRONG | 2 |
+| bitnet-3B | (none) | miss | (none) | miss | (none) | miss | 0 |
+| bitnet-2B-4T | schedule_meeting | WRONG | search_files | OK | get_weather | WRONG | 2 |
+
+**Legend:** "OK" = correct tool. "WRONG" = called the specifically-bad tool (penalized in Wrong Tool metric). "wrong?" = wrong tool but not the worst choice (not penalized). "miss" = didn't call any tool (no penalty, but no Action credit).
 
 ## Model-by-Model Analysis
 
-### Tier 1: The 0.929 Club
+### Tier 1: Conservative and Correct (Agent Score 0.800)
 
-**qwen2.5:0.5b (CN, 0.5B params) -- The Efficiency Champion**
+**qwen2.5:1.5b (CN, 1.5B params) -- The Conservative Winner**
 
-At just 500 million parameters, this is the smallest model in the benchmark and the fastest by far (1,351 ms average). It nailed all three easy prompts, handled the noisy P7, and correctly identified both restraint prompts. It declined the ambiguous P4 and hard P6 -- conservative but never wrong. Perfect restraint, perfect accuracy on what it attempted. The fact that a model this small can reliably do structured tool-calling at sub-1.5s latency is remarkable.
+The most cautious model in the benchmark rose from 6th place (Round 3) to joint 1st. Perfect restraint (both P5 and P9 declined), zero wrong tool calls, and the only model to correctly call `schedule_meeting` on P12 (the hardest prompt). It declined P10 and P11 rather than guessing -- losing Action points but avoiding wrong-tool penalties. This is the ideal agent behavior: when uncertain, don't act. At 2,582 ms average latency, it's practical for real deployment. The trade-off is clear: Action 0.500 means it only handles half the actionable prompts, but everything it does attempt is correct.
 
-**qwen2.5:3b (CN, 3B params) -- The Reliable Workhorse**
+**ministral-3:3b (FR, 3B params) -- EU Sovereignty Candidate, Now a Leader**
 
-Same Agent Score as its 0.5B sibling but at 3x the latency. It gained the ambiguous P4 (calling get_weather for Brussels) which the smaller Qwen models declined. Lost P9 restraint in 2 of 3 runs (calling get_weather when asked to write code) but majority-vote saved it. Despite a 0.929 Agent Score, reliability of 0.815 reveals hidden instability -- P9 restraint failed in 2 of 3 runs, masked by majority voting. This is the lowest reliability of any model in the 0.929 club.
+Mistral's 3B edge model matched qwen2.5:1.5b's Agent Score through the same strategy: perfect restraint, zero wrong tools, conservative declining. It passed P1-P3 and P4 (calling get_weather for Brussels), and P8 (search_files). It missed P6 (unknown city), P7 (noisy params), and all three hard prompts. Its conservatism on P10-P12 -- declining rather than guessing -- is exactly what kept its score high. The cost: 8,252 ms average latency, with P4 and P9 taking 19-33 seconds as the model generates long text responses before declining.
 
-**smollm2:1.7b (US, 1.7B params) -- The HuggingFace Surprise**
+### Tier 2: Capable but Penalized (Agent Score 0.660-0.680)
 
-HuggingFace's SmolLM2 continues to punch above its weight class. Perfect restraint (both P5 and P9 declined instantly in ~600ms -- the fastest "no" in the benchmark). Called all the right tools on easy and medium prompts. Only weakness: occasionally called the wrong tool on P8 (schedule_meeting instead of search_files in Run 2). At 2,437 ms average, it's a solid middle-ground between Qwen 0.5b's speed and the 3B models' capability.
+**phi4-mini:3.8b (US, 3.8B params) -- Execution Meets Bad Judgment**
 
-**phi4-mini:3.8b (US, 3.8B params) -- The Redeemed Giant**
+phi4-mini has the third-highest Action Score (0.700) and perfect Restraint, but 2 wrong tool calls on P11 and P12 drag it to 0.680. It called `get_weather` on P11 despite being told "don't check the weather" -- a direct negation failure. It called `get_weather` on P12 when the weather was already provided in the prompt -- a context-reading failure. These are the same keyword-matching failures that affect qwen2.5:0.5b and smollm2:1.7b. At 3.8B parameters, phi4-mini should be the most capable model in the benchmark, but its hard-prompt judgment is no better than models one-seventh its size. Reliability of 0.750 (down from 0.926 in Round 3) confirms the hard prompts exposed genuine weaknesses.
 
-phi4-mini has the most dramatic story in this benchmark. In the initial run using Ollama's native tool API, it scored a dismal 1/9 tool calls (0.571 Agent Score). It understood prompts but refused to use the API. Switching to the raw prompt backend (system prompt + `<tool_call>` tag parsing) unlocked its full potential: 6/6 valid tool calls, perfect restraint, 0.929 Agent Score. Microsoft's reasoning training clearly works -- when given the right interface. Reliability of 0.926 makes it the most consistent of the four 0.929-scoring models -- only P6 failed in one run (Run 3). Caveat: it's the slowest of the four leaders (5,723 ms average) and its P9 latency is wildly inconsistent (30s in Run 1, 4s in Run 2, 11s in Run 3).
+**qwen2.5:3b (CN, 3B params) -- The Fallen Leader**
 
-### Tier 2: Strong but Flawed
+The most dramatic fall from Round 3. Joint 1st (0.929) to 4th (0.670). Two problems: it failed P9 restraint (calling `get_weather` when asked to write code -- keyword-triggered by "weather" in the prompt), and it called `get_weather` on P12 (weather already provided). The P9 failure drops Restraint to 0.500; the P12 failure adds 1 wrong tool. Combined: 0.800 × 0.4 + 0.500 × 0.3 + 0.667 × 0.3 = 0.670. qwen2.5:3b is now outperformed by its 1.5B sibling, which avoided both mistakes through conservatism. The lesson: being trigger-happy on tools is more costly under the new scoring than being conservative.
 
-**ministral-3:3b (FR, 3B params) -- EU Sovereignty Candidate, Slow but Accurate**
+**llama3.2:3b (US, 3B params) -- Tool-Call Maximalist, Redeemed by Judgment**
 
-Mistral's 3B edge model is accurate (5/5 valid args, perfect restraint) but painfully slow. Average latency of 10,571 ms, with P4 and P9 taking 27-33 seconds each. The latency spikes happen on prompts where the model thinks hard before declining (P4 ambiguous, P9 restraint) -- it generates long text responses rather than quick refusals. When it does call tools, args are always valid. It missed P6 (multi-step reasoning) and P7 (noisy parameter extraction) -- the two hardest prompts. Functional for edge deployment where latency isn't critical.
+Still calls a tool on every prompt (0/2 restraint), but the hard prompts revealed a surprise: llama3.2 has decent tool selection. It correctly called `search_files` for P11 ("find the quarterly report") and `schedule_meeting` for P12 ("schedule an indoor meeting"). For P10 it called `search_files` -- wrong, but not `schedule_meeting` (the penalized wrong tool), so no Wrong Tool penalty. Zero restraint still caps its score, but 0.660 is a meaningful improvement over Round 3's 0.500, thanks to the new formula giving 0.3 weight to wrong-tool-avoidance (where it scored perfectly). Its Action Score of 0.900 is the highest in the benchmark.
 
-**qwen2.5:1.5b (CN, 1.5B params) -- The Conservative Middle Child**
+### Tier 3: Keyword-Trapped (Agent Score 0.640)
 
-Scores lower than both its smaller (0.5b) and larger (3b) siblings. Perfect restraint but only 4/9 tool calls -- it declined the ambiguous P4, the hard P6, and the noisy P7 in 2 of 3 runs. It's the most cautious model in the benchmark: when unsure, it always declines rather than guessing. This is arguably the safest behavior for a production agent, but it costs accuracy points.
+**qwen2.5:0.5b (CN, 0.5B params) -- Speed Champion, Judgment Victim**
 
-### Tier 3: Strong Actuators, Weak Policy
+The smallest and fastest model (874 ms average) dropped from joint 1st (Round 3) to 6th. It called `get_weather` on both P11 (told not to) and P12 (weather already given) -- pure keyword matching on "weather." At 0.5B parameters, the model lacks the capacity to parse negation or notice that information is already provided. Its Action Score (0.600) reflects both the P10-P12 misses and the wrong tool calls. Still remarkable for basic tool calling at sub-1s latency, but the hard prompts exposed a hard capability floor.
 
-**bitnet-2B-4T (US/1bit, 2B params) -- The BitNet Breakthrough**
+**smollm2:1.7b (US, 1.7B params) -- Same Keyword Trap, Bigger Model**
 
-See dedicated BitNet section below. Recharacterized: BitNet 2B-4T is a strong actuator with weak policy calibration. Action Score 1.000 (perfect -- every actionable prompt produced a valid tool call), Restraint Score 0.500 (only P9 passed), Reliability 0.926 (only P5 failed across runs), Multi-Tool Accuracy 1.000 (the only model to correctly emit both tools on P8). Its weakness is judgment, not execution.
+Identical failure pattern to qwen2.5:0.5b: called `get_weather` on P11 and P12, both keyword-triggered. At 1.7B parameters it should do better than the 0.5B Qwen, but the hard prompts show the same weakness. Perfect restraint on P5 and P9 (fast "no" in ~600ms), but no ability to resist "weather" as a keyword trigger when it appears alongside other tools. Reliability of 0.694 is higher than qwen2.5:0.5b's 0.667, reflecting slightly more consistency on the prompts it does handle correctly.
 
-**llama3.2:3b (US, 3B params) -- The Tool-Call Maximalist**
-
-9/9 tool calls, 9/9 valid arguments, 0/2 restraint. Action Score 1.000, Restraint Score 0.000, Reliability 0.778. Llama 3.2 calls a tool on every single prompt, every single run, without exception. When asked "What tools do you have access to?" it calls `search_files`. When asked to write a Python script, it calls `search_files`. It's the most capable tool-caller in the benchmark (it even correctly handles P8's dual-tool request) but it has zero concept of when NOT to call a tool. This makes it dangerous as an autonomous agent -- it would execute actions on every input regardless of appropriateness. Agent Score of 0.500 reflects the 50/50 weighting: perfect action, zero restraint.
-
-### Tier 4: Non-Functional for Tool Calling
+### Tier 4: Non-Functional for Tool Calling (Agent Score 0.600)
 
 **deepseek-r1:1.5b (CN, 1.5B params) -- Thinks but Can't Act**
 
-DeepSeek's distilled reasoning model understands what tools do -- its raw output shows responses like `get_weather(Antwerp)` and `search_files("*.py")` -- but it cannot produce the structured `<tool_call>{"name": ..., "arguments": {...}}</tool_call>` format. It writes function-call-style text (`get_weather(Antwerp)`) instead of JSON. The chain-of-thought reasoning it was distilled from doesn't help with structured output format compliance. At 1.5B params, it apparently lacks the capacity to simultaneously reason about tool use AND follow an exact JSON schema. Average latency of 7,535 ms (slow for producing nothing useful) suggests it's spending tokens on think-chains that go nowhere. Not viable for tool calling at this size.
+DeepSeek's distilled reasoning model understands what tools do -- its raw output shows responses like `get_weather(Antwerp)` and `search_files("*.py")` -- but it cannot produce the structured `<tool_call>{"name": ..., "arguments": {...}}</tool_call>` format. It writes function-call-style text instead of JSON. At 5,758 ms average latency, it's slow for producing nothing useful. Not viable for tool calling at this size.
 
 **gemma3:1b (US, 1B params) -- Correct Tags, Wrong Format**
 
-Google's smallest instruction model gets tantalizingly close. Its raw output shows `<tool_call>get_weather(city: Antwerp)</tool_call>` -- it understood the system prompt, used the right tags, and identified the right tool with the right argument. But it used Python function-call syntax instead of JSON. The parser expects `{"name": "get_weather", "arguments": {"city": "Antwerp"}}` and gets `get_weather(city: Antwerp)`. In one run (Run 2), it even managed a valid `schedule_meeting` call for P7, suggesting the capability is there but unreliable. At 1B params, it can follow *most* of the schema but not the JSON serialization format. A custom parser for its function-call syntax could potentially recover these calls.
+Google's smallest instruction model outputs `<tool_call>get_weather(city: Antwerp)</tool_call>` -- correct tags, right tool, right argument, but Python function-call syntax instead of JSON. At 1B params, it can follow most of the schema but not the JSON serialization format. A custom parser for its syntax could potentially recover these calls. Average latency of 2,543 ms with P9 spiking to 15-21s when it generates long code responses.
 
 **bitnet-3B (US/1bit, 3B params) -- Base Model Gibberish**
 
-The original BitNet 3B base model remains completely non-functional. It produces incoherent text fragments like "8.- the: ( with a eight the a to as, to a surr" for every prompt. This is expected -- it's a pre-training checkpoint without instruction tuning. Included as a control to demonstrate the instruction-tuning gap. Average latency of 16,046 ms (the slowest model in the benchmark) reflects the 3B parameter count running through BitNet's I2_S kernels without the optimization of the newer 2B-4T architecture.
+The original BitNet 3B base model remains completely non-functional. Produces incoherent text fragments for every prompt. This is expected -- it's a pre-training checkpoint without instruction tuning. Included as a control. Average latency of 15,498 ms (the slowest model in the benchmark).
+
+### Tier 5: Strong Actuator, Weak Policy (Agent Score 0.570)
+
+**bitnet-2B-4T (US/1bit, 2B params) -- Execution Without Judgment**
+
+BitNet 2B-4T fell from 7th (0.750) to last among functional models (0.570). Its Action Score remains high (0.800) and it's still the only model to achieve Multi-Tool 1.000 on P8 (emitting both `search_files` and `get_weather` back-to-back). But the hard prompts were devastating: it called `schedule_meeting` for P10 (should be get_weather -- WRONG) and `get_weather` for P12 (weather already provided -- WRONG). Combined with P5 restraint failure, it now has Restraint 0.500 and Wrong Tool 2. The model is a strong actuator with weak judgment -- it knows *how* to call tools but not *which* tool to call under ambiguity.
 
 ## BitNet Deep Dive: 1.58-Bit Tool Calling
 
@@ -193,22 +225,24 @@ The most fascinating result in this benchmark is the BitNet-b1.58-2B-4T model. M
 <tool_call>{"name": "get_weather", "arguments": {"city": "Antwerp"}}
 ```
 
-This is the same 1.58-bit weight representation. The only difference is instruction tuning. The transformation from gibberish to structured JSON tool calls using only ternary weights is striking.
+This is the same 1.58-bit weight representation. The only difference is instruction tuning.
 
 ### What BitNet 2B-4T Gets Right
 
 - **P1 (weather):** 3/3 runs produced identical, correct output: `get_weather(city: "Antwerp")`
 - **P2 (file search):** 3/3 correct: `search_files(pattern: "*.py")`
 - **P3 (meeting):** 3/3 correct: `schedule_meeting` with title, time, and attendees array
-- **P6 (unknown city):** Called `get_weather` correctly but hallucinated a city ("New York" in runs 1 and 3, "San Francisco" in run 2). This is arguably the right *structure* -- it understood a weather tool was needed -- but fabricated the missing context.
+- **P6 (unknown city):** Called `get_weather` correctly but hallucinated a city ("New York" in all 3 runs). Right structure, fabricated context.
 - **P7 (noisy params):** Correctly extracted the meeting title, time reference, and attendee emails from informal language.
-- **P8 (dual tool):** Emitted two sequential tool calls: `search_files(*.py)` followed by `get_weather(Paris)`. This is notable -- the model understood the prompt required two distinct tools and produced both, back-to-back, without a closing `</tool_call>` tag between them.
+- **P8 (dual tool):** Emitted two sequential tool calls: `search_files(*.py)` followed by `get_weather(Paris)`. 3/3 consistent. The only model to achieve Multi-Tool Accuracy 1.000.
+- **P11 (negation):** Correctly called `search_files` in 2 of 3 runs, resisting the "weather" keyword trap that caught 4 other models. In Run 3 it declined entirely ("I'm sorry, but I can't fulfill that request").
 
 ### Where BitNet 2B-4T Fails
 
-- **P5 (restraint):** Called a tool in 2 of 3 runs. In Run 1, it invented `available_tools` (a non-existent tool). In Run 3, it called a tool named `tools`. It doesn't understand meta-questions about its own capabilities. This is the model's main weakness for agent use.
-- **P9 (restraint):** Correctly declined in all 3 runs. It understood that "write a Python script" is a code-generation request, not a tool call. This asymmetric restraint (failing P5 but passing P9) suggests it can distinguish code-writing from tool-calling, but can't distinguish tool-listing from tool-calling.
-- **P4 (ambiguous):** Called tools in all 3 runs but with inconsistent tool names: `search_files` in Run 1, `search_weather` (hallucinated) in Run 2, `search_ones` (hallucinated) in Run 3. The model knows a tool is appropriate but can't reliably pick the right one for ambiguous prompts.
+- **P5 (restraint):** Called a tool in 2 of 3 runs. In Run 1, it invented `available_tools` (a non-existent tool). It doesn't understand meta-questions about its own capabilities.
+- **P10 (implicit reasoning):** Called `schedule_meeting` in all 3 runs -- the specifically penalized wrong tool. The meeting already exists; the question is about weather for transport. The model saw "meeting" and "client" and pattern-matched to `schedule_meeting`.
+- **P12 (context awareness):** Called `get_weather` in 2 of 3 runs despite the weather being provided in the prompt. In Run 2, it actually produced a correct `schedule_meeting` response with reasoning ("It seems like you are asking for a suggestion to schedule an indoor meeting..."), showing the capability exists but isn't consistent.
+- **P4 (ambiguous):** Called `search_files` in all 3 runs for a travel question -- the tool choice is odd but not penalized since P4 is ambiguous.
 
 ### BitNet Latency Profile
 
@@ -216,14 +250,14 @@ BitNet 2B-4T has remarkably consistent latency across prompts:
 
 | Prompt | Run 1 | Run 2 | Run 3 | Avg |
 |---|---|---|---|---|
-| P1 (weather) | 1,994 ms | 1,931 ms | 1,982 ms | 1,969 ms |
-| P2 (files) | 1,719 ms | 1,625 ms | 1,801 ms | 1,715 ms |
-| P3 (meeting) | 3,182 ms | 3,565 ms | 3,205 ms | 3,317 ms |
-| P7 (noisy) | 2,588 ms | 3,093 ms | 3,102 ms | 2,928 ms |
-| P8 (dual) | 2,518 ms | 2,416 ms | 2,617 ms | 2,517 ms |
-| P9 (restraint) | 6,838 ms | 5,916 ms | 5,838 ms | 6,197 ms |
+| P1 (weather) | 1,904 ms | 1,380 ms | 1,358 ms | 1,547 ms |
+| P2 (files) | 1,604 ms | 1,272 ms | 1,348 ms | 1,408 ms |
+| P3 (meeting) | 2,875 ms | 2,130 ms | 2,585 ms | 2,530 ms |
+| P7 (noisy) | 2,944 ms | 2,436 ms | 2,579 ms | 2,653 ms |
+| P8 (dual) | 2,314 ms | 1,980 ms | 1,979 ms | 2,091 ms |
+| P9 (restraint) | 6,250 ms | 7,133 ms | 6,326 ms | 6,570 ms |
 
-Simple prompts complete in ~2s. Multi-argument prompts (P3, P7) take ~3s. The restraint prompt P9 takes longest (~6s) because the model generates a full text response explaining why it won't call a tool. Compare this to the base bitnet-3B which averages 16-20s per prompt generating nonsense.
+Simple prompts complete in ~1.5s. Multi-argument prompts (P3, P7) take ~2.5s. The restraint prompt P9 takes longest (~6.5s) because the model generates a full text response. Compare this to the base bitnet-3B which averages 15-18s per prompt generating nonsense.
 
 ### What This Means
 
@@ -231,78 +265,100 @@ A model running entirely on ternary weights ({-1, 0, 1}) with no floating-point 
 - Parse natural language prompts and identify which tool to call
 - Generate valid JSON with correct argument names and values
 - Handle multi-argument functions (schedule_meeting with title, time, attendees)
-- Emit multiple sequential tool calls for multi-tool requests
+- Emit multiple sequential tool calls for multi-tool requests (the only model to do so)
 - Decline tool calls for code-writing requests (P9)
+- Resist keyword traps when given explicit negation (P11, 2/3 runs)
 
 It cannot reliably:
 - Distinguish meta-questions from action requests (P5)
-- Handle ambiguous prompts without hallucinating tool names (P4)
-- Control its eagerness to call tools (8/9 calls, only 1/2 restraint)
+- Reason about implicit context (P10: "should I cycle" requires weather, not meeting scheduling)
+- Notice when information is already provided (P12: weather given in prompt)
 
-At 0.750 Agent Score and 2,806 ms average latency, BitNet 2B-4T is competitive with conventional 4-bit quantized models despite using 1.58-bit weights. It outscores llama3.2:3b (0.500) and qwen2.5:1.5b (0.786) in the edge tier.
+At 0.570 Agent Score and 2,340 ms average latency, BitNet 2B-4T's ranking dropped from Round 3 due to the hard prompts exposing its judgment weaknesses. But its raw execution capability remains impressive: Action 0.800 and Multi-Tool 1.000 using only ternary weights.
 
 ## Failure Analysis
+
+### The Wrong-Tool Trap
+
+P10-P12 revealed a systematic failure mode: keyword-triggered wrong tool calls. Five of eight functional models committed at least one wrong tool call:
+
+| Model | P11 (negation) | P12 (context) | Pattern |
+|---|---|---|---|
+| qwen2.5:0.5b | get_weather WRONG | get_weather WRONG | Keyword "weather" overrides all context |
+| smollm2:1.7b | get_weather WRONG | get_weather WRONG | Same pattern |
+| phi4-mini:3.8b | get_weather WRONG | get_weather WRONG | Same pattern at 3.8B params |
+| qwen2.5:3b | search_files OK | get_weather WRONG | Resisted P11 negation, failed P12 context |
+| bitnet-2B-4T | search_files OK | get_weather WRONG | Resisted P11 negation, failed P12 context |
+
+The pattern is clear: "weather" in the prompt triggers `get_weather` regardless of context. P11's explicit "don't check the weather" was ignored by 3 models. P12's "the weather is 8°C and rainy" (information already provided) triggered a redundant weather check in 5 models. Only qwen2.5:1.5b, ministral-3:3b, and llama3.2:3b avoided all wrong-tool penalties.
 
 ### Models That Failed to Call Tools
 
 | Model | Failure Mode | Root Cause |
 |---|---|---|
-| deepseek-r1:1.5b | 0/9 tools across 27 calls | Outputs function-call syntax (`get_weather(Antwerp)`) instead of JSON. Chain-of-thought distillation doesn't teach structured output formatting. |
-| gemma3:1b | 0/9 tools (averaged) | Outputs `<tool_call>get_weather(city: Antwerp)</tool_call>` -- correct tags, wrong inner format. Uses Python kwargs syntax instead of JSON. 1B params insufficient for exact schema compliance. |
-| bitnet-3B | 0/9 tools across 27 calls | Base model without instruction tuning. Produces incoherent token sequences. Not a capability failure -- simply untrained for the task. |
+| deepseek-r1:1.5b | 0/12 tools across 36 calls | Outputs function-call syntax (`get_weather(Antwerp)`) instead of JSON. Chain-of-thought distillation doesn't teach structured output formatting. |
+| gemma3:1b | 0/12 tools (averaged) | Outputs `<tool_call>get_weather(city: Antwerp)</tool_call>` -- correct tags, wrong inner format. Uses Python kwargs syntax instead of JSON. |
+| bitnet-3B | 0/12 tools across 36 calls | Base model without instruction tuning. Produces incoherent token sequences. |
 
 ### Models That Failed on Restraint
 
 | Model | P5 (meta) | P9 (code) | Failure Mode |
 |---|---|---|---|
-| llama3.2:3b | FAIL (3/3) | FAIL (3/3) | Calls a tool on every prompt without exception. Zero restraint capability. Called `get_weather` for P5 and `search_files` for P9. |
-| bitnet-2B-4T | FAIL (2/3) | PASS (3/3) | Invented non-existent tools (`available_tools`, `tools`) for the meta-question. Correctly declined P9. Asymmetric restraint. |
-| qwen2.5:3b | PASS (3/3) | FAIL (2/3) | Called `get_weather` on P9 in Runs 1 and 2 (keyword-triggered by "weather" in the prompt). Majority-vote tiebreaker saved the averaged result. |
+| llama3.2:3b | FAIL (3/3) | FAIL (3/3) | Calls a tool on every prompt without exception. Zero restraint capability. |
+| qwen2.5:3b | PASS (3/3) | FAIL (majority) | Called `get_weather` on P9, keyword-triggered by "weather" in the prompt. |
+| bitnet-2B-4T | FAIL (2/3) | PASS (3/3) | Invented non-existent tools for the meta-question. Correctly declined P9. |
 
 ### Per-Prompt Difficulty Analysis
 
-| Prompt | Models Passing (of 11) | Hardest For |
+| Prompt | Models Correct (of 11) | Notes |
 |---|---|---|
-| P1 (easy weather) | 7 | deepseek-r1, gemma3, bitnet-3B, bitnet-2B-4T all pass structurally |
-| P2 (easy files) | 7 | Same non-functional models fail |
-| P3 (easy meeting) | 7 | Same pattern |
-| P4 (ambiguous) | 4 | Most models decline (conservative). qwen2.5:3b, llama3.2, ministral, phi4-mini call tools |
-| P5 (restraint) | 8 | llama3.2, bitnet-2B-4T fail. qwen2.5:3b barely passes |
-| P6 (hard context) | 4 | Requires inferring missing context. qwen2.5:0.5b, smollm2, phi4-mini (Run 3), bitnet-2B-4T call tools |
-| P7 (noisy params) | 6 | ministral-3:3b, qwen2.5:1.5b decline. Parameter extraction from informal text is hard |
-| P8 (dual tool) | 7 | All functional models handle this. Only first tool is captured by parser |
-| P9 (restraint) | 9 | Only llama3.2:3b and bitnet-2B-4T (in some runs) fail. Most models recognize code-writing requests |
+| P1 (easy weather) | 8 | All functional models pass |
+| P2 (easy files) | 8 | Same |
+| P3 (easy meeting) | 8 | Same |
+| P4 (ambiguous) | 4 | Conservative models decline. qwen2.5:3b, llama3.2, ministral, phi4-mini call tools |
+| P5 (restraint) | 8 | llama3.2 and bitnet-2B-4T fail |
+| P6 (hard context) | 5 | Requires inferring missing context. qwen2.5:0.5b, smollm2, phi4-mini, bitnet-2B-4T call tools |
+| P7 (noisy params) | 6 | ministral-3:3b, qwen2.5:1.5b decline |
+| P8 (dual tool) | 8 | All functional models handle this (first tool captured) |
+| P9 (restraint) | 8 | llama3.2 and qwen2.5:3b fail |
+| P10 (implicit reasoning) | 1 | Only qwen2.5:3b called the correct tool. Hardest prompt by correct-tool count |
+| P11 (negation) | 3 | qwen2.5:3b, llama3.2, bitnet-2B-4T resisted the keyword trap |
+| P12 (context awareness) | 2 | Only qwen2.5:1.5b and llama3.2 called schedule_meeting |
+
+P10 is the hardest prompt in the benchmark: only 1 model called the correct tool (`get_weather`). P12 is close behind at 2 correct. The hard prompts have dramatically better discriminative power than P1-P9.
 
 ## Latency Comparison
 
-Average latency per model across all 9 prompts, 3 runs:
+Average latency per model across all 12 prompts, 3 runs:
 
 | Model | Avg Latency | Notes |
 |---|---|---|
-| qwen2.5:0.5b | 1,351 ms | Fastest overall. Sub-1s on simple prompts |
-| smollm2:1.7b | 2,437 ms | Fast refusals (~600ms on restraint prompts) |
-| llama3.2:3b | 2,786 ms | Consistent, no thinking pauses |
-| bitnet-2B-4T | 2,806 ms | Remarkably fast for 1.58-bit inference |
-| qwen2.5:1.5b | 3,126 ms | Moderate |
-| qwen2.5:3b | 3,861 ms | Moderate |
-| gemma3:1b | 4,139 ms | P9 spikes to 20-26s (generates long code) |
-| phi4-mini:3.8b | 5,723 ms | High variance. P9 ranges from 4s to 30s |
-| deepseek-r1:1.5b | 7,535 ms | Chain-of-thought overhead for no usable output |
-| ministral-3:3b | 10,571 ms | P4 and P9 take 27-33s (long text generation) |
-| bitnet-3B | 16,046 ms | Slowest. Generating incoherent tokens is expensive |
+| qwen2.5:0.5b | 874 ms | Fastest overall. Sub-500ms on simple prompts |
+| smollm2:1.7b | 2,064 ms | Fast refusals (~600ms on restraint prompts) |
+| llama3.2:3b | 2,152 ms | Consistent, no thinking pauses |
+| bitnet-2B-4T | 2,340 ms | Remarkably fast for 1.58-bit inference |
+| gemma3:1b | 2,543 ms | P9 spikes to 15-21s (generates long code) |
+| qwen2.5:1.5b | 2,582 ms | Moderate |
+| qwen2.5:3b | 3,543 ms | Moderate |
+| phi4-mini:3.8b | 5,661 ms | High variance. P11 took 19s in one run |
+| deepseek-r1:1.5b | 5,758 ms | Chain-of-thought overhead for no usable output |
+| ministral-3:3b | 8,252 ms | P4 takes 19-29s (long text generation before declining) |
+| bitnet-3B | 15,498 ms | Slowest. Generating incoherent tokens is expensive |
 
 ## Conclusions
 
-1. **Agent behavior separates into three independent capabilities.** Execution (Action Score), judgment (Restraint Score), and stability (Reliability). These are weakly correlated: BitNet 2B-4T has Action 1.000 but Restraint 0.500; qwen2.5:3b has perfect majority-voted scores but 0.815 reliability. A single composite number hides these trade-offs.
+1. **Hard prompts broke the plateau.** In Round 3, four models tied at 0.929. P10-P12 spread them from 0.640 to 0.800, with two new leaders (qwen2.5:1.5b, ministral-3:3b) that weren't in the top group before. The Round 3 ceiling was an artifact of the benchmark not being hard enough.
 
-2. **Majority voting hides instability.** qwen2.5:3b and phi4-mini:3.8b share the same Agent Score (0.929), but phi4-mini has 0.926 reliability versus qwen2.5:3b's 0.815. In production, qwen2.5:3b would fail P9 restraint in roughly 2 of every 3 requests -- the majority vote makes it look reliable when it isn't. Reliability is the metric that matters for deployment.
+2. **Not calling a tool is better than calling the wrong one.** The new scoring formula (Action × 0.4 + Restraint × 0.3 + Wrong-Tool-Avoidance × 0.3) rewards conservative models. qwen2.5:1.5b and ministral-3:3b scored highest by declining uncertain prompts rather than guessing wrong. This matches real-world agent requirements: an agent that does nothing when confused is safer than one that takes the wrong action.
 
-3. **Tool calling works at 500M parameters.** qwen2.5:0.5b ties for the top Agent Score at 1.35s average latency. There is no inherent floor for tool-calling capability -- training data and instruction tuning matter more than parameter count.
+3. **Keyword matching is the dominant failure mode for small models.** Five of eight functional models called `get_weather` when they saw "weather" in the prompt, regardless of context. P11 ("Don't check the weather") and P12 ("The weather is 8°C and rainy") both triggered reflexive tool calls. This suggests sub-4B models primarily use keyword matching rather than semantic understanding for tool selection.
 
-4. **1.58-bit weights can do structured tool calling.** BitNet-2B-4T is a strong actuator with weak policy calibration: Action 1.000, Restraint 0.500, Reliability 0.926, Multi-Tool 1.000. Ternary weights ({-1, 0, 1}) are sufficient for JSON generation, argument extraction, and multi-tool dispatch. It was the only model to correctly emit both tools on P8. Its weakness is judgment (P5), not execution.
+4. **Bigger isn't always better within a model family.** qwen2.5:1.5b (0.800) now outperforms qwen2.5:3b (0.670). The 3B model's aggression -- calling `get_weather` for P9 and P12 -- is more costly than the 1.5B model's conservatism. The relationship between parameter count and agent quality is non-monotonic when judgment is measured.
 
-5. **This benchmark evaluates model-protocol pairs, not models in isolation.** phi4-mini went from 0.571 to 0.929 just by switching from Ollama's native tool API to a raw system prompt. The backend/mode columns in the leaderboard exist to make this dependency explicit. Comparing "phi4-mini" to "qwen2.5:3b" without noting one uses raw-schema and the other native-tools is misleading.
+5. **Agent behavior separates into four independent capabilities.** Execution (Action), policy calibration (Restraint), judgment (Wrong Tool), and stability (Reliability). These are weakly correlated. BitNet 2B-4T has Action 0.800 but Wrong Tool 2. llama3.2:3b has Action 0.900 but Restraint 0.000. qwen2.5:1.5b has Action 0.500 but perfect on everything else. No single model excels on all four.
 
-6. **Chain-of-thought doesn't help tool calling at small scale.** deepseek-r1:1.5b's reasoning distillation produced a model that thinks about tools but can't format tool calls. At 1.5B params, the reasoning overhead crowds out format compliance.
+6. **1.58-bit weights can still do structured tool calling, but judgment requires more than ternary weights.** BitNet 2B-4T retained strong execution (Action 0.800, Multi-Tool 1.000) but failed the judgment tests (Wrong Tool 2, Restraint 0.500). Ternary weights are sufficient for JSON generation and argument extraction but insufficient for the nuanced reasoning required by P10-P12.
 
-7. **Google and DeepSeek's smallest models can't do structured JSON.** Both understand the concept of tool calling but produce non-JSON formats (function-call syntax, kwargs). This appears to be a hard capability boundary somewhere between 1B and 1.5B params for non-Qwen architectures.
+7. **P12 is the single best discriminator prompt.** "The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" Only 2 of 11 models correctly called `schedule_meeting`. It requires reading the provided context (weather is known), ignoring the keyword trigger ("weather"), and identifying the actual action requested (scheduling). This tests three capabilities simultaneously: context awareness, keyword resistance, and action identification.
+
+8. **This benchmark evaluates model-protocol pairs, not models in isolation.** phi4-mini uses raw-schema while qwen2.5:3b uses native-tools. The backend/mode columns in the leaderboard exist to make this dependency explicit.

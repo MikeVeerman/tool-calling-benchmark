@@ -1,0 +1,1001 @@
+========================================================================================================================
+PER-PROMPT LATENCY ACROSS 3 RUNS (ms)
+========================================================================================================================
+Model                Prompt     R1      R2      R3     Avg
+----------------------------------------------------------
+qwen2.5:3b           P1       7987    7973    5367    7109
+qwen2.5:3b           P2       1182    1216    1108    1169
+qwen2.5:3b           P3       3604    3815    3549    3656
+qwen2.5:3b           P4       2569    2361    3646    2859
+qwen2.5:3b           P5       3158    3402    3961    3507
+qwen2.5:3b           P6       1542    1734    1609    1628
+qwen2.5:3b           P7       3769    4420    3778    3989
+qwen2.5:3b           P8       2103    3026    3006    2712
+qwen2.5:3b           P9       3804    6303    4857    4988
+qwen2.5:3b           P10      4171    6927    4334    5144
+qwen2.5:3b           P11      1394    1237    1486    1372
+qwen2.5:3b           P12      3864    2921    6378    4388
+----------------------------------------------------------
+qwen2.5:1.5b         P1       4498    2850    3036    3461
+qwen2.5:1.5b         P2        695     603     624     641
+qwen2.5:1.5b         P3       1986    1872    1912    1923
+qwen2.5:1.5b         P4       1462    3151    2287    2300
+qwen2.5:1.5b         P5       2206    2360    2331    2299
+qwen2.5:1.5b         P6       1006     959    1190    1052
+qwen2.5:1.5b         P7       2072     968    1131    1390
+qwen2.5:1.5b         P8       1215    1240    1187    1214
+qwen2.5:1.5b         P9      11878   10740    9961   10860
+qwen2.5:1.5b         P10      1886    2408    3003    2432
+qwen2.5:1.5b         P11      1791    1692    2087    1857
+qwen2.5:1.5b         P12      1683    1275    1720    1559
+----------------------------------------------------------
+qwen2.5:0.5b         P1       2109    1506    1425    1680
+qwen2.5:0.5b         P2        370     305     302     326
+qwen2.5:0.5b         P3        933     780     815     843
+qwen2.5:0.5b         P4        876    1442     905    1074
+qwen2.5:0.5b         P5       1318     727     621     889
+qwen2.5:0.5b         P6        652     312     310     425
+qwen2.5:0.5b         P7        962     844     861     889
+qwen2.5:0.5b         P8        615     493     513     540
+qwen2.5:0.5b         P9       2996     949    1494    1813
+qwen2.5:0.5b         P10      1330     663    1492    1162
+qwen2.5:0.5b         P11       404     303     320     342
+qwen2.5:0.5b         P12       418     334     766     506
+----------------------------------------------------------
+llama3.2:3b          P1       8130    5396    5670    6399
+llama3.2:3b          P2       1049    1104    1004    1052
+llama3.2:3b          P3       3235    3110    3168    3171
+llama3.2:3b          P4       1157     979    1109    1082
+llama3.2:3b          P5       4073     985    1124    2061
+llama3.2:3b          P6       1280    1183    1252    1238
+llama3.2:3b          P7       3383    3318    3442    3381
+llama3.2:3b          P8       1927    1861    1939    1909
+llama3.2:3b          P9       1163    1036    1079    1093
+llama3.2:3b          P10      1291    1169    1167    1209
+llama3.2:3b          P11      1190    1064    1103    1119
+llama3.2:3b          P12      2650    2522    1159    2110
+----------------------------------------------------------
+smollm2:1.7b         P1       5792    4482    4714    4996
+smollm2:1.7b         P2       1328    1468    1475    1424
+smollm2:1.7b         P3       3403    3702    3771    3625
+smollm2:1.7b         P4        668     580     578     609
+smollm2:1.7b         P5        743     551     558     617
+smollm2:1.7b         P6       1450    1570    1600    1540
+smollm2:1.7b         P7       3651    4208    4095    3985
+smollm2:1.7b         P8       2107    2291    2331    2243
+smollm2:1.7b         P9        586     578     584     583
+smollm2:1.7b         P10       645    1527     622     931
+smollm2:1.7b         P11      1403    4760    1594    2586
+smollm2:1.7b         P12      1479    1600    1802    1627
+----------------------------------------------------------
+ministral-3:3b       P1      18254   11476   12054   13928
+ministral-3:3b       P2        959     837     870     889
+ministral-3:3b       P3       3880    3645    3798    3774
+ministral-3:3b       P4      21954    5991   28501   18815
+ministral-3:3b       P5       7434    9396    9836    8889
+ministral-3:3b       P6       1762    1845    1762    1790
+ministral-3:3b       P7       2540    2979    2294    2604
+ministral-3:3b       P8       1681    1560    1609    1617
+ministral-3:3b       P9      26208   29632   32607   29482
+ministral-3:3b       P10     10321   14057    5832   10070
+ministral-3:3b       P11      4425    2514    2443    3127
+ministral-3:3b       P12      3443    4326    4347    4039
+----------------------------------------------------------
+deepseek-r1:1.5b     P1      10963    5354    4545    6954
+deepseek-r1:1.5b     P2       6328    5191    9229    6916
+deepseek-r1:1.5b     P3       8482    6341    7859    7561
+deepseek-r1:1.5b     P4       5253    4465    5233    4984
+deepseek-r1:1.5b     P5       8125    9703    3717    7182
+deepseek-r1:1.5b     P6       3049    1913    3761    2908
+deepseek-r1:1.5b     P7       7897    6605    4443    6315
+deepseek-r1:1.5b     P8       5986    6013    5469    5823
+deepseek-r1:1.5b     P9       4864    8308    5090    6087
+deepseek-r1:1.5b     P10      4270    3671    3769    3903
+deepseek-r1:1.5b     P11      4838    2909    4871    4206
+deepseek-r1:1.5b     P12      4794    8435    5531    6253
+----------------------------------------------------------
+gemma3:1b            P1       2492    1713    1721    1975
+gemma3:1b            P2       1086     556     577     740
+gemma3:1b            P3        940    2151    1572    1554
+gemma3:1b            P4       7202    4872     498    4191
+gemma3:1b            P5       2277    1246     590    1371
+gemma3:1b            P6        757     542     622     640
+gemma3:1b            P7       1599    1629    1420    1549
+gemma3:1b            P8        913     607     571     697
+gemma3:1b            P9       5739   19498   21159   15465
+gemma3:1b            P10       830    1346    1175    1117
+gemma3:1b            P11       698     583     612     631
+gemma3:1b            P12       746     448     577     590
+----------------------------------------------------------
+phi4-mini:3.8b       P1       7794    5382    5362    6179
+phi4-mini:3.8b       P2       1570    1573    1579    1574
+phi4-mini:3.8b       P3       3786    3982    3977    3915
+phi4-mini:3.8b       P4       1620    1697    1680    1666
+phi4-mini:3.8b       P5       3017    5886    4287    4397
+phi4-mini:3.8b       P6       8396    3602    7266    6421
+phi4-mini:3.8b       P7       2970    3998   15332    7433
+phi4-mini:3.8b       P8       3725    3057    2408    3063
+phi4-mini:3.8b       P9       5051    5179    9344    6525
+phi4-mini:3.8b       P10     15723    1878   11041    9547
+phi4-mini:3.8b       P11      4740   19182    9367   11096
+phi4-mini:3.8b       P12     10676    5813    1864    6118
+----------------------------------------------------------
+bitnet-3B            P1      17252   16988   17997   17412
+bitnet-3B            P2       6534   16998   16951   13494
+bitnet-3B            P3      18098   17466   17556   17707
+bitnet-3B            P4      17476   17010    3668   12718
+bitnet-3B            P5      17891   17025   12659   15858
+bitnet-3B            P6      17811   13381   17507   16233
+bitnet-3B            P7      18221   17550    8612   14794
+bitnet-3B            P8      18160   17094   17322   17525
+bitnet-3B            P9       6142   17413   17361   13639
+bitnet-3B            P10     18182   17309    4798   13430
+bitnet-3B            P11     18069   17380   11953   15801
+bitnet-3B            P12     18189   17182   16731   17367
+----------------------------------------------------------
+bitnet-2B-4T         P1       1904    1380    1358    1547
+bitnet-2B-4T         P2       1604    1272    1348    1408
+bitnet-2B-4T         P3       2875    2130    2585    2530
+bitnet-2B-4T         P4       1802    1500    1344    1549
+bitnet-2B-4T         P5       2432    1389    2837    2219
+bitnet-2B-4T         P6       1828    1630    1479    1646
+bitnet-2B-4T         P7       2944    2436    2579    2653
+bitnet-2B-4T         P8       2314    1980    1979    2091
+bitnet-2B-4T         P9       6250    7133    6326    6570
+bitnet-2B-4T         P10      2606    2022    2319    2316
+bitnet-2B-4T         P11      1847    1494    1177    1506
+bitnet-2B-4T         P12      1844    2832    1466    2047
+----------------------------------------------------------
+
+================================================================================================================================================================
+AVERAGED SUMMARY (3 runs)
+================================================================================================================================================================
+
+================================================================================================================================================================
+TEST PROMPTS
+================================================================================================================================================================
+  P1: What's the weather in Antwerp?
+  P2: Find all Python files in the project.
+  P3: Schedule a meeting called 'Sprint Review' for 2025-02-10T14:00:00 with alice@co.com and bob@co.com.
+  P4: I'm heading to Brussels tomorrow, anything I should know?
+  P5: What tools do you have access to? [RESTRAINT]
+  P6: What's the weather in the city where we have our next sprint review?
+  P7: Oh hey, could you maybe like set up a meeting — 'Q3 Roadmap' — for next Tuesday at 3pm? I think dave@co.com and maybe susan@co.com should come
+  P8: Search for all files matching '*.py' and also tell me the weather in Paris.
+  P9: Can you write a Python script that checks the weather using an API? [RESTRAINT]
+  P10: I have a meeting with a client in Bruges next Thursday. Should I take the train or cycle? [HARD]
+  P11: Don't check the weather in Antwerp, just find me the quarterly report. [HARD]
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan? [HARD]
+
+================================================================================================================================================================
+DETAILED RESULTS
+================================================================================================================================================================
+Model                Prompt Called?  Tool                 Args OK      ms
+-------------------------------------------------------------------------
+qwen2.5:3b           P1     YES      get_weather          OK         7109
+qwen2.5:3b           P2     YES      search_files         OK         1169
+qwen2.5:3b           P3     YES      schedule_meeting     OK         3656
+qwen2.5:3b           P4     YES      get_weather          OK         2859
+qwen2.5:3b           P5     no       -                    -          3507
+qwen2.5:3b           P6     no       -                    -          1628
+qwen2.5:3b           P7     YES      schedule_meeting     OK         3989
+qwen2.5:3b           P8     YES      search_files         OK         2712
+qwen2.5:3b           P9     YES      get_weather          OK         4988
+qwen2.5:3b           P10    YES      get_weather          OK         5144
+qwen2.5:3b           P11    YES      search_files         OK         1372
+qwen2.5:3b           P12    YES      get_weather          OK         4388
+-------------------------------------------------------------------------
+qwen2.5:1.5b         P1     YES      get_weather          OK         3461
+qwen2.5:1.5b         P2     YES      search_files         OK          641
+qwen2.5:1.5b         P3     YES      schedule_meeting     OK         1923
+qwen2.5:1.5b         P4     no       -                    -          2300
+qwen2.5:1.5b         P5     no       -                    -          2299
+qwen2.5:1.5b         P6     no       -                    -          1052
+qwen2.5:1.5b         P7     no       -                    -          1390
+qwen2.5:1.5b         P8     YES      search_files         OK         1214
+qwen2.5:1.5b         P9     no       -                    -         10860
+qwen2.5:1.5b         P10    no       -                    -          2432
+qwen2.5:1.5b         P11    no       -                    -          1857
+qwen2.5:1.5b         P12    YES      schedule_meeting     OK         1559
+-------------------------------------------------------------------------
+qwen2.5:0.5b         P1     YES      get_weather          OK         1680
+qwen2.5:0.5b         P2     YES      search_files         OK          326
+qwen2.5:0.5b         P3     YES      schedule_meeting     OK          843
+qwen2.5:0.5b         P4     no       -                    -          1074
+qwen2.5:0.5b         P5     no       -                    -           889
+qwen2.5:0.5b         P6     YES      get_weather          OK          425
+qwen2.5:0.5b         P7     YES      schedule_meeting     OK          889
+qwen2.5:0.5b         P8     YES      search_files         OK          540
+qwen2.5:0.5b         P9     no       -                    -          1813
+qwen2.5:0.5b         P10    no       -                    -          1162
+qwen2.5:0.5b         P11    YES      get_weather          OK          342
+qwen2.5:0.5b         P12    YES      get_weather          OK          506
+-------------------------------------------------------------------------
+llama3.2:3b          P1     YES      get_weather          OK         6399
+llama3.2:3b          P2     YES      search_files         OK         1052
+llama3.2:3b          P3     YES      schedule_meeting     OK         3171
+llama3.2:3b          P4     YES      get_weather          OK         1082
+llama3.2:3b          P5     YES      search_files         OK         2061
+llama3.2:3b          P6     YES      get_weather          OK         1238
+llama3.2:3b          P7     YES      schedule_meeting     OK         3381
+llama3.2:3b          P8     YES      search_files         OK         1909
+llama3.2:3b          P9     YES      get_weather          OK         1093
+llama3.2:3b          P10    YES      search_files         OK         1209
+llama3.2:3b          P11    YES      search_files         OK         1119
+llama3.2:3b          P12    YES      schedule_meeting     OK         2110
+-------------------------------------------------------------------------
+smollm2:1.7b         P1     YES      get_weather          OK         4996
+smollm2:1.7b         P2     YES      search_files         OK         1424
+smollm2:1.7b         P3     YES      schedule_meeting     OK         3625
+smollm2:1.7b         P4     no       -                    -           609
+smollm2:1.7b         P5     no       -                    -           617
+smollm2:1.7b         P6     YES      get_weather          OK         1540
+smollm2:1.7b         P7     YES      schedule_meeting     OK         3985
+smollm2:1.7b         P8     YES      search_files         OK         2243
+smollm2:1.7b         P9     no       -                    -           583
+smollm2:1.7b         P10    no       -                    -           931
+smollm2:1.7b         P11    YES      get_weather          OK         2586
+smollm2:1.7b         P12    YES      get_weather          OK         1627
+-------------------------------------------------------------------------
+ministral-3:3b       P1     YES      get_weather          OK        13928
+ministral-3:3b       P2     YES      search_files         OK          889
+ministral-3:3b       P3     YES      schedule_meeting     OK         3774
+ministral-3:3b       P4     YES      get_weather          OK        18815
+ministral-3:3b       P5     no       -                    -          8889
+ministral-3:3b       P6     no       -                    -          1790
+ministral-3:3b       P7     no       -                    -          2604
+ministral-3:3b       P8     YES      search_files         OK         1617
+ministral-3:3b       P9     no       -                    -         29482
+ministral-3:3b       P10    no       -                    -         10070
+ministral-3:3b       P11    no       -                    -          3127
+ministral-3:3b       P12    no       -                    -          4039
+-------------------------------------------------------------------------
+deepseek-r1:1.5b     P1     no       -                    -          6954
+deepseek-r1:1.5b     P2     no       -                    -          6916
+deepseek-r1:1.5b     P3     no       -                    -          7561
+deepseek-r1:1.5b     P4     no       -                    -          4984
+deepseek-r1:1.5b     P5     no       -                    -          7182
+deepseek-r1:1.5b     P6     no       -                    -          2908
+deepseek-r1:1.5b     P7     no       -                    -          6315
+deepseek-r1:1.5b     P8     no       -                    -          5823
+deepseek-r1:1.5b     P9     no       -                    -          6087
+deepseek-r1:1.5b     P10    no       -                    -          3903
+deepseek-r1:1.5b     P11    no       -                    -          4206
+deepseek-r1:1.5b     P12    no       -                    -          6253
+-------------------------------------------------------------------------
+gemma3:1b            P1     no       -                    -          1975
+gemma3:1b            P2     no       -                    -           740
+gemma3:1b            P3     no       -                    -          1554
+gemma3:1b            P4     no       -                    -          4191
+gemma3:1b            P5     no       -                    -          1371
+gemma3:1b            P6     no       -                    -           640
+gemma3:1b            P7     no       -                    -          1549
+gemma3:1b            P8     no       -                    -           697
+gemma3:1b            P9     no       -                    -         15465
+gemma3:1b            P10    no       -                    -          1117
+gemma3:1b            P11    no       -                    -           631
+gemma3:1b            P12    no       -                    -           590
+-------------------------------------------------------------------------
+phi4-mini:3.8b       P1     YES      get_weather          OK         6179
+phi4-mini:3.8b       P2     YES      search_files         OK         1574
+phi4-mini:3.8b       P3     YES      schedule_meeting     OK         3915
+phi4-mini:3.8b       P4     YES      get_weather          OK         1666
+phi4-mini:3.8b       P5     no       -                    -          4397
+phi4-mini:3.8b       P6     YES      get_weather          OK         6421
+phi4-mini:3.8b       P7     YES      schedule_meeting     OK         7433
+phi4-mini:3.8b       P8     YES      search_files         OK         3063
+phi4-mini:3.8b       P9     no       -                    -          6525
+phi4-mini:3.8b       P10    no       -                    -          9547
+phi4-mini:3.8b       P11    YES      get_weather          OK        11096
+phi4-mini:3.8b       P12    YES      get_weather          OK         6118
+-------------------------------------------------------------------------
+bitnet-3B            P1     no       -                    -         17412
+bitnet-3B            P2     no       -                    -         13494
+bitnet-3B            P3     no       -                    -         17707
+bitnet-3B            P4     no       -                    -         12718
+bitnet-3B            P5     no       -                    -         15858
+bitnet-3B            P6     no       -                    -         16233
+bitnet-3B            P7     no       -                    -         14794
+bitnet-3B            P8     no       -                    -         17525
+bitnet-3B            P9     no       -                    -         13639
+bitnet-3B            P10    no       -                    -         13430
+bitnet-3B            P11    no       -                    -         15801
+bitnet-3B            P12    no       -                    -         17367
+-------------------------------------------------------------------------
+bitnet-2B-4T         P1     YES      get_weather          OK         1547
+bitnet-2B-4T         P2     YES      search_files         OK         1408
+bitnet-2B-4T         P3     YES      schedule_meeting     OK         2530
+bitnet-2B-4T         P4     YES      search_files         OK         1549
+bitnet-2B-4T         P5     YES      available_tools      OK         2219
+bitnet-2B-4T         P6     YES      get_weather          OK         1646
+bitnet-2B-4T         P7     YES      schedule_meeting     OK         2653
+bitnet-2B-4T         P8     YES      search_files         OK         2091
+bitnet-2B-4T         P9     no       -                    -          6570
+bitnet-2B-4T         P10    YES      schedule_meeting     OK         2316
+bitnet-2B-4T         P11    YES      search_files         OK         1506
+bitnet-2B-4T         P12    YES      get_weather          OK         2047
+-------------------------------------------------------------------------
+
+================================================================================================================================================================
+SUMMARY (sorted by Agent Score)
+================================================================================================================================================================
+Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
+----------------------------------------------------------------------------------------------------------------------------------------
+qwen2.5:1.5b         Ollama       native-tools   CN          0.500      1.000           0        0.611        N/A*        0.800    2582
+ministral-3:3b       Ollama       native-tools   FR          0.500      1.000           0        0.583        N/A*        0.800    8252
+phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           2        0.750       0.500        0.680    5661
+qwen2.5:3b           Ollama       native-tools   CN          0.800      0.500           1        0.722        N/A*        0.670    3543
+llama3.2:3b          Ollama       native-tools   US          0.900      0.000           0        0.722        N/A*        0.660    2152
+qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.667        N/A*        0.640     874
+smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           2        0.694        N/A*        0.640    2064
+deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    5758
+gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.194       0.000        0.600    2543
+bitnet-3B            bitnet.cpp   openai-compat  US/1bit     0.000      1.000           0        0.167       0.000        0.600   15498
+bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.800      0.500           2        0.750       1.000        0.570    2340
+
+
+================================================================================================================================================================
+EDGE AGENT MINI LEADERBOARD (sub-2B models)
+================================================================================================================================================================
+#    Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
+---------------------------------------------------------------------------------------------------------------------------------------------
+1    qwen2.5:1.5b         Ollama       native-tools   CN          0.500      1.000           0        0.611        N/A*        0.800    2582
+2    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.667        N/A*        0.640     874
+3    smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           2        0.694        N/A*        0.640    2064
+4    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    5758
+5    gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.194       0.000        0.600    2543
+6    bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.800      0.500           2        0.750       1.000        0.570    2340
+
+
+========================================================================================================================
+HARD PROMPTS P10-P12 (which tool did each model call?)
+========================================================================================================================
+  P10: I have a meeting with a client in Bruges next Thursday. Should I take the train 
+       Expected: get_weather | Wrong: schedule_meeting
+  P11: Don't check the weather in Antwerp, just find me the quarterly report.
+       Expected: search_files | Wrong: get_weather
+  P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting wit
+       Expected: schedule_meeting | Wrong: get_weather
+
+Model                P10 Tool             P10      P11 Tool             P11      P12 Tool             P12       Wrong
+---------------------------------------------------------------------------------------------------------------------
+qwen2.5:3b           get_weather          OK       search_files         OK       get_weather          WRONG         1
+qwen2.5:1.5b         (none)               miss     (none)               miss     schedule_meeting     OK            0
+qwen2.5:0.5b         (none)               miss     get_weather          WRONG    get_weather          WRONG         2
+llama3.2:3b          search_files         wrong?   search_files         OK       schedule_meeting     OK            1
+smollm2:1.7b         (none)               miss     get_weather          WRONG    get_weather          WRONG         2
+ministral-3:3b       (none)               miss     (none)               miss     (none)               miss          0
+deepseek-r1:1.5b     (none)               miss     (none)               miss     (none)               miss          0
+gemma3:1b            (none)               miss     (none)               miss     (none)               miss          0
+phi4-mini:3.8b       (none)               miss     get_weather          WRONG    get_weather          WRONG         2
+bitnet-3B            (none)               miss     (none)               miss     (none)               miss          0
+bitnet-2B-4T         schedule_meeting     WRONG    search_files         OK       get_weather          WRONG         2
+
+
+========================================================================================================================
+RAW BITNET-2B-4T OUTPUT (P1, P6, P8, P10-P12)
+========================================================================================================================
+
+--- P1: What's the weather in Antwerp? ---
+  Run 1: <tool_call>{"name": "get_weather", "arguments": {"city": "Antwerp"}}
+  Run 2: <tool_call>{"name": "get_weather", "arguments": {"city": "Antwerp"}}
+  Run 3: <tool_call>{"name": "get_weather", "arguments": {"city": "Antwerp"}}
+
+
+--- P6: What's the weather in the city where we have our next sprint review? ---
+  Run 1: <tool_call>{"name": "get_weather", "arguments": {"city": "New York"}}
+  Run 2: <tool_call>{"name": "get_weather", "arguments": {"city": "New York"}}<|im_sep|>
+  Run 3: <tool_call>{"name": "get_weather", "arguments": {"city": "New York"}}
+
+
+--- P8: Search for all files matching '*.py' and also tell me the weather in P ---
+  Run 1: <tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}
+  Run 2: <tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}
+  Run 3: <tool_call>{"name": "search_files", "arguments": {"pattern": "*.py"}}<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}
+
+
+--- P10: I have a meeting with a client in Bruges next Thursday. Should I take  ---
+  Run 1: <tool_call>{"name": "schedule_meeting",  "arguments": {"title": "Bruges meeting", "time": "next Thursday", "attendees": []}}
+  Run 2: <tool_call>{"name": "schedule_meeting",  "arguments":  {"title": "meeting with client in Bruges", "time": "next Thursday", "attendees": []}}
+  Run 3: <tool_call>{"name": "schedule_meeting",  "title": "meeting in Bruges", "time": "next Thursday", "attendees": ["client"]}, {"name": "get_weather", "city": "Bruges"}
+
+
+--- P11: Don't check the weather in Antwerp, just find me the quarterly report. ---
+  Run 1: <tool_call>{"name": "search_files", "pattern": "quarterly report (*.pdf)"}
+  Run 2: <tool_call>{"name": "search_files", "arguments": {"pattern": "quarterly report"}}
+  Run 3: I'm sorry, but I can't fulfill that request.
+
+
+--- P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor m ---
+  Run 1: <tool_call>{"name": "get_weather", "arguments": {"city": "Antwerp"}}
+  Run 2: It seems like you are asking for a suggestion to schedule an indoor meeting with Jan due to the weather. Here is a possible response:
+
+<tool_call>{"name": "schedule_meeting",  "title": "Indoor meeting with Jan", "time": "8:00 AM", "attendees": ["Jan"]}</tool_call>
+  Run 3: <tool_call>{"name": "get_weather", "arguments": {"city": "Antwerp"}}
+
+
+========================================================================================================================
+RAW BITNET-3B OUTPUT (P1, P6, P8, P10-P12) [base model, for comparison]
+========================================================================================================================
+
+--- P1: What's the weather in Antwerp? ---
+  Run 1: 1 they S. big., (/, a, abund-, e m three three to ( four double a part a e g big - - - - - the a - old -
+ a a - back - - -. - -. - - e - - - - - - - - - - - -
+ they others - water looks half- the part part six of back back the -
+ the a8 - back di er. men -. bel di back w a. gra  men men. s (
+ the half - uses - a back -
+  b a half 7 ter qu di.  half w a right ca. snow
+
+ a. half
+ half a half world,
+
+ the the w a bel
+ c l i new back a a back part half back back so c the half half half world all half
+ the the people will back part half half half half six half half the fran g a part a six six five eightan a half six its a half back back eight eight
+ one is gra with pass pay the am d back back a part half halfa first and c comm comm the c people in take g aa back a always s part part  bel side
+ some a pay
+rs with to back a c dec under a around is half half twice to back with a everything up
+ first pay pay late stas use and people
+ pay at late b part, big pay a pay c g steps b how l a  it first first str qu always always b an always  part back in give work pay help near big big st  to it part g big you there er
+ use long long u big u
+os but someone
+g red because it l to er m but just his stop once ever of m2 of pay ever ever always always always of
+ forget everything part part ever ever ever ever ever ever ever or i ever
+ always tr ever ever w never always a w c ever in always with i er bel bu  pay pay pay in always always re up sub  i just l u in  i b un ever use
+ i to ever ever c b pay pay and all everything but c all ever re up in ir l lh c. pay but every every easy- b block past st in always ever for but with i. need they use where side ever in ever ever ever ever ever ever i i
+ er side need ever ever ever ever or r
+ pay and, bond pay target g all as a a ever to apap
+  Run 2: 6 st  an..... con with
+B.863.
+H Ass
+
+ D (E the),), adm B F F a B. a R, ., R . . R R, for R he. R g R ge, R
+S -- -- .. B, B -- . ex -- Ex. a e8, P . . at - . ( R P
+a. - a - a -- . - - -. ex, ( -- st ex --. ( ex be-), -
+-- e e - ex ex - scr -- . e m -- . .  ex a -- ex er
+
+ ( ex-- and ( e e e e8. -- P a e e, a --ps, ex -- the e ( B back in ex a ( half st ca- and st (  ( ( for half a just,.
+& in we all and ex you,   in will.
+ a, and sob with.) ex st... and ( ( ex a97, g an e ( ( ex - ex the") and so re ex e e ( ( ca and a.
+and l a. i $ ( ( ex- un-3 po, ( ex ( who,alt,. ( ex ease ( ex a ex st, long, with. mar up
+ mar the, c
+ others and
+ for.& with,. ent actually. with
+ using. g with
+ one at ,, st st ( a long. a l st w with. an (
+ mar, with the, with. with gra the they and. gra is  whole and re work project and and and and with to and a the and
+ ( ( back gra ( upemb a re to ent,)), not the but with. (, tail and with the., ( un ( dis and a double and someonew but but the (
+ a, up to alls/ tenmys a. and mar mar / a). back others (  but back there,, in the dec dec . and st st is, ( as but back even ( the we we st la individual w a, or as w a to). people others a a with w but aszo that w partpiean to and w dec out that and w mar st and a w a with w awm, away the as ofm to seasoncom there to and and w as a alwaysm
+  Run 3: 5. ep B of with. back with a a .  B the it . R B... B B. a . R . the . . -- --. ( (  a - - - - - ( a ( -- a - - -- - - - ) ) )) -- -- -- --, ( -- . ( ( -- -- -- -- -- -- -- -- -- -- -- -- - --, -- -- - and -- and, b a.
+He -- -- -- --, -- and --, -- --. and.
+
+ and. ( ( b -- right -- with. ( back to ( a -- -- -- to to and from and all they st back about. i e the all ( back l on all without st st. from e t). the old by land  to for without to. g because, back so. a and with so. the the without without st net. ( back back in, the or st a, the at without to st st, the we back in for for a. back back we ( back back la, and re the back so a back so ter out ship back di blue is or because a and a pro and out from, a l a back but a al, a well up and st dec st dec with but a st la a, g mar ob four st with line three a fact ten di stands, g they at but a fact al here for stands and fact tri comm pay high and and, w an and la a, g back and gra gra e w g people and st eight down and pass and,, and them looks works with st everything three three and and, in all as stay and or late and. and and co and,, you and as always or far with the new half from g with g others others others others g while or e later and finally a m mag or with from g a g first first first ( and in as half three with under and always, and never the never in
+ or is st P i ( ( ( g B i S a i i i i p i i i i i i i i i i i i i i ob x06488 i e e i i i i i
+ me i i  ter i men men we is
+ & catch a we a and and a and ( and, a, a, a, or
+, and for you a so, so is is u, i, i,, is, god, is so a is the
+
+
+--- P6: What's the weather in the city where we have our next sprint review? ---
+  Run 1: ac one. a of. az (,,,,,,,,, etc….
+, with e, ex,,,,,,,,,,,,
+b they their B. a, B,,,,,,,,,,,,,,,,,,,,,
+B all.. e,.,,,,,,,,,. e. bel e e...,
+! e e. a well all, dec, the,
+asar a in, e, (bound, the.), long, e.. man e long fl
+
+ All all, all all, long, all. back in right. (w emace long long. all in be- ca late back a long. all pass ex bel pass pass –., con halfw a- . span st
+p ( big – g0, men, men men (s –h a)ps6
+), back. eng whole onm (w st1
+ ( ( (
+p a .
+86 a.ﬁ)> w6. i st eight.).,enast w tail e, con-ac a-
+
+w (b i i 88quot, erae second, big --ps of)b, er
+ (6 big a, st st- ib to5 big56 big (hembs)p. and ...
+w76 (09 a1626 a... i,w embif la434) big (s h85
+all,), ( ( (g8 i441'od6.1 i em1 l -- st)- l  l lw6
+ ()-unn to6 so ( ( 58 ro
+ b h28, ( l8ro_0m fe4 st-. st- more st55- st,w3g0
+all -, bel i015 ro
+ how - 3, is,5af, stm
+.- with34 the in bel ro all is ro andbert 
+ all in l the
+h l b with with8 and with a is com st la others so
+
+ and the a7 st inm (
+per the sm m a with a a
+and and)am
+ and w of at re0 th lh cm u a (b a
+  Run 2: 8 e the str ste, with... research, imm, F,. (g,,,.,. –, e -
+B ex pass B a, B, B - - - - a they. R scr back. B a. plus) ru with la. st and.,,, - ( the ex - ex – e. – e, a –  e – em ( all ( i a . back and e))),, - -- a back e of ( g – e e- ( back j the) ex) the 88,8, prob – e – e – ex ( ( ex e— - ex st) la, the st st, st— and st P ex and st, e and st, long— and and st st— and to st— and and w, and side you and all and and and and and and and and and w, and w sl the w the w and and w w w w w w w, we w the) gra as or st w and ( w, eng— back or w
+ back. w the he i i l u and w the u back back i  back ( and, er dec -- side st, to st, in co with with is it, asod back gra first1 in i while ( (s scr w g big big7’ e block block his. a a. about i ( g l l ( i not a in l cl big  big st st st st ( big the back back back st st st co st back in a a2. a back back a  gra st st st st st st others back back st st st st st ita whole a without word to st- st g men st with st looks/ gb use to st l st st st c can the in2 or whole the g and a11 g1 st6 gra and andwvis with and and is of
+  Run 3: 4.,..., in. about. par ever the I theunt ever the K d (in the three imm P R a a and (W (A a Ma ( - R F R R all  e e e m e e e m gra e e e Fac G e with B a, with ) Hel M. to B is) and A by back . P U E. back Back O of ( P D pay Back of Men / or back . . H Back back P a B  back back Women a . R . R
+ what m a. (
+ ex ( e e a i
+ (  the and-. is and. will back back a a god back ten a ).,ens out ret
+ the at  ret all pass a but a. at a i a a- is a everything and back a re i
+ st s st a. ( back back in g b s s st pay. with back a su is
+— beyond a a about a all back co and
+ g— about w
+ back a a,
+-, a.
+ pas— past past
+—— and— first. and back, past,—b a u a past past
+ ten the me i a a w and a (
+ a st, a- co a (  back in past—, R real— st there R always twenty in
+ y, ever, the all and
+ all w-b p po g a ca l as u ca w un everything pay a z everything a tr
+ with an a in bu bu g u a  everything
+ re the the ro gra everything dec ever. first is everything
+ everything a a a dec a. w me c c bu and the first and
+ ro every n with its or b looking a’ the as z- the everyone
+ ( in in gra’ tur g p. a grand a past everything best —
+ time R B it in past, everything under
+ to back g ( ( w w PA big big big  the w brit w gra pro po
+
+ g l l a m a gpie z- a grabath par — men a m sl  u tr always bit u
+
+ ent — and. but m a the the, or past so mar all people ( and
+ b, is in grandys a the and w in past catch in and can is past past gad
+ and in drive and and he past will me to best a l me a
+ a everything or back
+
+
+--- P8: Search for all files matching '*.py' and also tell me the weather in P ---
+  Run 1: 8 with..
+The,
+ during. part, part,, are. the, the, all all even, ever all all (. all all. the all, ( back M.) is everywhere -- all ( and - back the back back is 2 — long ( back ( i, old , a, st e ( e, ( ( a st st st -   a a, b with back e st sm the st
+ really a, in a
+ a a with back (, ( a, a with,
+
+ old,
+
+ the,
+
+, all all back back ( i
+
+ real a,
+ le,
+ mar la la st st st st, someone a back e express am
+ a, about.,
+ ter a, a, st,.. st st st st st st... am. a i a,
+ un her a st,.,,.,,. about st. st, st, st a and i the i.) and st st st st and, a. un and i st st best,ps a, st the st, the, with a back, work a, and st st stps with st la g a, the her her and st far far with back st the, a the,
+ all, stps a all or stuff the, to, the, to, a, is back su  un a b back famous conf conf stands  a c ca th back a,
+, side l ex l l part long st a a new mar it
+ with
+ with long new u famous
+ su the l, us the best side side st 
+ a  c he, ever the i a i k mar
+ a,,-,
+
+, c the i i c c c c
+ we back ( ever or or i su re igast a
+ a, first m c st u c h. ab c always ( always pro
+ c m even
+ s always m
+ big so so z ( yet big  m st c
+ always the s ( always first w a cut u a world team  w
+ br a8 in6 gra with8 co different  c  swe ( conf gra gra3
+ not in a in as2 ( butp a ship’ a
+
+ and mar’p in l but h with fol as’ as rot gra c al2
+b from3
+’ in even5 surr up
+b’’ understand c2 c,w
+  Run 2: 1,796.,., hard with,   with with  , with, , all with w   . they one one  . and w, all all all all ( with with all and st with all all the without with and, all others by all – and back – and so, all all ( and and all all all, and all all.
+h and with -- i and K + st ex i ( and and -- and and, st a -- and, a, " --
+right everyone and --
+g -- -- is --s a,- a a,
+d. and is a. (and and the
+ep, ( ( an B big, long a st a. st, a, a a, light e, -- e e, out,
+m, e ,  back, , g a e,
+M for with,
+ P,
+
+,
+, about — the  
+ a,
+ back ( in, to long, pay,
+ so i we he, past st he. .
+ a a a,
+ just,
+ a in, 
+
+ a he.
+
+ a.,
+
+ red
+ and — a
+ and
+ so,
+ ( ( under care a , -- just, turn,, — to
+and,, st re, a so — with with, a new in
+
+ and,, a  with with, with part -- ent ent
+ and -- with  part tr ro new,  building.
+ the is a,
+
+ a,
+
+ a,
+ a (
+ the the and
+ new the  a,
+  a,
+
+ (
+
+
+ the
+
+
+ and the
+
+ a a
+
+ ( (
+
+ and the
+
+ ( ( (
+ R for (
+ the in —
+, and and all, and ro’ for Pl cont f ( (  decb B and’, a, +  mar ( and I, training the.. all you i mar,.... a i i back ch a . (   ent w  ( (
+ and R, i (  a- ent ( more, all I big others back (. ( ent n  / / / / a real ( work (   a ( a men light the, with ( ( ( a , car) ).) top. a R with ever, the a di /
+  Run 3: 1, all all part-7 and back and..,, with, em, ,,,,, and with -- with er, during with. P, and the,,,, an,,,,.,,,,,,,.,,,,,,, – the the. gra the w w tr a e e da w, e all, i – a e a the da a, with, bel,- – ( ( and stay b and all all st - all everyone – i – – everywhere – w – everyone – i -- -- everywhere everywhere – – and st – – – i -- – – everywhere – – – – – everyone – the’ – first – – all to and back – ( back, long long long.) and st - ( (  the –. P –  –,, all half st ( and the l st st and a, and -- back ( back . back people ( Lpsps ( and st and la, ( in long, and, a  st and and W and and,, with w
+ and. with a with  st without. and l st st st st bo with st. g to back back in a a and st st st others with,) his, for use with, and three in three is and and a the with with and dec, and a, as and and and w or in with and and a in and and c first and and5766 and, and and and everywhere and and and w the with the eng, the the a, help a past pay the in co in she a g
+ and g
+ g long, the bel
+  from tr P, so the  first, -, w,,  da,,, a,,, w,, (, a, +,,,, w w w w w  swe w. P b  in in, with  away a, ( in,  cl and in,, and everything a, past m N with back to  /, c a,, ,, out is ( a, g
+ past ( is tr I sc c finally w a, history b we the a in8, a w br . a we a  swe ca a l  u a co d  a ent p  tr gra r th. ca the ter all “  p u the  a  the a
+ the ( gmm ent st st st everything back ex he
+
+
+--- P10: I have a meeting with a client in Bruges next Thursday. Should I take  ---
+  Run 1: D bu for gra. tenps .,...,..,.. where - part with, part,, ex right, ex a dec, part. part all all dec. all. all. all. all. all. all (
+ all all all all ( (   his. . all all all 
+ ( ( -- st st - - - - - -, - - - - - - - - - - - - - / / all
+ st, (
+ ex cl e e, ( ( ex a perfect
+
+- i- i, st --, --.. ex god.  i a, with,. /. (), with with / / / /, / / / / / / / (
+ divine back. the,. (
+ i, st,,,,,,,,,.
+and ( ( ( adm 
+
+,,,,and,,ace, la.,,,ritir, ent
+ back. i in, someone the, . (
+ mar. o. e well the,) the the. (. e, the.., st st st st, / e,. ( (center private h en,,, with comm de /.. w st ma,., with personal / / / /, / / / / / / / / /, ( the the st st st st)pacabs tr st st st st st,.... st st st of / / and /, /, / dec un un  but,, ( the  but back.,. ( exceed mar,,, la iron chace andachong3 of st st st st st, / / / / / / / / / / (
+ day the the- ( gra en en st st st st st ( gra / / / / / / / / / / / /, / / / / / / / / / / / / / / / / / / / / / /, / / / / / / / the / is / / / / / / /, / g / out / / / / / / / / / / / / / / / /, / (e is always gra cross of a is at,m,, with /,, / / / / / / / / / /, / / / / / / / / / / / / / / / / / / / / / / / / / /
+  Run 2: Par (5, af afo (E upt ex second ret allac l .
+in R ( from a back back (
+
+
+ fe ( real real real st w to  back...   g a
+
+ a back
+
+  back back back 
+
+
+w.
+
+
+
+
+ a back
+
+
+.  back er
+
+
+
+   back 
+
+ e. g back.
+
+
+
+
+
+
+ or, hour up with
+
+
+
+
+ and long first first the
+
+ the in,
+
+ long ( a a something something something e something always the all in the first the part all everything everything everything everything everything, the, the everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everyone everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything everything so from
+
+ and a
+ in ( ( in w first first i little i big back a e big e st bel, i first st new set. a back port w st aw. we, co tr my l five six twenty the six with big a ro two eight in fact a six a fifteen four  a six a, the a  for, men can, men could and
+ with for with and or the, w and more, c  i in first, ca the or g ro ro three always use always six the th,
+ always, or ( e everything him, first, first all back i six six ten twenty nine m a recent dec
+ back back or, gra l w the, l m gra a and and
+ i b back or g p w r gra gra w w po always always or, always or,
+, ( use the, most five w, i three w w w w, w, c a back back back up w conf ro z w cl p — w- gra a back l four prime l l w back a
+ back gra
+ ro ( m88_2 onalitt th th on.lalap c kap6
+ c
+
+ m, or u i little l i back aali or
+b the ever work always always ten a ten th an most c new back back a a pers ent wal with i
+ w w w w a back or always always always or w w ipe i i roll a  and
+ B w or or w a w c or for
+  Run 3: Par (.,  and. a B. ( man. ( st to a partB (
+ all  - from
+a.. -- -- -- --
+ how.
+
+8. -- --.
+
+,.
+
+....
+
+
+'.
+
+
+
+
+
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
+
+
+
+
+
+
+
+
+
+
+--- P11: Don't check the weather in Antwerp, just find me the quarterly report. ---
+  Run 1: B someone,,,, who,.,,,,,,,,,,,,,,,,,,,. -, the, u not P. , -
+ I a, ( ( P a a a-. R A ex Ch  A A -- -- f e -- -- g -- f -- (
+
+ All All -- -- -- --. (
+ P the ( En ( R R -, F, Black L-, F
+
+ P the people,
+
+ a in ( P R -
+ . a a.
+
+G -- back (
+
+ u -- E
+
+ P a long
+
+.
+
+.)
+
+ ) a
+
+ u very
+ ( e. a e u. ( (. m -- all (7 -- -- --, to for back to with,
+
+ and for,
+
+pl the with st  always,  ex
+point re, in in st P one and so
+ B ret back is st ( the (
+ ro ro a old.
+ and, a double
+ surprise and and
+ with re and a re 
+ ( a a.
+, a, surprising all
+ ( w, is the,
+
+1ster ( fil stu the re  at re men world
+and and st all. ro is wton a. (
+ all and ro is we /
+ half e -- un three people all with.
+ (, the the. ent ( un or bel
+. st un- real . a all with.... bigen on all  mar all.
+ aend pay ent re.. mar with and.... all, all dec dec
+ un and st  a. to mar re $) pay half dec all and,
+ all her second and e from i with up a fact all b every
+ un surr  all, all and all l ro the un re ex
+ un and c the only dec other st piece
+ all andound of mar one the 
+ all part second. car first. half with her  with.
+ the, with rem new s  to partake only  first ma tr right
+ first all first mar second w with with. first v use use co
+ but, B co, place or best all  tr the new new new is the bu
+
+ g end in new part up a a a  best a her a a ab a a bu bu dec
+
+ is emm a a aff a
+  Run 2: B..,, cro with. ra, and B.R (BW) until, or. to, (., P the they, B B B, B, A a A, Way, A, A, A.A. and, A --B -- -- --, --, -- -- -- -- -- --, --, -- -- -- -- -- -- -- -- --. -- -- -- -- -- --,,,. ( and and st t , (
+A (B), w (
+B), ( ( ( a -- -- --. --,))) ( g l ro l i ( g h)) ( who. ( ( the the st ( ( w ( ( and) R a a . st st st. i P / and man a and, i i a with w a. on ig i i a. ( ( ro i a a a, back + use, ent st i st an,, g the,
+ ro the the,, l l un, in. back ro a. st ent w st st st st st. l. the l l back /
+. the and a in or back back so. and a the
+ and and or back or and and all and st and real i i i i, i and and and and and and so a and8 so but and and so so ( and w so so) and and and and and and and so and and and and and and and and and and and and and and and and and and and and and and so and and and and and andandand and and and and andand and and and and and
+ during and the, and w cl p L, the,, (, i, (,,,,,,)..,)..,..,,.,..,.,, w,
+last, ( with, -, ,,,,,,,,,,,,,,,,,,, p more. P
+ ( his conf a, never ch famous ca al al a al ch ca
+ vis ch always pro b pay m
+ g always  in 
+
+ make PA, b use,, prov, new s
++ B in a ever,, (
+,,, always, in in,
+b i he pay mu, pay (
+under & the
+
+ never to a, (
+p long perfect ma tr  tr ca ca p6
+ tr
+  Run 3: K in during, s. only.,..,., with.. the., of..,,..,.. (.,,. .,,...,,,.,..,..,,.,,. all,.,,,.,,,,,.,,,,,,,. the.
+Sing,.,,.,,,,..,. the,
+w,p,m,,
+
+w,a,
+
+w, (
+D i: back. , e e  . Mo ex a e i). ch standard n be past long st st al,
+. a.,  - st,,
+ all, . the, ( ( " read an)), ( ( ( ( ( ( e e long e) v), ( ( ( ( ag e
+) ( ( ( ag - ( ) i)) () ) ( i )) ( ( ( l, ( ( R l ( ( st st,. ( ( ex e l ro, i)),) ex,
+
+ ( a l,,,,,,,,,,,,,,, o, a all,
+
+ l. a with,,,,,,,, o.), and st. to.. the).
+ ( ( the i, st) st st, ( ( ( ( ( st P a w
+ ( is,,,,,,,,,,,. & all e e sur E B st  B
+pl ex  from , . B st ent ,)) ( w 
+
+
+
+--- P12: The weather in Antwerp is 8°C and rainy. Should I schedule an indoor m ---
+  Run 1: , with with a, a a, K (S ro B B B B b) B e e always I, R B B B B ( ex e ( ex - L ( ex  ( -) all.
+.. bel -- the a -- (
+b the and.
+6 a
+
+_ (
+
+) - / or
+
+ a (
+
+s -- l
+
+ (
+
+
+ -- --
+
+).)
+
+ a ---
+
+
+ .
+
+  e. long
+
+ a
+
+ a,
+
+ (
+
+PL
+
+ a the
+
+ (
+
+ a..
+
+ -- st
+
+ a part
+
+
+ long
+
+ u si
+
+ a, st  someone and part st something a cal ro on— and st  a in we a u u_ back a part a st (
+
+  you. al a past a volume about, use the fact c. a,
+
+ ( back ( c ca.  stval V
+
+wus,rest7,,val.1........-.
+ ( (c2m1.as)s.old..valvalac. feodianitt.objectiac2214both of
+
+ the6 (hlpp5566apsound aod i5 l types at Cont7mod.b an andbeold4,toetrepIpsosBand25pc) people (b5s iweet)) bel entend) things () l wh i c i u big fol8 st is and of ib m -- and st big partake su ( (end em contract553. () the equalan.more. much ( (restrest856888ap56448,,,sim --,swnewall“lps4psps,am-gai,g5.loembs6 h,ta,,,a-2,,p-,,,phpar, h.wym8,, the c, the, and52, or c in62/4 c of and of ca c and and c-if his as n andc c highest, and best new, s -- you we we as i that c gong third second of g prom the we s with z alfster36onashlp
+  Run 2:  Ha (.,, imm Dr Dr big a R move c -- c m a c m eP and a a a B B B B a B, a a.
+ a S
+B -- -- --
+B an e in
+PL R a no B in all conf,
+8 (’ in er. P a the.
+Bar ( and B ma n B).B.) and... all.W B” H decl. the N. a,
+
+K and. of a,w,
+ and. a a and
+ Passi6 G. the and 28888 and. g part Ch . P.Ww V868766STastWPLG  aq. As
+ ElementW ScW, story special and. with others.akV.A,T (g)M block. G late. Men,T say say all st  part and - e ex-,-,  P
+.... P P R (g  -- -- Al3816a  L percent -g- --))
+G long T bel ar 2,b or or  native e (,ize waiting to (b)pp2 ( ())))) (
+A, Le B B R (
+ro ( L E M  ) ( ( L ) )) P -- -- M M T Part Part Part super B B  away R beyond under B and long-A  B c P ( ( B a ) ) ( ( B ( big ( E ) ) ) a& (, ( -- ( e equal the )- ())” a, ( () ( w percent big. More all ( ( back back so the), B ( men. () mo g85. wh le le,  B ( a e  mean st st st-)) cost ( a B e  short ( a the
+ one bel 8 throughout all and masteros training all the.. the is (
+ 8 first men, byait big. st a. and  and. with.)and. grasp and and ( of course extra of st more,) away women and, st e withm and with, and women women present and and with a car and women with st ( bel and ro a over st) and and a., and g and and one B their end people
+  Run 3: a, with,,,,,,,,,:b, back men, back ex everywhere.h day short, (b la ( st T imm c c )
+
+.,, g day a lot others (, long a, ba....a,g.g.g.g.g.g.g,
+g.
+
+W and big big big and of big big big men big andB bigB
+B big big big bigSI666 st
+
+ST the    the  long long personal14356 longym2 forever g4 more9
+  stale story
+N st late
+Ac so a
+Ac all (
+ c the long c short1p p i the  ex e af
+ the i c u mar 
+ i i. bel w%  bel. bel  st st.  the equal st bel),
+  long,
+ under the for f he bu late were a non b her work short c l su ( c u). with om with short short ( neg m5 back st bel to.— — a b a in—2 u a b a po backback port portach back tr and l every everywhere everywhere the —22 tob a with —
+po to ( in— one short, gaz to st big a — prob a to — — excich the a my of a
+— because— u the — no my— and the
+b the u so c the about —1- units — in everything ( everything the everywhere everywhere everywhere. ( a lafic c c c the— for c a a —
+ c in a — — — — — big— bel — the — —wh — — — — — — — — — —————— — — — — — — — — ———— — the- the but in to c w back — s a at— with isom the —h of back in twenty, thirty everything everything everywhere everywhere to in a every — — — —, we the a the  — with with c — a the back in c is back for everything the the reading a in back the — — everything everywhere we — the— a — — — — — — — — — — — — — —— — — —— — —— — — — — — the —8 mut in prime, and, — —— to at d pay pay to 
+
