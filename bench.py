@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Local LLM tool-calling benchmark using Ollama + BitNet."""
 
+import argparse
 import contextlib
+import glob
+import hashlib
 import io
 import json
 import os
@@ -201,6 +204,94 @@ ALL_MODELS = [
 
 # Sub-2B models for the "edge agent" mini leaderboard
 EDGE_MODELS = {"qwen2.5:0.5b", "qwen2.5:1.5b", "smollm2:1.7b", "deepseek-r1:1.5b", "gemma3:1b", "bitnet-2B-4T"}
+
+# ---------------------------------------------------------------------------
+# Incremental run helpers
+# ---------------------------------------------------------------------------
+
+
+def compute_bench_version() -> str:
+    """Hash of prompts + scoring rules. Changes when benchmarks need re-running."""
+    content = json.dumps({
+        "prompts": TEST_PROMPTS,
+        "restraint": sorted(RESTRAINT_INDICES),
+        "expected": EXPECTED_TOOLS,
+        "wrong": WRONG_TOOL_MAP,
+    }, sort_keys=True, default=str)
+    return hashlib.sha256(content.encode()).hexdigest()[:12]
+
+
+def model_name_to_filename(name: str) -> str:
+    """Convert model name to a safe filename, e.g. 'qwen2.5:3b' -> 'qwen2_5_3b.json'."""
+    safe = re.sub(r"[^a-zA-Z0-9_-]", "_", name)
+    return safe + ".json"
+
+
+def find_model(name: str) -> dict:
+    """Look up a model by name in ALL_MODELS. Exit with error if not found."""
+    for m in ALL_MODELS:
+        if m["name"] == name:
+            return m
+    available = ", ".join(m["name"] for m in ALL_MODELS)
+    print(f"Error: model '{name}' not found.\nAvailable models: {available}")
+    sys.exit(1)
+
+
+def save_model_results(run_dir: str, model_info: dict, runs_data: list[list[dict]], num_runs: int):
+    """Write per-model JSON results file."""
+    filepath = os.path.join(run_dir, model_name_to_filename(model_info["name"]))
+    payload = {
+        "model_name": model_info["name"],
+        "model_info": model_info,
+        "bench_version": compute_bench_version(),
+        "num_runs": num_runs,
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "runs": runs_data,
+    }
+    with open(filepath, "w") as f:
+        json.dump(payload, f, indent=2)
+
+
+def load_model_results(filepath: str) -> dict:
+    """Load a per-model JSON results file."""
+    with open(filepath) as f:
+        return json.load(f)
+
+
+def aggregate_runs(runs_for_model: list[list[dict]], num_runs: int) -> list[dict]:
+    """Majority-vote aggregation across runs for one model. Returns one result per prompt."""
+    aggregated = []
+    for pi in range(len(TEST_PROMPTS)):
+        entries = [runs_for_model[ri][pi] for ri in range(num_runs)]
+        avg_lat = round(sum(e["latency_ms"] for e in entries) / num_runs)
+        n_called = sum(1 for e in entries if e["tool_called"])
+        called = n_called > num_runs / 2
+        tool_names = [e["tool_name"] for e in entries if e["tool_name"]]
+        tool_name = max(set(tool_names), key=tool_names.count) if tool_names else None
+        n_valid = sum(1 for e in entries if e["valid_args"])
+        valid = n_valid > 0 if called else None
+        # Propagate all_tool_calls: union valid tools appearing in >50% of runs
+        all_tc_union = []
+        if called:
+            tool_counts = {}
+            for e in entries:
+                for tc in e.get("all_tool_calls", []):
+                    if tc.get("valid") and tc.get("name"):
+                        tool_counts[tc["name"]] = tool_counts.get(tc["name"], 0) + 1
+            for tc_name, count in tool_counts.items():
+                if count > num_runs / 2:
+                    all_tc_union.append({"name": tc_name, "valid": True})
+        aggregated.append({
+            "tool_called": called,
+            "tool_name": tool_name if called else None,
+            "valid_args": valid,
+            "latency_ms": avg_lat,
+            "error": None,
+            "raw_content": None,
+            "all_tool_calls": all_tc_union,
+        })
+    return aggregated
+
 
 # ---------------------------------------------------------------------------
 # BitNet configuration
@@ -867,188 +958,244 @@ class TeeWriter(io.TextIOBase):
 
 
 # ---------------------------------------------------------------------------
-# Main
+# Single-model runner
 # ---------------------------------------------------------------------------
 
 
-def main():
-    num_runs = 3
-    model_names = [m["name"] for m in ALL_MODELS]
-
-    # Create output directory: runs/<timestamp>/
-    bench_dir = os.path.dirname(os.path.abspath(__file__))
-    run_dir = os.path.join(bench_dir, "runs", datetime.now().strftime("%Y-%m-%d_%H%M%S"))
+def run_single_model(model_info: dict, num_runs: int, run_dir: str):
+    """Run one model for N iterations, print progress, save JSON to run_dir."""
+    name = model_info["name"]
     os.makedirs(run_dir, exist_ok=True)
 
-    print(f"Benchmarking {len(ALL_MODELS)} models x {len(TEST_PROMPTS)} prompts x {num_runs} runs")
-    print(f"Output directory: {run_dir}")
-    print(f"Tools available: {', '.join(t['function']['name'] for t in TOOLS)}")
+    print(f"Running {name} x {len(TEST_PROMPTS)} prompts x {num_runs} runs")
+    print(f"Output: {run_dir}")
     print()
 
-    # all_runs[model_name][run_idx] = [result_per_prompt]
-    all_runs = {m["name"]: [] for m in ALL_MODELS}
-    # Store raw BitNet responses for logging
-    bitnet_raw = {}  # (model_name, run_idx, prompt_idx) -> raw_content
+    runs_data = []  # runs_data[run_idx] = [result_per_prompt]
 
     try:
+        # Start BitNet server if needed
+        if model_info["backend"] == "bitnet":
+            model_path = model_info["model_path"]
+            print(f"  [Starting BitNet server for {name}...]")
+            start_bitnet_server(model_path)
+            print(f"  [BitNet server ready for {name}]")
+
         for run in range(num_runs):
-            run_file = os.path.join(run_dir, f"run_{run + 1}.txt")
-            with open(run_file, "w") as rf:
-                tee = TeeWriter(rf)
-                with contextlib.redirect_stdout(tee):
-                    print(f"{'='*60}")
-                    print(f"  RUN {run + 1}/{num_runs}")
-                    print(f"{'='*60}")
-                for model_info in ALL_MODELS:
-                    name = model_info["name"]
-                    # Start/switch BitNet server if needed
-                    if model_info["backend"] == "bitnet":
-                        model_path = model_info["model_path"]
-                        print(f"  [Starting BitNet server for {name}...]")
-                        start_bitnet_server(model_path)
-                        print(f"  [BitNet server ready for {name}]")
-
-                    with contextlib.redirect_stdout(tee):
-                        print(f"--- {name} ---")
-                    run_results = []
-                    for i, prompt in enumerate(TEST_PROMPTS):
-                        label = f"  P{i+1}"
-                        with contextlib.redirect_stdout(tee):
-                            print(f"{label}: {prompt[:60]}...", end=" ", flush=True)
-                        r = run_one(model_info, prompt)
-                        tag = r["tool_name"] or ("(no tool)" if not r["error"] else "ERROR")
-                        with contextlib.redirect_stdout(tee):
-                            print(f"=> {tag}  [{r['latency_ms']}ms]")
-                        run_results.append(r)
-                        # Capture raw output for non-native-API backends
-                        if model_info["backend"] in ("bitnet", "ollama_raw"):
-                            bitnet_raw[(name, run, i)] = r.get("raw_content")
-                    all_runs[name].append(run_results)
-                    with contextlib.redirect_stdout(tee):
-                        print()
+            print(f"{'='*60}")
+            print(f"  {name} — RUN {run + 1}/{num_runs}")
+            print(f"{'='*60}")
+            run_results = []
+            for i, prompt in enumerate(TEST_PROMPTS):
+                print(f"  P{i+1}: {prompt[:60]}...", end=" ", flush=True)
+                r = run_one(model_info, prompt)
+                tag = r["tool_name"] or ("(no tool)" if not r["error"] else "ERROR")
+                print(f"=> {tag}  [{r['latency_ms']}ms]")
+                run_results.append(r)
+            runs_data.append(run_results)
+            print()
     finally:
-        print("Stopping BitNet server...")
-        stop_bitnet_server()
-        print("BitNet server stopped.\n")
+        if model_info["backend"] == "bitnet":
+            print("Stopping BitNet server...")
+            stop_bitnet_server()
+            print("BitNet server stopped.\n")
 
-    # Build averaged results
-    model_info_map = {m["name"]: m for m in ALL_MODELS}
+    save_model_results(run_dir, model_info, runs_data, num_runs)
+    print(f"Saved {model_name_to_filename(name)}")
+
+
+# ---------------------------------------------------------------------------
+# Summary generation
+# ---------------------------------------------------------------------------
+
+
+def generate_summary(run_dir: str):
+    """Read all per-model JSON from run_dir, compute scores, write summary.txt."""
+    json_files = sorted(glob.glob(os.path.join(run_dir, "*.json")))
+    if not json_files:
+        print(f"No model result files found in {run_dir}/")
+        return
+
+    current_version = compute_bench_version()
+    stale_models = []
+
+    # Load all model data
+    model_data = {}  # name -> loaded dict
+    for fp in json_files:
+        data = load_model_results(fp)
+        model_data[data["model_name"]] = data
+
+    # Build model_list in the order they appear in ALL_MODELS, skipping missing
+    all_model_names = [m["name"] for m in ALL_MODELS]
+    model_list = []
+    for m in ALL_MODELS:
+        if m["name"] in model_data:
+            model_list.append(m)
+
+    # Also include any models in JSON that aren't in ALL_MODELS (future-proof)
+    known_names = {m["name"] for m in ALL_MODELS}
+    for name, data in model_data.items():
+        if name not in known_names:
+            model_list.append(data["model_info"])
+
+    model_names = [m["name"] for m in model_list]
+
+    # Aggregate and score each model
     avg_results = {}
-    for name in model_names:
-        avg_results[name] = []
-        for pi in range(len(TEST_PROMPTS)):
-            entries = [all_runs[name][ri][pi] for ri in range(num_runs)]
-            avg_lat = round(sum(e["latency_ms"] for e in entries) / num_runs)
-            n_called = sum(1 for e in entries if e["tool_called"])
-            called = n_called > num_runs / 2
-            tool_names = [e["tool_name"] for e in entries if e["tool_name"]]
-            tool_name = max(set(tool_names), key=tool_names.count) if tool_names else None
-            n_valid = sum(1 for e in entries if e["valid_args"])
-            valid = n_valid > 0 if called else None
-            # Propagate all_tool_calls: union valid tools appearing in >50% of runs
-            all_tc_union = []
-            if called:
-                tool_counts = {}
-                for e in entries:
-                    for tc in e.get("all_tool_calls", []):
-                        if tc.get("valid") and tc.get("name"):
-                            tool_counts[tc["name"]] = tool_counts.get(tc["name"], 0) + 1
-                for tc_name, count in tool_counts.items():
-                    if count > num_runs / 2:
-                        all_tc_union.append({"name": tc_name, "valid": True})
-            avg_results[name].append({
-                "tool_called": called,
-                "tool_name": tool_name if called else None,
-                "valid_args": valid,
-                "latency_ms": avg_lat,
-                "error": None,
-                "raw_content": None,
-                "all_tool_calls": all_tc_union,
-            })
-
-    # Compute extended scores
+    all_runs = {}
     scores = {}
     for name in model_names:
-        mi = model_info_map[name]
+        data = model_data[name]
+        num_runs = data["num_runs"]
+        runs = data["runs"]
+        all_runs[name] = runs
+        avg_results[name] = aggregate_runs(runs, num_runs)
+
+        mi = data["model_info"]
         backend_name, mode = get_backend_display(mi)
         scores[name] = {
             "action": compute_action_score(avg_results[name]),
             "restraint": compute_restraint_score(avg_results[name]),
             "wrong_tool": compute_wrong_tool(avg_results[name]),
-            "reliability": compute_reliability(all_runs[name], num_runs),
+            "reliability": compute_reliability(runs, num_runs),
             "multi_tool": compute_multi_tool_accuracy(avg_results[name], mi),
             "agent_score": compute_agent_score(avg_results[name]),
             "backend": backend_name,
             "mode": mode,
         }
 
-    # Write per-run detail tables into their respective run files
-    for run in range(num_runs):
-        run_file = os.path.join(run_dir, f"run_{run + 1}.txt")
-        with open(run_file, "a") as rf:
-            with contextlib.redirect_stdout(rf):
-                print(f"\n{'='*120}")
-                print(f"RUN {run + 1} DETAILS")
-                print("=" * 120)
-                single = {m["name"]: all_runs[m["name"]][run] for m in ALL_MODELS}
-                fmt_table(single, ALL_MODELS)
+        if data.get("bench_version") != current_version:
+            stale_models.append(name)
 
     # Write summary to summary.txt (and stdout)
     summary_file = os.path.join(run_dir, "summary.txt")
     with open(summary_file, "w") as sf:
         tee = TeeWriter(sf)
         with contextlib.redirect_stdout(tee):
-            # Per-prompt latency breakdown
-            print("=" * 120)
-            print(f"PER-PROMPT LATENCY ACROSS {num_runs} RUNS (ms)")
-            print("=" * 120)
-            plabels = [f"P{i+1}" for i in range(len(TEST_PROMPTS))]
-            hdr = f"{'Model':<20} {'Prompt':<6} " + "  ".join(f"{'R'+str(r+1):>6}" for r in range(num_runs)) + f"  {'Avg':>6}"
-            print(hdr)
-            print("-" * len(hdr))
-            for name in model_names:
-                for pi in range(len(TEST_PROMPTS)):
-                    vals = [all_runs[name][ri][pi]["latency_ms"] for ri in range(num_runs)]
-                    avg = round(sum(vals) / num_runs)
-                    cols = "  ".join(f"{v:>6}" for v in vals)
-                    print(f"{name:<20} {plabels[pi]:<6} {cols}  {avg:>6}")
-                print("-" * len(hdr))
-
             # Averaged summary
-            print("\n" + "=" * 160)
-            print(f"AVERAGED SUMMARY ({num_runs} runs)")
             print("=" * 160)
-            fmt_table(avg_results, ALL_MODELS, scores=scores)
+            print(f"SUMMARY ({len(model_names)} models)")
+            print("=" * 160)
+
+            # If stale models, add asterisks to names for display
+            display_results = avg_results
+            display_scores = scores
+            if stale_models:
+                display_results = {}
+                display_scores = {}
+                for name in model_names:
+                    dname = name + "*" if name in stale_models else name
+                    display_results[dname] = avg_results[name]
+                    display_scores[dname] = scores[name]
+                # Also need display model_list with starred names
+                display_model_list = []
+                for m in model_list:
+                    dm = dict(m)
+                    if m["name"] in stale_models:
+                        dm["name"] = m["name"] + "*"
+                    display_model_list.append(dm)
+                # Update _ORIGIN_MAP temporarily
+                for m in display_model_list:
+                    if m["name"] not in _ORIGIN_MAP:
+                        _ORIGIN_MAP[m["name"]] = m.get("origin", "??")
+            else:
+                display_model_list = model_list
+
+            fmt_table(display_results, display_model_list, scores=display_scores)
 
             # Edge agent mini leaderboard
-            fmt_edge_leaderboard(avg_results, ALL_MODELS, scores=scores)
+            fmt_edge_leaderboard(display_results, display_model_list, scores=display_scores)
 
             # Hard prompts P10-P12 focused table
-            fmt_hard_prompts_table(avg_results, ALL_MODELS)
+            fmt_hard_prompts_table(display_results, display_model_list)
 
-            # Raw BitNet 2B-4T outputs
-            print("\n" + "=" * 120)
-            print("RAW BITNET-2B-4T OUTPUT (P1, P6, P8, P10-P12)")
-            print("=" * 120)
-            for pi, plabel in [(0, "P1"), (5, "P6"), (7, "P8"), (9, "P10"), (10, "P11"), (11, "P12")]:
-                print(f"\n--- {plabel}: {TEST_PROMPTS[pi][:70]} ---")
-                for run in range(num_runs):
-                    raw = bitnet_raw.get(("bitnet-2B-4T", run, pi), "(no output)")
-                    print(f"  Run {run+1}: {raw}")
-                print()
+            if stale_models:
+                print("* Stale results (bench_version mismatch): " + ", ".join(stale_models))
+                print(f"  Current bench_version: {current_version}")
+                print("  Re-run these models to update.\n")
 
-            # Raw bitnet-3B for comparison
-            print("\n" + "=" * 120)
-            print("RAW BITNET-3B OUTPUT (P1, P6, P8, P10-P12) [base model, for comparison]")
-            print("=" * 120)
-            for pi, plabel in [(0, "P1"), (5, "P6"), (7, "P8"), (9, "P10"), (10, "P11"), (11, "P12")]:
-                print(f"\n--- {plabel}: {TEST_PROMPTS[pi][:70]} ---")
-                for run in range(num_runs):
-                    raw = bitnet_raw.get(("bitnet-3B", run, pi), "(no output)")
-                    print(f"  Run {run+1}: {raw}")
-                print()
+    print(f"\nSummary written to {summary_file}")
 
-    print(f"\nResults written to {run_dir}/")
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Local LLM tool-calling benchmark",
+        usage="%(prog)s [model] [options]",
+    )
+    parser.add_argument("model", nargs="?", help="Model name to benchmark (e.g. qwen2.5:3b)")
+    parser.add_argument("--all", action="store_true", help="Run all stale/missing models")
+    parser.add_argument("--force", action="store_true", help="With --all, rerun everything")
+    parser.add_argument("--summary", action="store_true", help="Regenerate summary from saved results")
+    parser.add_argument("--list", action="store_true", dest="list_models", help="List models + staleness status")
+    parser.add_argument("--num-runs", type=int, default=3, help="Number of runs per model (default: 3)")
+    parser.add_argument("--run-dir", default=None, help="Run directory (default: runs/default/)")
+    parser.add_argument("--self-test", action="store_true", help="Run self-tests")
+    args = parser.parse_args()
+
+    # Resolve run directory
+    bench_dir = os.path.dirname(os.path.abspath(__file__))
+    run_dir = args.run_dir or os.path.join(bench_dir, "runs", "default")
+
+    if args.self_test:
+        _self_test()
+        return
+
+    if args.list_models:
+        current_version = compute_bench_version()
+        print(f"Bench version: {current_version}")
+        print(f"Run directory: {run_dir}\n")
+        for m in ALL_MODELS:
+            fp = os.path.join(run_dir, model_name_to_filename(m["name"]))
+            if not os.path.exists(fp):
+                status = "[missing]"
+            else:
+                data = load_model_results(fp)
+                if data.get("bench_version") == current_version:
+                    status = "[ok]"
+                else:
+                    status = "[stale]"
+            print(f"  {m['name']:<24} {status}")
+        return
+
+    if args.summary:
+        if not os.path.isdir(run_dir):
+            print(f"Run directory not found: {run_dir}")
+            sys.exit(1)
+        generate_summary(run_dir)
+        return
+
+    if args.all:
+        current_version = compute_bench_version()
+        models_to_run = []
+        for m in ALL_MODELS:
+            fp = os.path.join(run_dir, model_name_to_filename(m["name"]))
+            if args.force or not os.path.exists(fp):
+                models_to_run.append(m)
+            else:
+                data = load_model_results(fp)
+                if data.get("bench_version") != current_version:
+                    models_to_run.append(m)
+        if not models_to_run:
+            print("All models are up to date. Use --force to rerun.")
+        else:
+            print(f"Running {len(models_to_run)} model(s): {', '.join(m['name'] for m in models_to_run)}\n")
+            for m in models_to_run:
+                run_single_model(m, args.num_runs, run_dir)
+        generate_summary(run_dir)
+        return
+
+    if args.model:
+        model_info = find_model(args.model)
+        run_single_model(model_info, args.num_runs, run_dir)
+        generate_summary(run_dir)
+        return
+
+    parser.print_help()
 
 
 def _self_test():
@@ -1128,7 +1275,4 @@ def _self_test():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
-        _self_test()
-    else:
-        main()
+    main()
