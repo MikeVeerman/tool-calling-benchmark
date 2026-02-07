@@ -371,7 +371,8 @@ class TeeWriter(io.TextIOBase):
 
     def flush(self):
         self._stdout.flush()
-        self._file.flush()
+        if not self._file.closed:
+            self._file.flush()
 
 
 # ---------------------------------------------------------------------------
