@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Local LLM tool-calling benchmark using Ollama + BitNet."""
 
+import contextlib
+import io
 import json
+import os
 import re
 import signal
 import subprocess
 import sys
 import time
+from datetime import datetime
 
 import ollama
 import requests
@@ -124,6 +128,12 @@ TEST_PROMPTS = [
     "Search for all files matching '*.py' and also tell me the weather in Paris.",
     # P9 – tool-adjacent trick, should NOT call a tool
     "Can you write a Python script that checks the weather using an API?",
+    # P10 – implicit reasoning: cycling decision depends on weather, "weather" never mentioned
+    "I have a meeting with a client in Bruges next Thursday. Should I take the train or cycle?",
+    # P11 – negation: explicitly says "don't check weather"
+    "Don't check the weather in Antwerp, just find me the quarterly report.",
+    # P12 – redundant tool trap: weather already provided, just schedule
+    "The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?",
 ]
 
 # Indices of prompts where the correct behavior is to NOT call a tool
@@ -132,8 +142,24 @@ TEST_PROMPTS = [
 RESTRAINT_INDICES = {4, 8}
 
 # Indices of prompts where calling a valid tool is clearly correct (for Agent Score)
-# P1, P2, P3, P6, P7 are clear tool-call prompts; P4 is ambiguous, P8 is dual-tool
-TOOL_CALL_INDICES = {0, 1, 2, 5, 6, 3, 7}  # 7 prompts
+# P1, P2, P3, P4, P6, P7, P8 are clear tool-call prompts; P10, P11, P12 are hard prompts
+TOOL_CALL_INDICES = {0, 1, 2, 3, 5, 6, 7, 9, 10, 11}  # 10 prompts
+
+# P10-P12: expected correct tool for each hard prompt
+EXPECTED_TOOLS = {
+    9: "get_weather",       # P10: cycling depends on weather (implicit reasoning)
+    10: "search_files",     # P11: find the report (negation)
+    11: "schedule_meeting", # P12: schedule the meeting (context awareness)
+}
+
+# P10-P12: tools that are WRONG (worse than not calling at all)
+WRONG_TOOL_MAP = {
+    9: {"schedule_meeting"},  # P10: meeting already exists
+    10: {"get_weather"},      # P11: explicitly told "don't"
+    11: {"get_weather"},      # P12: weather already provided
+}
+
+HARD_PROMPT_INDICES = {9, 10, 11}  # P10, P11, P12
 
 # ---------------------------------------------------------------------------
 # Backend display names
@@ -496,10 +522,20 @@ def run_one(model_info: dict, prompt: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def compute_action_score(results_for_model: list[dict]) -> float:
-    """Action Score = correct_tool_calls / 7 (actionable prompts P1-P4, P6-P8)."""
+    """Action Score = correct_tool_calls / 10 (actionable prompts).
+
+    For P10-P12, the specific expected tool must be called.
+    """
     rs = results_for_model
-    n_valid_tool = sum(1 for idx in TOOL_CALL_INDICES if rs[idx]["valid_args"])
-    return round(n_valid_tool / len(TOOL_CALL_INDICES), 3)
+    count = 0
+    for idx in TOOL_CALL_INDICES:
+        if idx in EXPECTED_TOOLS:
+            if rs[idx]["valid_args"] and rs[idx]["tool_name"] == EXPECTED_TOOLS[idx]:
+                count += 1
+        else:
+            if rs[idx]["valid_args"]:
+                count += 1
+    return round(count / len(TOOL_CALL_INDICES), 3)
 
 
 def compute_restraint_score(results_for_model: list[dict]) -> float:
@@ -509,17 +545,39 @@ def compute_restraint_score(results_for_model: list[dict]) -> float:
     return round(restraint_pass / len(RESTRAINT_INDICES), 3)
 
 
-def compute_agent_score(results_for_model: list[dict]) -> float:
-    """Agent Score = Action * 0.5 + Restraint * 0.5 (derived composite).
+def compute_wrong_tool(results_for_model: list[dict]) -> int:
+    """Count wrong tool calls across P10-P12."""
+    rs = results_for_model
+    count = 0
+    for idx, wrong_tools in WRONG_TOOL_MAP.items():
+        if rs[idx]["tool_called"] and rs[idx]["tool_name"] in wrong_tools:
+            count += 1
+    return count
 
-    Uses raw (unrounded) action and restraint to avoid double-rounding.
+
+def compute_agent_score(results_for_model: list[dict]) -> float:
+    """Agent Score = Action * 0.4 + Restraint * 0.3 + Wrong-Tool-Avoidance * 0.3.
+
+    Uses raw (unrounded) values to avoid double-rounding.
     """
     rs = results_for_model
-    n_valid_tool = sum(1 for idx in TOOL_CALL_INDICES if rs[idx]["valid_args"])
+    # Action: correct tool calls / 10 (with expected-tool matching for P10-P12)
+    action_count = 0
+    for idx in TOOL_CALL_INDICES:
+        if idx in EXPECTED_TOOLS:
+            if rs[idx]["valid_args"] and rs[idx]["tool_name"] == EXPECTED_TOOLS[idx]:
+                action_count += 1
+        else:
+            if rs[idx]["valid_args"]:
+                action_count += 1
+    accuracy = action_count / len(TOOL_CALL_INDICES)
+    # Restraint: correct refusals / 2
     restraint_pass = sum(1 for idx in RESTRAINT_INDICES if not rs[idx]["tool_called"])
-    accuracy = n_valid_tool / len(TOOL_CALL_INDICES)
     restraint = restraint_pass / len(RESTRAINT_INDICES)
-    return round(accuracy * 0.5 + restraint * 0.5, 3)
+    # Wrong tool avoidance: (3 - wrong_tool) / 3
+    wrong = compute_wrong_tool(rs)
+    wrong_avoidance = (3 - wrong) / 3
+    return round(accuracy * 0.4 + restraint * 0.3 + wrong_avoidance * 0.3, 3)
 
 
 def compute_reliability(all_runs_for_model: list[list[dict]], num_runs: int) -> float:
@@ -536,6 +594,9 @@ def compute_reliability(all_runs_for_model: list[list[dict]], num_runs: int) -> 
             r = all_runs_for_model[ri][pi]
             if pi in RESTRAINT_INDICES:
                 if not r["tool_called"]:
+                    successes += 1
+            elif pi in EXPECTED_TOOLS:
+                if r["valid_args"] and r["tool_name"] == EXPECTED_TOOLS[pi]:
                     successes += 1
             else:  # actionable prompt
                 if r["valid_args"]:
@@ -578,8 +639,12 @@ def fmt_table(results: dict, model_list: list[dict], scores: dict | None = None)
     print("TEST PROMPTS")
     print("=" * 160)
     for i, p in enumerate(TEST_PROMPTS):
-        restraint_tag = " [RESTRAINT]" if i in RESTRAINT_INDICES else ""
-        print(f"  P{i+1}: {p}{restraint_tag}")
+        tag = ""
+        if i in RESTRAINT_INDICES:
+            tag = " [RESTRAINT]"
+        elif i in HARD_PROMPT_INDICES:
+            tag = " [HARD]"
+        print(f"  P{i+1}: {p}{tag}")
 
     print("\n" + "=" * 160)
     print("DETAILED RESULTS")
@@ -606,7 +671,7 @@ def fmt_table(results: dict, model_list: list[dict], scores: dict | None = None)
 
     if scores:
         shdr = (f"{'Model':<20} {'Backend':<12} {'Mode':<14} {'Origin':<9} "
-                f"{'Action':>7} {'Restraint':>10} {'Reliability':>12} {'Multi-Tool':>11} "
+                f"{'Action':>7} {'Restraint':>10} {'Wrong Tool':>11} {'Reliability':>12} {'Multi-Tool':>11} "
                 f"{'Agent Score':>12} {'Avg ms':>8}")
         print(shdr)
         print("-" * len(shdr))
@@ -617,17 +682,17 @@ def fmt_table(results: dict, model_list: list[dict], scores: dict | None = None)
             avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
             s = scores[name]
             rows.append((name, s["backend"], s["mode"], _ORIGIN_MAP.get(name, "??"),
-                         s["action"], s["restraint"], s["reliability"],
-                         s["multi_tool"], s["agent_score"], avg_ms))
+                         s["action"], s["restraint"], s["wrong_tool"],
+                         s["reliability"], s["multi_tool"], s["agent_score"], avg_ms))
 
-        rows.sort(key=lambda r: r[8], reverse=True)
+        rows.sort(key=lambda r: r[9], reverse=True)
 
-        for (name, backend, mode, origin, action, restraint, reliability,
-             multi_tool, agent_score, avg_ms) in rows:
+        for (name, backend, mode, origin, action, restraint, wrong_tool,
+             reliability, multi_tool, agent_score, avg_ms) in rows:
             mt_str = f"{multi_tool:.3f}" if multi_tool is not None else "N/A*"
             print(
                 f"{name:<20} {backend:<12} {mode:<14} {origin:<9} "
-                f"{action:>7.3f} {restraint:>10.3f} {reliability:>12.3f} {mt_str:>11} "
+                f"{action:>7.3f} {restraint:>10.3f} {wrong_tool:>11} {reliability:>12.3f} {mt_str:>11} "
                 f"{agent_score:>12.3f} {avg_ms:>7}"
             )
     else:
@@ -674,7 +739,7 @@ def fmt_edge_leaderboard(results: dict, model_list: list[dict], scores: dict | N
 
     if scores:
         shdr = (f"{'#':<4} {'Model':<20} {'Backend':<12} {'Mode':<14} {'Origin':<9} "
-                f"{'Action':>7} {'Restraint':>10} {'Reliability':>12} {'Multi-Tool':>11} "
+                f"{'Action':>7} {'Restraint':>10} {'Wrong Tool':>11} {'Reliability':>12} {'Multi-Tool':>11} "
                 f"{'Agent Score':>12} {'Avg ms':>8}")
         print(shdr)
         print("-" * len(shdr))
@@ -686,17 +751,17 @@ def fmt_edge_leaderboard(results: dict, model_list: list[dict], scores: dict | N
             avg_ms = round(sum(r["latency_ms"] for r in rs) / len(rs))
             s = scores[name]
             rows.append((name, s["backend"], s["mode"], _ORIGIN_MAP.get(name, "??"),
-                         s["action"], s["restraint"], s["reliability"],
-                         s["multi_tool"], s["agent_score"], avg_ms))
+                         s["action"], s["restraint"], s["wrong_tool"],
+                         s["reliability"], s["multi_tool"], s["agent_score"], avg_ms))
 
-        rows.sort(key=lambda r: r[8], reverse=True)
+        rows.sort(key=lambda r: r[9], reverse=True)
 
-        for rank, (name, backend, mode, origin, action, restraint, reliability,
-                   multi_tool, agent_score, avg_ms) in enumerate(rows, 1):
+        for rank, (name, backend, mode, origin, action, restraint, wrong_tool,
+                   reliability, multi_tool, agent_score, avg_ms) in enumerate(rows, 1):
             mt_str = f"{multi_tool:.3f}" if multi_tool is not None else "N/A*"
             print(
                 f"{rank:<4} {name:<20} {backend:<12} {mode:<14} {origin:<9} "
-                f"{action:>7.3f} {restraint:>10.3f} {reliability:>12.3f} {mt_str:>11} "
+                f"{action:>7.3f} {restraint:>10.3f} {wrong_tool:>11} {reliability:>12.3f} {mt_str:>11} "
                 f"{agent_score:>12.3f} {avg_ms:>7}"
             )
     else:
@@ -732,6 +797,75 @@ def fmt_edge_leaderboard(results: dict, model_list: list[dict], scores: dict | N
     print()
 
 
+def fmt_hard_prompts_table(results: dict, model_list: list[dict]):
+    """Print a focused table showing P10/P11/P12 results per model."""
+    model_names = [m["name"] for m in model_list]
+
+    print("\n" + "=" * 120)
+    print("HARD PROMPTS P10-P12 (which tool did each model call?)")
+    print("=" * 120)
+    print(f"  P10: {TEST_PROMPTS[9][:80]}")
+    print(f"       Expected: get_weather | Wrong: schedule_meeting")
+    print(f"  P11: {TEST_PROMPTS[10][:80]}")
+    print(f"       Expected: search_files | Wrong: get_weather")
+    print(f"  P12: {TEST_PROMPTS[11][:80]}")
+    print(f"       Expected: schedule_meeting | Wrong: get_weather")
+    print()
+
+    shdr = (f"{'Model':<20} {'P10 Tool':<20} {'P10':<8} "
+            f"{'P11 Tool':<20} {'P11':<8} "
+            f"{'P12 Tool':<20} {'P12':<8} {'Wrong':>6}")
+    print(shdr)
+    print("-" * len(shdr))
+
+    for name in model_names:
+        rs = results[name]
+        cols = []
+        wrong_count = 0
+        for idx in [9, 10, 11]:
+            tool = rs[idx]["tool_name"] or "(none)"
+            expected = EXPECTED_TOOLS[idx]
+            wrong_tools = WRONG_TOOL_MAP[idx]
+            if rs[idx]["tool_called"] and rs[idx]["tool_name"] == expected:
+                verdict = "OK"
+            elif rs[idx]["tool_called"] and rs[idx]["tool_name"] in wrong_tools:
+                verdict = "WRONG"
+                wrong_count += 1
+            elif rs[idx]["tool_called"]:
+                verdict = "wrong?"
+                wrong_count += 1
+            else:
+                verdict = "miss"
+            cols.append((tool, verdict))
+        print(f"{name:<20} {cols[0][0]:<20} {cols[0][1]:<8} "
+              f"{cols[1][0]:<20} {cols[1][1]:<8} "
+              f"{cols[2][0]:<20} {cols[2][1]:<8} {wrong_count:>6}")
+
+    print()
+
+
+# ---------------------------------------------------------------------------
+# TeeWriter – duplicates print() output to stdout + a file
+# ---------------------------------------------------------------------------
+
+
+class TeeWriter(io.TextIOBase):
+    """Write to both the real stdout and a file handle."""
+
+    def __init__(self, file_handle):
+        self._stdout = sys.stdout
+        self._file = file_handle
+
+    def write(self, s):
+        self._stdout.write(s)
+        self._file.write(s)
+        return len(s)
+
+    def flush(self):
+        self._stdout.flush()
+        self._file.flush()
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -741,7 +875,13 @@ def main():
     num_runs = 3
     model_names = [m["name"] for m in ALL_MODELS]
 
+    # Create output directory: runs/<timestamp>/
+    bench_dir = os.path.dirname(os.path.abspath(__file__))
+    run_dir = os.path.join(bench_dir, "runs", datetime.now().strftime("%Y-%m-%d_%H%M%S"))
+    os.makedirs(run_dir, exist_ok=True)
+
     print(f"Benchmarking {len(ALL_MODELS)} models x {len(TEST_PROMPTS)} prompts x {num_runs} runs")
+    print(f"Output directory: {run_dir}")
     print(f"Tools available: {', '.join(t['function']['name'] for t in TOOLS)}")
     print()
 
@@ -752,32 +892,40 @@ def main():
 
     try:
         for run in range(num_runs):
-            print(f"{'='*60}")
-            print(f"  RUN {run + 1}/{num_runs}")
-            print(f"{'='*60}")
-            for model_info in ALL_MODELS:
-                name = model_info["name"]
-                # Start/switch BitNet server if needed
-                if model_info["backend"] == "bitnet":
-                    model_path = model_info["model_path"]
-                    print(f"  [Starting BitNet server for {name}...]")
-                    start_bitnet_server(model_path)
-                    print(f"  [BitNet server ready for {name}]")
+            run_file = os.path.join(run_dir, f"run_{run + 1}.txt")
+            with open(run_file, "w") as rf:
+                tee = TeeWriter(rf)
+                with contextlib.redirect_stdout(tee):
+                    print(f"{'='*60}")
+                    print(f"  RUN {run + 1}/{num_runs}")
+                    print(f"{'='*60}")
+                for model_info in ALL_MODELS:
+                    name = model_info["name"]
+                    # Start/switch BitNet server if needed
+                    if model_info["backend"] == "bitnet":
+                        model_path = model_info["model_path"]
+                        print(f"  [Starting BitNet server for {name}...]")
+                        start_bitnet_server(model_path)
+                        print(f"  [BitNet server ready for {name}]")
 
-                print(f"--- {name} ---")
-                run_results = []
-                for i, prompt in enumerate(TEST_PROMPTS):
-                    label = f"  P{i+1}"
-                    print(f"{label}: {prompt[:60]}...", end=" ", flush=True)
-                    r = run_one(model_info, prompt)
-                    tag = r["tool_name"] or ("(no tool)" if not r["error"] else "ERROR")
-                    print(f"=> {tag}  [{r['latency_ms']}ms]")
-                    run_results.append(r)
-                    # Capture raw output for non-native-API backends
-                    if model_info["backend"] in ("bitnet", "ollama_raw"):
-                        bitnet_raw[(name, run, i)] = r.get("raw_content")
-                all_runs[name].append(run_results)
-                print()
+                    with contextlib.redirect_stdout(tee):
+                        print(f"--- {name} ---")
+                    run_results = []
+                    for i, prompt in enumerate(TEST_PROMPTS):
+                        label = f"  P{i+1}"
+                        with contextlib.redirect_stdout(tee):
+                            print(f"{label}: {prompt[:60]}...", end=" ", flush=True)
+                        r = run_one(model_info, prompt)
+                        tag = r["tool_name"] or ("(no tool)" if not r["error"] else "ERROR")
+                        with contextlib.redirect_stdout(tee):
+                            print(f"=> {tag}  [{r['latency_ms']}ms]")
+                        run_results.append(r)
+                        # Capture raw output for non-native-API backends
+                        if model_info["backend"] in ("bitnet", "ollama_raw"):
+                            bitnet_raw[(name, run, i)] = r.get("raw_content")
+                    all_runs[name].append(run_results)
+                    with contextlib.redirect_stdout(tee):
+                        print()
     finally:
         print("Stopping BitNet server...")
         stop_bitnet_server()
@@ -826,6 +974,7 @@ def main():
         scores[name] = {
             "action": compute_action_score(avg_results[name]),
             "restraint": compute_restraint_score(avg_results[name]),
+            "wrong_tool": compute_wrong_tool(avg_results[name]),
             "reliability": compute_reliability(all_runs[name], num_runs),
             "multi_tool": compute_multi_tool_accuracy(avg_results[name], mi),
             "agent_score": compute_agent_score(avg_results[name]),
@@ -833,60 +982,73 @@ def main():
             "mode": mode,
         }
 
-    # Print per-run detail
+    # Write per-run detail tables into their respective run files
     for run in range(num_runs):
-        print(f"\n{'='*120}")
-        print(f"RUN {run + 1} DETAILS")
-        print("=" * 120)
-        single = {m["name"]: all_runs[m["name"]][run] for m in ALL_MODELS}
-        fmt_table(single, ALL_MODELS)
+        run_file = os.path.join(run_dir, f"run_{run + 1}.txt")
+        with open(run_file, "a") as rf:
+            with contextlib.redirect_stdout(rf):
+                print(f"\n{'='*120}")
+                print(f"RUN {run + 1} DETAILS")
+                print("=" * 120)
+                single = {m["name"]: all_runs[m["name"]][run] for m in ALL_MODELS}
+                fmt_table(single, ALL_MODELS)
 
-    # Print per-prompt latency breakdown
-    print("\n" + "=" * 120)
-    print(f"PER-PROMPT LATENCY ACROSS {num_runs} RUNS (ms)")
-    print("=" * 120)
-    plabels = [f"P{i+1}" for i in range(len(TEST_PROMPTS))]
-    hdr = f"{'Model':<20} {'Prompt':<6} " + "  ".join(f"{'R'+str(r+1):>6}" for r in range(num_runs)) + f"  {'Avg':>6}"
-    print(hdr)
-    print("-" * len(hdr))
-    for name in model_names:
-        for pi in range(len(TEST_PROMPTS)):
-            vals = [all_runs[name][ri][pi]["latency_ms"] for ri in range(num_runs)]
-            avg = round(sum(vals) / num_runs)
-            cols = "  ".join(f"{v:>6}" for v in vals)
-            print(f"{name:<20} {plabels[pi]:<6} {cols}  {avg:>6}")
-        print("-" * len(hdr))
+    # Write summary to summary.txt (and stdout)
+    summary_file = os.path.join(run_dir, "summary.txt")
+    with open(summary_file, "w") as sf:
+        tee = TeeWriter(sf)
+        with contextlib.redirect_stdout(tee):
+            # Per-prompt latency breakdown
+            print("=" * 120)
+            print(f"PER-PROMPT LATENCY ACROSS {num_runs} RUNS (ms)")
+            print("=" * 120)
+            plabels = [f"P{i+1}" for i in range(len(TEST_PROMPTS))]
+            hdr = f"{'Model':<20} {'Prompt':<6} " + "  ".join(f"{'R'+str(r+1):>6}" for r in range(num_runs)) + f"  {'Avg':>6}"
+            print(hdr)
+            print("-" * len(hdr))
+            for name in model_names:
+                for pi in range(len(TEST_PROMPTS)):
+                    vals = [all_runs[name][ri][pi]["latency_ms"] for ri in range(num_runs)]
+                    avg = round(sum(vals) / num_runs)
+                    cols = "  ".join(f"{v:>6}" for v in vals)
+                    print(f"{name:<20} {plabels[pi]:<6} {cols}  {avg:>6}")
+                print("-" * len(hdr))
 
-    # Print averaged summary
-    print("\n" + "=" * 160)
-    print(f"AVERAGED SUMMARY ({num_runs} runs)")
-    print("=" * 160)
-    fmt_table(avg_results, ALL_MODELS, scores=scores)
+            # Averaged summary
+            print("\n" + "=" * 160)
+            print(f"AVERAGED SUMMARY ({num_runs} runs)")
+            print("=" * 160)
+            fmt_table(avg_results, ALL_MODELS, scores=scores)
 
-    # Print edge agent mini leaderboard
-    fmt_edge_leaderboard(avg_results, ALL_MODELS, scores=scores)
+            # Edge agent mini leaderboard
+            fmt_edge_leaderboard(avg_results, ALL_MODELS, scores=scores)
 
-    # Print raw BitNet 2B-4T outputs for P1, P6, P8 (indices 0, 5, 7)
-    print("\n" + "=" * 120)
-    print("RAW BITNET-2B-4T OUTPUT (P1, P6, P8)")
-    print("=" * 120)
-    for pi, plabel in [(0, "P1"), (5, "P6"), (7, "P8")]:
-        print(f"\n--- {plabel}: {TEST_PROMPTS[pi][:70]} ---")
-        for run in range(num_runs):
-            raw = bitnet_raw.get(("bitnet-2B-4T", run, pi), "(no output)")
-            print(f"  Run {run+1}: {raw}")
-        print()
+            # Hard prompts P10-P12 focused table
+            fmt_hard_prompts_table(avg_results, ALL_MODELS)
 
-    # Also print raw bitnet-3B for comparison
-    print("\n" + "=" * 120)
-    print("RAW BITNET-3B OUTPUT (P1, P6, P8) [base model, for comparison]")
-    print("=" * 120)
-    for pi, plabel in [(0, "P1"), (5, "P6"), (7, "P8")]:
-        print(f"\n--- {plabel}: {TEST_PROMPTS[pi][:70]} ---")
-        for run in range(num_runs):
-            raw = bitnet_raw.get(("bitnet-3B", run, pi), "(no output)")
-            print(f"  Run {run+1}: {raw}")
-        print()
+            # Raw BitNet 2B-4T outputs
+            print("\n" + "=" * 120)
+            print("RAW BITNET-2B-4T OUTPUT (P1, P6, P8, P10-P12)")
+            print("=" * 120)
+            for pi, plabel in [(0, "P1"), (5, "P6"), (7, "P8"), (9, "P10"), (10, "P11"), (11, "P12")]:
+                print(f"\n--- {plabel}: {TEST_PROMPTS[pi][:70]} ---")
+                for run in range(num_runs):
+                    raw = bitnet_raw.get(("bitnet-2B-4T", run, pi), "(no output)")
+                    print(f"  Run {run+1}: {raw}")
+                print()
+
+            # Raw bitnet-3B for comparison
+            print("\n" + "=" * 120)
+            print("RAW BITNET-3B OUTPUT (P1, P6, P8, P10-P12) [base model, for comparison]")
+            print("=" * 120)
+            for pi, plabel in [(0, "P1"), (5, "P6"), (7, "P8"), (9, "P10"), (10, "P11"), (11, "P12")]:
+                print(f"\n--- {plabel}: {TEST_PROMPTS[pi][:70]} ---")
+                for run in range(num_runs):
+                    raw = bitnet_raw.get(("bitnet-3B", run, pi), "(no output)")
+                    print(f"  Run {run+1}: {raw}")
+                print()
+
+    print(f"\nResults written to {run_dir}/")
 
 
 def _self_test():
@@ -919,38 +1081,48 @@ def _self_test():
     parsed3 = _parse_all_tool_calls_from_text(mixed)
     assert len(parsed3) == 2, f"Expected 2 valid calls from mixed input, got {len(parsed3)}"
 
-    # Test backward compat: compute_agent_score still produces correct values
-    # Simulate a model with 6/7 action correct, 2/2 restraint → 0.929
+    # Test scoring with new 12-prompt formula
+    # Good model: 9/10 action (misses P8), 2/2 restraint, 0/3 wrong tool
+    # agent_score = (9/10)*0.4 + (2/2)*0.3 + ((3-0)/3)*0.3 = 0.36+0.3+0.3 = 0.96
     mock_results = [
-        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P1
-        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P2
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P1
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},      # P2
         {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P3
-        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P4
-        {"tool_called": False, "valid_args": None, "tool_name": None},           # P5 restraint
-        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P6
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P4
+        {"tool_called": False, "valid_args": None, "tool_name": None},               # P5 restraint
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P6
         {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P7
-        {"tool_called": False, "valid_args": None, "tool_name": None},           # P8 (missed)
-        {"tool_called": False, "valid_args": None, "tool_name": None},           # P9 restraint
+        {"tool_called": False, "valid_args": None, "tool_name": None},               # P8 (missed)
+        {"tool_called": False, "valid_args": None, "tool_name": None},               # P9 restraint
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P10 correct
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},      # P11 correct
+        {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P12 correct
     ]
-    assert compute_agent_score(mock_results) == 0.929, f"Expected 0.929, got {compute_agent_score(mock_results)}"
-    assert compute_action_score(mock_results) == 0.857, f"Expected 0.857, got {compute_action_score(mock_results)}"
+    assert compute_agent_score(mock_results) == 0.96, f"Expected 0.96, got {compute_agent_score(mock_results)}"
+    assert compute_action_score(mock_results) == 0.9, f"Expected 0.9, got {compute_action_score(mock_results)}"
     assert compute_restraint_score(mock_results) == 1.0, f"Expected 1.0, got {compute_restraint_score(mock_results)}"
+    assert compute_wrong_tool(mock_results) == 0, f"Expected 0 wrong, got {compute_wrong_tool(mock_results)}"
 
-    # Test 7/7 action, 0/2 restraint → 0.500 (llama3.2 pattern)
+    # Trigger-happy model: 7/10 action, 0/2 restraint, 3/3 wrong tool
+    # agent_score = (7/10)*0.4 + (0/2)*0.3 + ((3-3)/3)*0.3 = 0.28+0+0 = 0.28
     llama_results = [
-        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P1
-        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P2
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P1
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},      # P2
         {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P3
-        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P4
-        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P5 (should restrain)
-        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},   # P6
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P4
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},      # P5 (should restrain)
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P6
         {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P7
-        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P8
-        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},  # P9 (should restrain)
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},      # P8
+        {"tool_called": True, "valid_args": True, "tool_name": "search_files"},      # P9 (should restrain)
+        {"tool_called": True, "valid_args": True, "tool_name": "schedule_meeting"},  # P10 WRONG
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P11 WRONG
+        {"tool_called": True, "valid_args": True, "tool_name": "get_weather"},       # P12 WRONG
     ]
-    assert compute_agent_score(llama_results) == 0.5, f"Expected 0.5, got {compute_agent_score(llama_results)}"
-    assert compute_action_score(llama_results) == 1.0
+    assert compute_agent_score(llama_results) == 0.28, f"Expected 0.28, got {compute_agent_score(llama_results)}"
+    assert compute_action_score(llama_results) == 0.7, f"Expected 0.7, got {compute_action_score(llama_results)}"
     assert compute_restraint_score(llama_results) == 0.0
+    assert compute_wrong_tool(llama_results) == 3, f"Expected 3 wrong, got {compute_wrong_tool(llama_results)}"
 
     print("All self-tests passed.")
 
