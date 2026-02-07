@@ -288,7 +288,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install ollama requests
 
-# Update BITNET_DIR in bench.py if your BitNet path differs
+# Update BITNET_DIR in lib/bitnet_backend.py if your BitNet path differs
 python bench.py
 ```
 
@@ -296,14 +296,14 @@ The full run (11 models x 12 prompts x 3 runs = 396 inference calls) takes rough
 
 ### Customising
 
-The benchmark is a single file (`bench.py`). To add models, prompts, or adjust runs:
+The entry point is `bench.py`; supporting modules live in `lib/`. To add models, prompts, or adjust runs:
 
-- **Add an Ollama model (native tool API):** Add `{"name": "your-model:tag", "backend": "ollama", "origin": "XX"}` to `ALL_MODELS`
+- **Add an Ollama model (native tool API):** Add `{"name": "your-model:tag", "backend": "ollama", "origin": "XX"}` to `ALL_MODELS` in `lib/bench_config.py`
 - **Add an Ollama model (raw prompt):** Use `"backend": "ollama_raw"` for models that don't support Ollama's native tool API or perform better with system-prompt-based tool calling
-- **Add a prompt:** Append to `TEST_PROMPTS`. If it's a restraint prompt (correct answer is no tool call), add its 0-based index to `RESTRAINT_INDICES`. If it's a hard prompt with an expected tool, add it to `EXPECTED_TOOLS` and `WRONG_TOOL_MAP`
-- **Change run count:** Edit `num_runs` in `main()`
-- **Add tools:** Extend the `TOOLS` list and `TOOL_DISPATCH` dict. Update `BITNET_SYSTEM_PROMPT` if you want raw-prompt models to know about them
-- **Add to edge leaderboard:** Add the model name to `EDGE_MODELS` if it's sub-2B
+- **Add a prompt:** Append to `TEST_PROMPTS` in `lib/bench_config.py`. If it's a restraint prompt (correct answer is no tool call), add its 0-based index to `RESTRAINT_INDICES`. If it's a hard prompt with an expected tool, add it to `EXPECTED_TOOLS` and `WRONG_TOOL_MAP`
+- **Change run count:** Edit `num_runs` in `main()` in `bench.py`
+- **Add tools:** Extend the `TOOLS` list in `lib/bench_config.py` and `TOOL_DISPATCH` dict in `bench.py`. Update `BITNET_SYSTEM_PROMPT` in `lib/bitnet_backend.py` if you want raw-prompt models to know about them
+- **Add to edge leaderboard:** Add the model name to `EDGE_MODELS` in `lib/bench_config.py`
 
 ## License
 
