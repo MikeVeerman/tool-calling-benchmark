@@ -2,7 +2,7 @@
 
 **Can a $1,000 laptop run an AI agent that knows when to use tools -- and when not to?**
 
-This benchmark answers that question. No cloud API. No GPU. Just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
+To find out, we tested 11 small open-weight models (0.5B-3.8B parameters) running locally on CPU -- no cloud API, no GPU, just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
 
 The motivation is practical. Local and private AI agents are increasingly attractive -- no per-token costs, no data leaving the machine, no vendor lock-in. But an agent that acts incorrectly is worse than one that does nothing: a wrong API call costs money, sends the wrong message, or deletes the wrong file. The hard problem isn't generating well-formed JSON. It's deciding whether to act at all.
 
@@ -10,7 +10,7 @@ This benchmark measures **judgment** -- whether a model knows *when* to call a t
 
 ## TL;DR
 
-- Every functional model (8 of 11) can handle simple, unambiguous tool calls on CPU at 1-8s latency.
+- Every functional model -- meaning those that successfully emit structured tool calls (8 of 11) -- can handle simple, unambiguous requests on CPU at 1-8s latency.
 - When prompts require judgment -- resisting keyword triggers, respecting negation, noticing redundant information -- most sub-4B models fail.
 - The two top-scoring models (qwen2.5:1.5b, ministral-3:3b) won by *declining to act* when uncertain, not by calling more tools.
 - A 1.5B model outscored its 3B sibling from the same family. Under safety-weighted scoring, conservatism beat aggression.
@@ -113,6 +113,8 @@ Everything is run 3 times. Correctness uses majority-vote aggregation; reliabili
 
 ## Results at a glance
 
+The Agent Score rewards both correct tool calls and correct inaction, while penalizing wrong-tool calls -- so models that act confidently but incorrectly rank lower than models that decline when uncertain.
+
 | Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Reliability | Multi-Tool | Agent Score |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.500 | 1.000 | 0 | 0.611 | N/A* | **0.800** |
@@ -202,6 +204,7 @@ This benchmark has a narrow scope by design, and the results should be interpret
 - **Safety-weighted scoring.** The Agent Score gives 60% combined weight to restraint and wrong-tool-avoidance. This structurally favors conservative models. Under an action-maximizing formula, the rankings would shift significantly. The scoring reflects one deployment preference (wrong actions are costly), not a universal truth.
 - **Model-protocol pairs, not models in isolation.** Each result reflects a specific model running through a specific backend (Ollama native tools, Ollama raw prompt, or BitNet's OpenAI-compatible endpoint). The same model may behave differently with a different interaction contract. Rankings should not be read as generalizing across protocols.
 - **Default Ollama settings.** All Ollama models ran with `num_ctx` at the default 4,096 tokens, well below most models' training context. Our prompts are short enough that this is not a binding constraint, but results reflect "model at Ollama defaults," not the model's full capability ceiling.
+- **Default sampling parameters.** All models were run with their backend's default sampling settings (temperature, top_p, etc.). Different sampling parameters may change tool-calling behavior, particularly for borderline prompts.
 - **Three runs per prompt.** Reliability scores are coarse stability signals, not deployment-grade confidence estimates. A model showing 2/3 consistency on a prompt may be more or less stable than that figure suggests.
 
 ## Run it yourself
@@ -304,4 +307,4 @@ The benchmark is a single file (`bench.py`). To add models, prompts, or adjust r
 
 ## License
 
-Do whatever you want with this. It's a benchmark script, not a product.
+This benchmark is freely available for any use -- commercial, academic, or personal. No license restrictions. Attribution is appreciated but not required. It's a benchmark script, not a product.
