@@ -1,5 +1,5 @@
 ================================================================================================================================================================
-SUMMARY (11 models)
+SUMMARY (17 models)
 ================================================================================================================================================================
 
 ================================================================================================================================================================
@@ -166,6 +166,84 @@ bitnet-2B-4T         P10    no       -                    -          1780
 bitnet-2B-4T         P11    YES      search_files         OK         1687
 bitnet-2B-4T         P12    YES      schedule_meeting     OK         1816
 -------------------------------------------------------------------------
+qwen3:0.6b           P1     YES      get_weather          OK         1727
+qwen3:0.6b           P2     YES      search_files         OK         1809
+qwen3:0.6b           P3     YES      schedule_meeting     OK         3874
+qwen3:0.6b           P4     YES      get_weather          OK         2883
+qwen3:0.6b           P5     no       -                    -          2202
+qwen3:0.6b           P6     no       -                    -          5296
+qwen3:0.6b           P7     YES      schedule_meeting     OK         3268
+qwen3:0.6b           P8     YES      search_files         OK         2539
+qwen3:0.6b           P9     no       -                    -          8356
+qwen3:0.6b           P10    no       -                    -          2746
+qwen3:0.6b           P11    YES      search_files         OK         3390
+qwen3:0.6b           P12    no       -                    -          5654
+-------------------------------------------------------------------------
+qwen3:1.7b           P1     YES      get_weather          OK         4145
+qwen3:1.7b           P2     YES      search_files         OK         3767
+qwen3:1.7b           P3     YES      schedule_meeting     OK         9199
+qwen3:1.7b           P4     YES      get_weather          OK         5408
+qwen3:1.7b           P5     no       -                    -          8224
+qwen3:1.7b           P6     no       -                    -          5786
+qwen3:1.7b           P7     YES      schedule_meeting     OK        19547
+qwen3:1.7b           P8     YES      search_files         OK         7649
+qwen3:1.7b           P9     YES      get_weather          OK        44676
+qwen3:1.7b           P10    YES      get_weather          OK        11698
+qwen3:1.7b           P11    YES      search_files         OK         7727
+qwen3:1.7b           P12    YES      get_weather          OK        15011
+-------------------------------------------------------------------------
+qwen3:4b             P1     YES      get_weather          OK        11267
+qwen3:4b             P2     YES      search_files         OK        12332
+qwen3:4b             P3     YES      schedule_meeting     OK        32834
+qwen3:4b             P4     YES      get_weather          OK        11240
+qwen3:4b             P5     no       -                    -         24522
+qwen3:4b             P6     no       -                    -         86674
+qwen3:4b             P7     YES      schedule_meeting     OK       148373
+qwen3:4b             P8     YES      search_files         OK        23555
+qwen3:4b             P9     no       -                    -        131568
+qwen3:4b             P10    no       -                    -         77925
+qwen3:4b             P11    YES      search_files         OK        41996
+qwen3:4b             P12    no       -                    -        162323
+-------------------------------------------------------------------------
+functiongemma        P1     YES      get_weather          OK          482
+functiongemma        P2     YES      search_files         OK          266
+functiongemma        P3     YES      schedule_meeting     OK          597
+functiongemma        P4     no       -                    -           505
+functiongemma        P5     no       -                    -           567
+functiongemma        P6     YES      get_weather          OK          269
+functiongemma        P7     YES      schedule_meeting     OK          693
+functiongemma        P8     YES      search_files         OK          393
+functiongemma        P9     no       -                    -           523
+functiongemma        P10    no       -                    -           432
+functiongemma        P11    YES      get_weather          OK          266
+functiongemma        P12    YES      get_weather          OK          713
+-------------------------------------------------------------------------
+granite3.3:2b        P1     YES      get_weather          OK         2321
+granite3.3:2b        P2     YES      search_files         OK          917
+granite3.3:2b        P3     YES      schedule_meeting     OK         2951
+granite3.3:2b        P4     YES      get_weather          OK         1102
+granite3.3:2b        P5     YES      get_weather          OK         2027
+granite3.3:2b        P6     YES      get_weather          OK          990
+granite3.3:2b        P7     YES      schedule_meeting     OK         3174
+granite3.3:2b        P8     no       -                    -          1679
+granite3.3:2b        P9     YES      get_weather          OK          999
+granite3.3:2b        P10    YES      get_weather          OK         1222
+granite3.3:2b        P11    no       -                    -           354
+granite3.3:2b        P12    YES      get_weather          OK         2058
+-------------------------------------------------------------------------
+llama3.2:1b          P1     YES      get_weather          OK         1341
+llama3.2:1b          P2     YES      search_files         OK          724
+llama3.2:1b          P3     YES      schedule_meeting     OK         1824
+llama3.2:1b          P4     YES      get_weather          OK          661
+llama3.2:1b          P5     YES      get_weather          OK          642
+llama3.2:1b          P6     YES      get_weather          OK          670
+llama3.2:1b          P7     YES      schedule_meeting     OK         1803
+llama3.2:1b          P8     YES      get_weather          OK          921
+llama3.2:1b          P9     no       -                    -          2945
+llama3.2:1b          P10    YES      schedule_meeting     OK         1970
+llama3.2:1b          P11    YES      get_weather          OK         1616
+llama3.2:1b          P12    YES      get_weather          OK         2410
+-------------------------------------------------------------------------
 
 ================================================================================================================================================================
 SUMMARY (sorted by Agent Score)
@@ -173,16 +251,22 @@ SUMMARY (sorted by Agent Score)
 Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
 ----------------------------------------------------------------------------------------------------------------------------------------
 phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           0        0.722       1.000        0.880    5460
+qwen3:0.6b           Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880    3645
+qwen3:4b             Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880   63717
 qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
 bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
 ministral-3:3b       Ollama       native-tools   FR          0.500      1.000           0        0.611        N/A*        0.800    7157
 smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
 qwen2.5:3b           Ollama       native-tools   CN          0.800      0.500           1        0.778        N/A*        0.670    2801
+qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
 llama3.2:3b          Ollama       native-tools   US          0.900      0.000           0        0.778        N/A*        0.660    1726
 qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
+functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
 deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
 gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
 bitnet-3B            bitnet.cpp   openai-compat  US/1bit     0.000      1.000           0        0.167       0.000        0.600   11362
+granite3.3:2b        Ollama       native-tools   US          0.700      0.000           1        0.583        N/A*        0.480    1650
+llama3.2:1b          Ollama       native-tools   US          0.700      0.500           3        0.667        N/A*        0.430    1461
 
 
 ================================================================================================================================================================
@@ -190,12 +274,16 @@ EDGE AGENT MINI LEADERBOARD (sub-2B models)
 ================================================================================================================================================================
 #    Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
 ---------------------------------------------------------------------------------------------------------------------------------------------
-1    qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
-2    bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
-3    smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
-4    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
-5    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
-6    gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
+1    qwen3:0.6b           Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880    3645
+2    qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
+3    bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
+4    smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
+5    qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
+6    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
+7    functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
+8    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
+9    gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
+10   llama3.2:1b          Ollama       native-tools   US          0.700      0.500           3        0.667        N/A*        0.430    1461
 
 
 ========================================================================================================================
@@ -221,4 +309,10 @@ gemma3:1b            (none)               miss     (none)               miss    
 phi4-mini:3.8b       get_weather          OK       (none)               miss     search_files         wrong?        1
 bitnet-3B            (none)               miss     (none)               miss     (none)               miss          0
 bitnet-2B-4T         (none)               miss     search_files         OK       schedule_meeting     OK            0
+qwen3:0.6b           (none)               miss     search_files         OK       (none)               miss          0
+qwen3:1.7b           get_weather          OK       search_files         OK       get_weather          WRONG         1
+qwen3:4b             (none)               miss     search_files         OK       (none)               miss          0
+functiongemma        (none)               miss     get_weather          WRONG    get_weather          WRONG         2
+granite3.3:2b        get_weather          OK       (none)               miss     get_weather          WRONG         1
+llama3.2:1b          schedule_meeting     WRONG    get_weather          WRONG    get_weather          WRONG         3
 

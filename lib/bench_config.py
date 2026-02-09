@@ -159,7 +159,15 @@ ALL_MODELS = [
      "model_path": "/home/mike/projects/bitnet/models/bitnet_b1_58-3B/ggml-model-i2_s.gguf"},
     {"name": "bitnet-2B-4T",    "backend": "bitnet",  "origin": "US/1bit",
      "model_path": "/home/mike/projects/bitnet/models/BitNet-b1.58-2B-4T/ggml-model-i2_s.gguf"},
+    # Round 2 models (community-requested)
+    {"name": "qwen3:0.6b",      "backend": "ollama",  "origin": "CN"},
+    {"name": "qwen3:1.7b",      "backend": "ollama",  "origin": "CN"},
+    {"name": "qwen3:4b",        "backend": "ollama",  "origin": "CN"},
+    {"name": "functiongemma",    "backend": "ollama",  "origin": "US"},
+    {"name": "granite3.3:2b",   "backend": "ollama",  "origin": "US"},
+    {"name": "llama3.2:1b",     "backend": "ollama",  "origin": "US"},
 ]
 
 # Sub-2B models for the "edge agent" mini leaderboard
-EDGE_MODELS = {"qwen2.5:0.5b", "qwen2.5:1.5b", "smollm2:1.7b", "deepseek-r1:1.5b", "gemma3:1b", "bitnet-2B-4T"}
+EDGE_MODELS = {"qwen2.5:0.5b", "qwen2.5:1.5b", "smollm2:1.7b", "deepseek-r1:1.5b", "gemma3:1b", "bitnet-2B-4T",
+               "qwen3:0.6b", "qwen3:1.7b", "functiongemma", "llama3.2:1b"}
