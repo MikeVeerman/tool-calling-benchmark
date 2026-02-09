@@ -131,6 +131,7 @@ BACKEND_DISPLAY = {
     "ollama":     ("Ollama",     "native-tools"),
     "ollama_raw": ("Ollama",     "raw-schema"),
     "bitnet":     ("bitnet.cpp", "openai-compat"),
+    "llamacpp":   ("llama.cpp",  "openai-compat"),
 }
 
 P8_REQUIRED_TOOLS = {"search_files", "get_weather"}
@@ -166,8 +167,10 @@ ALL_MODELS = [
     {"name": "functiongemma",    "backend": "ollama",  "origin": "US"},
     {"name": "granite3.3:2b",   "backend": "ollama",  "origin": "US"},
     {"name": "llama3.2:1b",     "backend": "ollama",  "origin": "US"},
+    {"name": "lfm2.5:1.2b",    "backend": "llamacpp", "origin": "US",
+     "model_id": "LiquidAI/LFM2.5-1.2B-Instruct-GGUF"},
 ]
 
 # Sub-2B models for the "edge agent" mini leaderboard
 EDGE_MODELS = {"qwen2.5:0.5b", "qwen2.5:1.5b", "smollm2:1.7b", "deepseek-r1:1.5b", "gemma3:1b", "bitnet-2B-4T",
-               "qwen3:0.6b", "qwen3:1.7b", "functiongemma", "llama3.2:1b"}
+               "qwen3:0.6b", "qwen3:1.7b", "functiongemma", "llama3.2:1b", "lfm2.5:1.2b"}

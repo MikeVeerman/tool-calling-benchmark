@@ -18,6 +18,11 @@ from lib.bitnet_backend import (
     _parse_tool_call_from_text,
     _parse_all_tool_calls_from_text,
 )
+from lib.llamacpp_backend import (
+    start_llamacpp_server,
+    stop_llamacpp_server,
+    run_one_llamacpp,
+)
 from lib.report import generate_summary
 from lib.run_helpers import (
     compute_bench_version,
@@ -166,6 +171,8 @@ def run_one(model_info: dict, prompt: str) -> dict:
         return run_one_ollama_raw(model_info["name"], prompt)
     elif model_info["backend"] == "bitnet":
         return run_one_bitnet(prompt)
+    elif model_info["backend"] == "llamacpp":
+        return run_one_llamacpp(model_info["model_id"], prompt)
     else:
         raise ValueError(f"Unknown backend: {model_info['backend']}")
 
@@ -187,12 +194,17 @@ def run_single_model(model_info: dict, num_runs: int, run_dir: str):
     runs_data = []  # runs_data[run_idx] = [result_per_prompt]
 
     try:
-        # Start BitNet server if needed
+        # Start external server if needed
         if model_info["backend"] == "bitnet":
             model_path = model_info["model_path"]
             print(f"  [Starting BitNet server for {name}...]")
             start_bitnet_server(model_path)
             print(f"  [BitNet server ready for {name}]")
+        elif model_info["backend"] == "llamacpp":
+            model_id = model_info["model_id"]
+            print(f"  [Starting llama-server for {name}...]")
+            start_llamacpp_server(model_id)
+            print(f"  [llama-server ready for {name}]")
 
         for run in range(num_runs):
             print(f"{'='*60}")
@@ -212,6 +224,10 @@ def run_single_model(model_info: dict, num_runs: int, run_dir: str):
             print("Stopping BitNet server...")
             stop_bitnet_server()
             print("BitNet server stopped.\n")
+        elif model_info["backend"] == "llamacpp":
+            print("Stopping llama-server...")
+            stop_llamacpp_server()
+            print("llama-server stopped.\n")
 
     save_model_results(run_dir, model_info, runs_data, num_runs)
     print(f"Saved {model_name_to_filename(name)}")

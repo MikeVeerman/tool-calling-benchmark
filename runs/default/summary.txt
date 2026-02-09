@@ -1,5 +1,5 @@
 ================================================================================================================================================================
-SUMMARY (17 models)
+SUMMARY (18 models)
 ================================================================================================================================================================
 
 ================================================================================================================================================================
@@ -138,7 +138,7 @@ phi4-mini:3.8b       P8     YES      search_files         OK         2928
 phi4-mini:3.8b       P9     no       -                    -         20483
 phi4-mini:3.8b       P10    YES      get_weather          OK         6265
 phi4-mini:3.8b       P11    no       -                    -          4658
-phi4-mini:3.8b       P12    YES      search_files         OK         7042
+phi4-mini:3.8b       P12    YES      get_weather          OK         7042
 -------------------------------------------------------------------------
 bitnet-3B            P1     no       -                    -         10055
 bitnet-3B            P2     no       -                    -          7819
@@ -244,24 +244,38 @@ llama3.2:1b          P10    YES      schedule_meeting     OK         1970
 llama3.2:1b          P11    YES      get_weather          OK         1616
 llama3.2:1b          P12    YES      get_weather          OK         2410
 -------------------------------------------------------------------------
+lfm2.5:1.2b          P1     no       -                    -           933
+lfm2.5:1.2b          P2     no       -                    -          1074
+lfm2.5:1.2b          P3     no       -                    -          2066
+lfm2.5:1.2b          P4     no       -                    -          1383
+lfm2.5:1.2b          P5     no       -                    -          1214
+lfm2.5:1.2b          P6     no       -                    -          1126
+lfm2.5:1.2b          P7     no       -                    -          2073
+lfm2.5:1.2b          P8     no       -                    -          1299
+lfm2.5:1.2b          P9     no       -                    -          4353
+lfm2.5:1.2b          P10    YES      get_weather          OK         1193
+lfm2.5:1.2b          P11    no       -                    -          1456
+lfm2.5:1.2b          P12    no       -                    -          1229
+-------------------------------------------------------------------------
 
 ================================================================================================================================================================
 SUMMARY (sorted by Agent Score)
 ================================================================================================================================================================
 Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
 ----------------------------------------------------------------------------------------------------------------------------------------
-phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           0        0.722       1.000        0.880    5460
 qwen3:0.6b           Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880    3645
 qwen3:4b             Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880   63717
 qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
 bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
 ministral-3:3b       Ollama       native-tools   FR          0.500      1.000           0        0.611        N/A*        0.800    7157
+phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           1        0.722       1.000        0.780    5460
 smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
 qwen2.5:3b           Ollama       native-tools   CN          0.800      0.500           1        0.778        N/A*        0.670    2801
 qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
 llama3.2:3b          Ollama       native-tools   US          0.900      0.000           0        0.778        N/A*        0.660    1726
 qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
 functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
+lfm2.5:1.2b          llama.cpp    openai-compat  US          0.100      1.000           0        0.222       0.000        0.640    1617
 deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
 gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
 bitnet-3B            bitnet.cpp   openai-compat  US/1bit     0.000      1.000           0        0.167       0.000        0.600   11362
@@ -281,9 +295,10 @@ EDGE AGENT MINI LEADERBOARD (sub-2B models)
 5    qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
 6    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
 7    functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
-8    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
-9    gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
-10   llama3.2:1b          Ollama       native-tools   US          0.700      0.500           3        0.667        N/A*        0.430    1461
+8    lfm2.5:1.2b          llama.cpp    openai-compat  US          0.100      1.000           0        0.222       0.000        0.640    1617
+9    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
+10   gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
+11   llama3.2:1b          Ollama       native-tools   US          0.700      0.500           3        0.667        N/A*        0.430    1461
 
 
 ========================================================================================================================
@@ -306,7 +321,7 @@ smollm2:1.7b         (none)               miss     (none)               miss    
 ministral-3:3b       (none)               miss     (none)               miss     (none)               miss          0
 deepseek-r1:1.5b     (none)               miss     (none)               miss     (none)               miss          0
 gemma3:1b            (none)               miss     (none)               miss     (none)               miss          0
-phi4-mini:3.8b       get_weather          OK       (none)               miss     search_files         wrong?        1
+phi4-mini:3.8b       get_weather          OK       (none)               miss     get_weather          WRONG         1
 bitnet-3B            (none)               miss     (none)               miss     (none)               miss          0
 bitnet-2B-4T         (none)               miss     search_files         OK       schedule_meeting     OK            0
 qwen3:0.6b           (none)               miss     search_files         OK       (none)               miss          0
@@ -315,4 +330,5 @@ qwen3:4b             (none)               miss     search_files         OK      
 functiongemma        (none)               miss     get_weather          WRONG    get_weather          WRONG         2
 granite3.3:2b        get_weather          OK       (none)               miss     get_weather          WRONG         1
 llama3.2:1b          schedule_meeting     WRONG    get_weather          WRONG    get_weather          WRONG         3
+lfm2.5:1.2b          get_weather          OK       (none)               miss     (none)               miss          0
 
