@@ -163,8 +163,7 @@ ALL_MODELS = [
     # Round 2 models (community-requested)
     {"name": "qwen3:0.6b",      "backend": "ollama",  "origin": "CN"},
     {"name": "qwen3:1.7b",      "backend": "ollama",  "origin": "CN"},
-    {"name": "qwen3:4b",        "backend": "ollama",  "origin": "CN"},
-    {"name": "functiongemma",    "backend": "ollama",  "origin": "US"},
+{"name": "functiongemma",    "backend": "ollama",  "origin": "US"},
     {"name": "granite3.3:2b",   "backend": "ollama",  "origin": "US"},
     {"name": "llama3.2:1b",     "backend": "ollama",  "origin": "US"},
     {"name": "lfm2.5:1.2b",    "backend": "llamacpp", "origin": "US",
