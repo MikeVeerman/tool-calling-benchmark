@@ -84,6 +84,77 @@ def run():
     parsed_tag = _parse_tool_call_from_text(with_tag)
     assert parsed_tag["name"] == "get_weather" and parsed_tag["arguments"]["city"] == "Paris"
 
+    # Function-call syntax inside <tool_call> tags (gemma3 style)
+    gemma_single = "<tool_call>get_weather(city: Antwerp)</tool_call>"
+    parsed_gemma = _parse_tool_call_from_text(gemma_single)
+    assert parsed_gemma is not None, "Funcall in tags should be parsed"
+    assert parsed_gemma["name"] == "get_weather"
+    assert parsed_gemma["arguments"]["city"] == "Antwerp"
+
+    gemma_quoted = '<tool_call>search_files(pattern: "*.py")</tool_call>'
+    parsed_gq = _parse_tool_call_from_text(gemma_quoted)
+    assert parsed_gq is not None and parsed_gq["name"] == "search_files"
+    assert parsed_gq["arguments"]["pattern"] == "*.py"
+
+    # Multiple function-call tags
+    gemma_multi = (
+        "<tool_call>get_weather(city: Antwerp)</tool_call>\n"
+        '<tool_call>search_files(pattern: "*.py")</tool_call>'
+    )
+    gemma_all = _parse_all_tool_calls_from_text(gemma_multi)
+    assert len(gemma_all) == 2, f"Expected 2 gemma funcalls, got {len(gemma_all)}"
+    assert gemma_all[0]["name"] == "get_weather"
+    assert gemma_all[1]["name"] == "search_files"
+
+    # Bare function call (deepseek-r1 style, no tags at all)
+    bare_func = "get_weather(Antwerp)"
+    parsed_bf = _parse_tool_call_from_text(bare_func)
+    assert parsed_bf is not None, "Bare funcall should be parsed"
+    assert parsed_bf["name"] == "get_weather"
+    assert parsed_bf["arguments"]["city"] == "Antwerp"  # positional -> named via KNOWN_TOOLS
+
+    bare_func2 = "search_files(pattern: \"*.py\")"
+    parsed_bf2 = _parse_tool_call_from_text(bare_func2)
+    assert parsed_bf2 is not None and parsed_bf2["name"] == "search_files"
+    assert parsed_bf2["arguments"]["pattern"] == "*.py"
+
+    # Bare funcall with _parse_all
+    bare_func_all = _parse_all_tool_calls_from_text("get_weather(Antwerp)")
+    assert len(bare_func_all) == 1
+
+    # Markdown code-fence wrapped JSON
+    fenced = '```json\n{"name": "get_weather", "arguments": {"city": "Paris"}}\n```'
+    parsed_fenced = _parse_tool_call_from_text(fenced)
+    assert parsed_fenced is not None, "Fenced JSON should be parsed"
+    assert parsed_fenced["name"] == "get_weather"
+    assert parsed_fenced["arguments"]["city"] == "Paris"
+
+    fenced_all = _parse_all_tool_calls_from_text(fenced)
+    assert len(fenced_all) == 1
+
+    # Unknown function name should NOT be matched by bare funcall parser
+    unknown_func = "my_custom_func(arg1: 'hello')"
+    assert _parse_tool_call_from_text(unknown_func) is None
+
+    # Python code patterns should NOT be matched
+    py_def = "def get_weather(city): pass"
+    assert _parse_tool_call_from_text(py_def) is None
+    py_assign = 'result = get_weather(city="Paris")'
+    assert _parse_tool_call_from_text(py_assign) is None
+    py_method = 'self.get_weather(city="Paris")'
+    assert _parse_tool_call_from_text(py_method) is None
+
+    # Type signatures and placeholders should NOT be matched
+    assert _parse_tool_call_from_text("get_weather(city: string)") is None
+    assert _parse_tool_call_from_text("get_weather(city: city)") is None
+    assert _parse_tool_call_from_text("get_weather(city: city_name)") is None
+    assert _parse_tool_call_from_text("schedule_meeting(title: string, time: string)") is None
+
+    # <tool_call> JSON still takes priority over funcall
+    tag_json = '<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}</tool_call>'
+    parsed_prio = _parse_tool_call_from_text(tag_json)
+    assert parsed_prio["name"] == "get_weather" and parsed_prio["arguments"]["city"] == "Paris"
+
     # Plain text should still return None / []
     plain = "The weather in Antwerp is sunny today."
     assert _parse_tool_call_from_text(plain) is None
