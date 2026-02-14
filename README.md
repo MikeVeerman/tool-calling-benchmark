@@ -20,7 +20,7 @@ This benchmark measures **judgment** -- whether a model knows *when* to call a t
 - Parameter count is a weak predictor of tool-calling quality. Rankings within the Qwen3 family are non-monotonic: 0.6B > 4B > 1.7B. A 1.2B state-space model ties 3.8B transformers.
 - A purpose-built function-calling model (functiongemma, 270M) is the fastest in the benchmark but falls into the same keyword traps as generic models 7x its size.
 - P12 ("The weather is 8°C and rainy. Should I schedule a meeting?") is the hardest prompt: only 3 of 21 models call the correct tool.
-- **Format compliance masks reasoning capability.** jan-v3:4b appeared broken (0.490) but actually has Action 0.900 -- its real problem is zero restraint, not format issues.
+- **Format compliance masks true behavior -- in both directions.** Parser fixes for 5 models revealed that format-blind scoring both underestimates (lfm2.5: 0.640 → 0.880) and overestimates (gemma3: 0.600 → 0.550) models by hiding their actual tool-calling behavior.
 - 3-run majority voting has high variance on hard prompts: bitnet-2B-4T shifted from 0.570 to 0.810 between runs due to different P10/P12 outcomes.
 
 ## Why this exists
@@ -132,17 +132,17 @@ Agent Score rewards correct action **and** correct inaction; wrong-tool calls ar
 | 6 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
 | 7 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.800 | 7,157 |
 | 8 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
-| 8 | **smollm3:3b** | Ollama | raw-schema | US | 0.600 | 1.000 | 1 | 0.740 | 9,712 |
-| 10 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 2,801 |
-| 10 | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 11,903 |
-| 10 | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.670 | 2,402 |
-| 13 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.660 | 1,726 |
-| 14 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
-| 14 | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 476 |
-| 16 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.600 | 6,477 |
-| 16 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.600 | 2,011 |
-| 16 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.600 | 11,362 |
-| 19 | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.560 | 2,335 |
+| 9 | **deepseek-r1:1.5b** | Ollama | raw-schema | CN | 0.300 | 1.000 | 0 | 0.720 | 1,672 |
+| 10 | **smollm3:3b** | Ollama | raw-schema | US | 0.900 | 0.500 | 1 | 0.710 | 12,096 |
+| 11 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 2,801 |
+| 11 | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 11,903 |
+| 11 | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.670 | 2,402 |
+| 14 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.660 | 1,726 |
+| 15 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
+| 15 | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 476 |
+| 17 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.600 | 11,362 |
+| 18 | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.560 | 2,335 |
+| 19 | **gemma3:1b** | Ollama | raw-schema | US | 0.500 | 0.500 | 1 | 0.550 | 2,426 |
 | 20 | **granite3.3:2b** | Ollama | native-tools | US | 0.700 | 0.000 | 1 | 0.480 | 1,650 |
 | 21 | **llama3.2:1b** | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.430 | 1,461 |
 
@@ -163,11 +163,11 @@ qwen3:0.6b -- at just 600 million parameters -- also ties for #1. The Qwen3 fami
 | 3 | qwen2.5:1.5b | Ollama | native-tools | 0.600 | 1.000 | 0 | **0.840** | 2,211 |
 | 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
 | 5 | smollm2:1.7b | Ollama | native-tools | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
-| 6 | **qwen3:1.7b** | Ollama | native-tools | 0.800 | 0.500 | 1 | 0.670 | 11,903 |
-| 7 | qwen2.5:0.5b | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 881 |
-| 7 | **functiongemma** | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 476 |
-| 9 | deepseek-r1:1.5b | Ollama | raw-schema | 0.000 | 1.000 | 0 | 0.600 | 6,477 |
-| 9 | gemma3:1b | Ollama | raw-schema | 0.000 | 1.000 | 0 | 0.600 | 2,011 |
+| 6 | **deepseek-r1:1.5b** | Ollama | raw-schema | 0.300 | 1.000 | 0 | 0.720 | 1,672 |
+| 7 | **qwen3:1.7b** | Ollama | native-tools | 0.800 | 0.500 | 1 | 0.670 | 11,903 |
+| 8 | qwen2.5:0.5b | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 881 |
+| 8 | **functiongemma** | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 476 |
+| 10 | **gemma3:1b** | Ollama | raw-schema | 0.500 | 0.500 | 1 | 0.550 | 2,426 |
 | 11 | **llama3.2:1b** | Ollama | native-tools | 0.700 | 0.500 | 3 | 0.430 | 1,461 |
 
 ## What we learned
@@ -187,7 +187,7 @@ The full analysis is in [ROUND1_REPORT.md](ROUND1_REPORT.md). Key findings:
 After the Reddit post, 10 community-requested models were added. The full analysis is in [ROUND2_REPORT.md](ROUND2_REPORT.md). Key findings:
 
 1. **Four models tie for #1 at 0.880.** lfm2.5:1.2b, qwen3:0.6b, qwen3:4b, and phi4-mini:3.8b. The fastest is lfm2.5 at 1,470 ms -- a 1.2B state-space hybrid that was initially misranked due to format compliance issues.
-2. **Fixing the parser changed the rankings dramatically.** lfm2.5:1.2b jumped from rank 13 to tied #1 after adding a bracket-notation parser. jan-v3:4b went from 0.490 to 0.560, revealing zero restraint as its real problem. Format compliance was masking reasoning capability.
+2. **Fixing the parser changed the rankings -- in both directions.** Five models needed fallback parsers for non-standard output formats. lfm2.5:1.2b jumped from rank 13 to tied #1 and deepseek-r1:1.5b improved from 0.600 to 0.720 -- both were genuinely capable models hidden behind format issues. But gemma3:1b (0.600 → 0.550) and smollm3:3b (0.740 → 0.710) actually scored *worse* because the parser revealed they were calling tools on restraint prompts. Format-blind benchmarks can both underestimate and overestimate models.
 3. **Parameter count is a weak predictor.** Qwen3 family rankings are non-monotonic: 0.6B (0.880) > 4B (0.880) > 1.7B (0.670). A 1.2B state-space model matches 3.8B transformers. Architecture and training data matter more than raw size.
 4. **Purpose-built doesn't mean best.** functiongemma (270M, fine-tuned for function calling) is the fastest model (476 ms) with perfect restraint, but falls into the same keyword traps as generic models on hard prompts.
 5. **Generational improvement is real.** granite4:3b (0.670) vs granite3.3:2b (0.480) shows clear improvement within IBM's model line. SmolLM3 matches SmolLM2 with better multi-tool support.
@@ -204,7 +204,7 @@ After testing 21 models across two rounds -- 756 total inference calls on CPU --
 
 **The conservative strategy keeps winning**, and the community-requested models confirmed rather than overturned this finding. The top models in both rounds share the same pattern: perfect restraint, zero wrong tools, moderate action. Under a scoring formula that penalizes wrong actions more than missed ones, knowing when *not* to act is the dominant skill. This isn't a universal truth -- it reflects a specific deployment preference -- but it's the right default for autonomous agents where wrong actions have consequences.
 
-**How you parse matters as much as what you test.** lfm2.5:1.2b was initially dismissed as a weak tool-calling model (rank 13). Adding a 50-line fallback parser for its bracket notation revealed it was tied for the best model in the benchmark. jan-v3:4b's score also improved, though its real problem (zero restraint) was hidden by the format issue. Any tool-calling benchmark should consider model-specific output formats or risk conflating format training with reasoning capability.
+**How you parse matters as much as what you test.** Five models needed fallback parsers for non-standard output formats. lfm2.5:1.2b jumped from rank 13 to tied #1 after a bracket-notation parser was added. But the lesson isn't just about underestimation: gemma3:1b and smollm3:3b actually scored *worse* after parser fixes, because the old parser was hiding their restraint failures. Format-blind benchmarks can flatter models by missing bad behavior just as easily as they penalize good behavior. Any tool-calling benchmark should consider model-specific output formats or risk conflating format training with reasoning capability.
 
 For anyone building a local agent pipeline:
 
@@ -223,7 +223,7 @@ This benchmark has a narrow scope by design, and the results should be interpret
 - **Safety-weighted scoring.** The Agent Score gives 60% combined weight to restraint and wrong-tool-avoidance, structurally favoring conservative models. Under an action-maximizing formula, aggressive models like llama3.2:3b (Action 0.900) and bitnet-2B-4T (Action 0.900) would rank much higher. The scoring reflects one deployment preference, not a universal truth.
 - **Model-protocol pairs, not models in isolation.** Each result reflects a specific model running through a specific backend (Ollama native tools, Ollama raw prompt, llama.cpp, or BitNet). The same model may behave very differently with a different interaction contract -- phi4-mini's score jumped dramatically when switched from native tools to raw prompt in Round 1. Rankings should not be read as generalizing across protocols.
 - **Three runs per prompt.** Majority voting stabilizes easy prompts but not hard ones. bitnet-2B-4T's Agent Score shifted by 0.240 between Round 1 and Round 2 reruns, entirely from different P10/P12 outcomes. Models near decision boundaries on hard prompts will fluctuate.
-- **Format compliance affects scores -- and we fixed two cases.** lfm2.5 and jan-v3 initially scored low because they use non-standard output formats. After adding fallback parsers (bare-JSON for jan-v3, bracket-notation for lfm2.5), lfm2.5 jumped from 0.640 to 0.880 (tied #1) and jan-v3 from 0.490 to 0.560. smollm3 still loses some credit to format issues. Scores partly reflect format training, and benchmarks should consider model-specific parsers.
+- **Format compliance affects scores -- and we fixed five cases.** Five models needed fallback parsers across two rounds: lfm2.5 (bracket notation), jan-v3 (bare JSON), gemma3 (funcall-in-tags), deepseek-r1 (bare funcalls), and smollm3 (mixed formats). The fixes improved some scores (lfm2.5: 0.640 → 0.880, deepseek-r1: 0.600 → 0.720) but revealed hidden problems in others (gemma3: 0.600 → 0.550, smollm3: 0.740 → 0.710). Format-blind parsing can flatter a model by hiding restraint failures. Scores partly reflect format training, and benchmarks should consider model-specific parsers.
 - **Default Ollama settings.** All Ollama models ran with default `num_ctx` (4,096 tokens) and default sampling parameters (temperature, top_p, etc.). Our prompts are short enough that context isn't a binding constraint, but results reflect "model at Ollama defaults," not full capability.
 - **CPU-only, single machine.** All inference ran on one AMD Ryzen AI 7 350. Latency numbers are specific to this hardware and would differ on other CPUs or with GPU acceleration. Relative rankings should be more stable than absolute latencies.
 - **No multi-turn evaluation.** All prompts are single-turn. Real agent pipelines involve multi-turn conversations where the model receives tool results and decides what to do next. Single-turn tool dispatch is a necessary but not sufficient condition for agent viability.

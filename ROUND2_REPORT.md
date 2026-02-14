@@ -28,7 +28,10 @@ Round 2 uses the same benchmark design as Round 1 (same 12 prompts, same scoring
 2. **All models rerun fresh** (3 runs each). Original model scores may differ from Round 1 due to run-to-run variance. See [Score Changes for Original Models](#score-changes-for-original-models) for details.
 3. **New backend: llama.cpp** added for models not available through Ollama (LFM2.5).
 4. **`think=False` added** to the raw-schema backend to handle thinking-mode models (Qwen3-based) that otherwise produce empty content fields.
-5. **Fallback tool-call parsers** added for two non-standard output formats. jan-v3:4b outputs valid JSON tool calls but omits the opening `<tool_call>` tag; lfm2.5:1.2b uses Python-style bracket notation (`[fn(args)]`) instead of XML tags. Two fallback parsers (bare-JSON detection and bracket-notation parsing) were added to `_parse_tool_call_from_text()`. Fallbacks only fire when no `<tool_call>` tag is present, so existing model behavior is unchanged. See [Parser Improvements](#parser-improvements) for details.
+5. **Fallback tool-call parsers** added for non-standard output formats. Three rounds of parser improvements were made:
+   - **Round 1:** jan-v3:4b outputs valid JSON but omits the opening `<tool_call>` tag; lfm2.5:1.2b uses bracket notation (`[fn(args)]`). Added bare-JSON and bracket-notation fallbacks.
+   - **Round 2:** gemma3:1b uses function-call syntax inside `<tool_call>` tags (`<tool_call>get_weather(city: Antwerp)</tool_call>`); deepseek-r1:1.5b outputs bare function calls with no tags (`get_weather(Antwerp)`); smollm3:3b sometimes omits tags entirely. Added function-call-in-tags parser, bare function-call parser (restricted to known tool names), and markdown code-fence stripping.
+   All fallbacks only fire when the primary `<tool_call>` JSON parser fails, so existing model behavior is unchanged. See [Parser Improvements](#parser-improvements) for details.
 
 ## New Models Tested
 
@@ -65,28 +68,49 @@ New in Round 2: smollm3:3b doesn't support Ollama's native tool API (returns HTT
 
 ### Parser Improvements
 
-The initial Round 2 results for lfm2.5:1.2b and jan-v3:4b were artificially low because the parser only recognized `<tool_call>{...}</tool_call>` XML tags. Both models understood tool calling but used non-standard output formats that the parser couldn't see.
+The parser was improved in two rounds to handle five non-standard output formats. The goal: measure whether models call the right tool, not whether they emit the right XML tags.
 
-**jan-v3:4b** outputs valid JSON with the correct `{"name": ..., "arguments": {...}}` structure but omits the opening `<tool_call>` tag, producing output like:
+**Round 1 fixes** (jan-v3 and lfm2.5):
+
+**jan-v3:4b** outputs valid JSON but omits the opening `<tool_call>` tag:
 ```
 {"name": "get_weather", "arguments": {"city": "Antwerp"}}
 </tool_call>
 ```
 
-**lfm2.5:1.2b** uses Python-style bracket notation instead of XML tags:
+**lfm2.5:1.2b** uses Python-style bracket notation:
 ```
 [get_weather(city="Antwerp")]I am retrieving the current weather...
-[search_files(pattern="*.py"), get_weather(city="Paris")]I am searching...
 ```
 
-Two fallback parsers were added to `_parse_tool_call_from_text()` and `_parse_all_tool_calls_from_text()` in `lib/bitnet_backend.py`. The existing `<tool_call>` parser remains the primary path. Fallbacks only fire when no `<tool_call>` tag exists in the response, so all other models are unaffected.
+Two fallback parsers were added: bare-JSON detection (brace-counting) and bracket-notation parsing (parenthesis-counting with keyword arguments).
 
-1. **Bare JSON fallback** (fixes jan-v3): searches for JSON objects containing both `"name"` and `"arguments"` keys, using brace-counting for nested structures.
-2. **Bracket notation fallback** (fixes lfm2.5): matches `[function_name(key="value", ...)]` patterns with parenthesis-counting and keyword-argument parsing. Handles multi-tool calls comma-separated within a single bracket pair.
+**Round 2 fixes** (gemma3, deepseek-r1, smollm3):
 
-The impact was dramatic:
-- **lfm2.5:1.2b**: Agent Score 0.640 → **0.880** (Action 0.100 → 0.700). Jumped from rank 13 to tied #1.
-- **jan-v3:4b**: Agent Score 0.490 → **0.560** (Action 0.100 → 0.900). Jumped from rank 19 to rank 19 — but now its low score reflects genuine judgment issues (zero restraint), not format compliance failure.
+**gemma3:1b** uses function-call syntax *inside* `<tool_call>` tags instead of JSON:
+```
+<tool_call>get_weather(city: Antwerp)</tool_call>
+<tool_call>search_files(pattern: "*.py")</tool_call>
+```
+
+**deepseek-r1:1.5b** outputs bare function calls with no tags at all:
+```
+get_weather(Antwerp)
+schedule_meeting("Sprint Review", "2025-02-10T14:00:00")
+```
+
+**smollm3:3b** sometimes embeds valid JSON or function calls in its text response without `<tool_call>` tags.
+
+Three additional parsers were added: function-call-in-tags (when `<tool_call>` is found but content isn't JSON), bare function-call (restricted to known tool names to avoid matching Python code), and markdown code-fence stripping. The bare funcall parser includes guards against false positives: it skips Python definitions (`def get_weather(city)`), assignments (`result = get_weather(...)`), method calls (`self.get_weather(...)`), type signatures (`get_weather(city: string)`), and placeholder values (`get_weather(city: city_name)`).
+
+All fallbacks are layered: `<tool_call>` JSON → funcall-in-tags → bare JSON → bracket notation → bare funcall. Each fires only if the previous found nothing.
+
+**Combined impact across both rounds:**
+- **lfm2.5:1.2b**: 0.640 → **0.880** (Action 0.100 → 0.700). Rank 13 → tied #1.
+- **jan-v3:4b**: 0.490 → **0.560** (Action 0.100 → 0.900). Format fix revealed zero restraint as the real problem.
+- **deepseek-r1:1.5b**: 0.600 → **0.720** (Action 0.000 → 0.300). Format fix revealed inconsistent but genuinely capable tool calling with perfect restraint.
+- **gemma3:1b**: 0.600 → **0.550** (Action 0.000 → 0.500). Format fix revealed trigger-happy behavior -- the model calls tools on restraint prompts (P5) and picks wrong tools on P10/P12. The old parser's blindness was *flattering* its restraint score.
+- **smollm3:3b**: 0.740 → **0.710** (Action 0.600 → 0.900). Improved parsing of bare funcalls revealed P5 restraint failures and incorrect P12 calls, slightly offsetting the action gains.
 
 ## Scoring
 
@@ -115,17 +139,17 @@ Results averaged across 3 runs using majority voting.
 | 6 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.778 | 1.000 | 0.810 | 2,036 |
 | 7 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.611 | N/A* | 0.800 | 7,157 |
 | 8 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.667 | N/A* | 0.740 | 1,626 |
-| **8** | **smollm3:3b** | Ollama | raw-schema | US | 0.600 | 1.000 | 1 | 0.667 | 1.000 | **0.740** | 9,712 |
-| 10 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.778 | N/A* | 0.670 | 2,801 |
-| **10** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 11,903 |
-| **10** | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 2,402 |
-| 13 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.778 | N/A* | 0.660 | 1,726 |
-| 14 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.694 | N/A* | 0.640 | 881 |
-| **14** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.667 | N/A* | **0.640** | 476 |
-| 16 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 6,477 |
-| 16 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 2,011 |
-| 16 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 11,362 |
-| **19** | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.750 | 0.500 | **0.560** | 2,335 |
+| **9** | **deepseek-r1:1.5b** | Ollama | raw-schema | CN | 0.300 | 1.000 | 0 | 0.417 | 0.000 | **0.720** | 1,672 |
+| **10** | **smollm3:3b** | Ollama | raw-schema | US | 0.900 | 0.500 | 1 | 0.806 | 1.000 | **0.710** | 12,096 |
+| 11 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.778 | N/A* | 0.670 | 2,801 |
+| **11** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 11,903 |
+| **11** | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 2,402 |
+| 14 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.778 | N/A* | 0.660 | 1,726 |
+| 15 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.694 | N/A* | 0.640 | 881 |
+| **15** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.667 | N/A* | **0.640** | 476 |
+| 17 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 11,362 |
+| **18** | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.750 | 0.500 | **0.560** | 2,335 |
+| **19** | **gemma3:1b** | Ollama | raw-schema | US | 0.500 | 0.500 | 1 | 0.444 | 0.000 | **0.550** | 2,426 |
 | **20** | **granite3.3:2b** | Ollama | native-tools | US | 0.700 | 0.000 | 1 | 0.583 | N/A* | **0.480** | 1,650 |
 | **21** | **llama3.2:1b** | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.667 | N/A* | **0.430** | 1,461 |
 
@@ -140,11 +164,11 @@ Results averaged across 3 runs using majority voting.
 | 3 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 0 | 0.840 | 2,211 |
 | 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
 | 5 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
-| **6** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | **0.670** | 11,903 |
-| 7 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
-| **7** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | **0.640** | 476 |
-| 9 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.600 | 6,477 |
-| 9 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.600 | 2,011 |
+| **6** | **deepseek-r1:1.5b** | Ollama | raw-schema | CN | 0.300 | 1.000 | 0 | **0.720** | 1,672 |
+| **7** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | **0.670** | 11,903 |
+| 8 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
+| **8** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | **0.640** | 476 |
+| **10** | **gemma3:1b** | Ollama | raw-schema | US | 0.500 | 0.500 | 1 | **0.550** | 2,426 |
 | **11** | **llama3.2:1b** | Ollama | native-tools | US | 0.700 | 0.500 | 3 | **0.430** | 1,461 |
 
 ### Hard Prompts P10-P12 (detailed)
@@ -157,8 +181,8 @@ Results averaged across 3 runs using majority voting.
 | llama3.2:3b | search_files | wrong? | search_files | OK | schedule_meeting | OK | 0 |
 | smollm2:1.7b | (none) | miss | (none) | miss | get_weather | WRONG | 1 |
 | ministral-3:3b | (none) | miss | (none) | miss | (none) | miss | 0 |
-| deepseek-r1:1.5b | (none) | miss | (none) | miss | (none) | miss | 0 |
-| gemma3:1b | (none) | miss | (none) | miss | (none) | miss | 0 |
+| deepseek-r1:1.5b | (none) | miss | search_files | OK | (none) | miss | 0 |
+| gemma3:1b | search_files | wrong? | search_files | OK | search_files | wrong? | 2 |
 | phi4-mini:3.8b | get_weather | OK | (none) | miss | search_files | wrong? | 0 |
 | bitnet-3B | (none) | miss | (none) | miss | (none) | miss | 0 |
 | bitnet-2B-4T | (none) | miss | search_files | OK | schedule_meeting | OK | 0 |
@@ -170,7 +194,7 @@ Results averaged across 3 runs using majority voting.
 | **llama3.2:1b** | **schedule_meeting** | **WRONG** | **get_weather** | **WRONG** | **get_weather** | **WRONG** | **3** |
 | **lfm2.5:1.2b** | **(none)** | **miss** | **(none)** | **miss** | **(none)** | **miss** | **0** |
 | **granite4:3b** | **get_weather** | **OK** | **search_files** | **OK** | **get_weather** | **WRONG** | **1** |
-| **smollm3:3b** | **(none)** | **miss** | **(none)** | **miss** | **get_weather** | **WRONG** | **1** |
+| **smollm3:3b** | **get_weather** | **OK** | **search_files** | **OK** | **get_weather** | **WRONG** | **1** |
 | **jan-v3:4b** | **get_weather** | **OK** | **search_files** | **OK** | **get_weather** | **WRONG** | **1** |
 
 **Legend:** "OK" = correct tool. "WRONG" = called the specifically-bad tool (penalized). "wrong?" = wrong tool but not the worst choice (not penalized). "miss" = didn't call any tool (no penalty, but no Action credit).
@@ -232,21 +256,17 @@ Its P9 restraint failure (calling `get_weather("San Francisco")` when asked to w
 
 The comparison with granite3.3:2b (0.480) is stark. Both are IBM models, but granite4 shows dramatically better judgment: granite3.3 has zero restraint (calls tools on every prompt including P5 and P9), while granite4 passes P5 and shows contextual awareness on P10-P11.
 
-### smollm3:3b (3B) -- Chain-of-Thought Reveals the Gap Between Knowing and Doing
+### smollm3:3b (3B) -- Better Parser Reveals the Full Picture
 
-HuggingFace's SmolLM3 scored 0.740, matching smollm2:1.7b. It has perfect restraint (P5, P9 both correct), handles P1-P3 and P6-P8, and achieved Multi-Tool 1.000 on P8.
+HuggingFace's SmolLM3 initially scored 0.740 with the original parser. After adding the bare function-call and code-fence-stripping parsers, it shifted to **0.710** -- slightly *lower* despite parsing more tool calls.
 
-The model's visible `<think>` blocks are its most distinctive feature. On P5:
+The paradox: the improved parser now detects tool calls that were previously invisible, which raised Action from 0.600 to 0.900 (9 of 10 actionable prompts). But it also revealed that the model calls tools on P5 (the "what tools do you have?" restraint prompt) in some runs, dropping Restraint from 1.000 to 0.500. The net effect: higher action, lower restraint, and a slightly worse composite score. The old parser was accidentally flattering its restraint by failing to see the P5 tool calls.
 
-> "Okay, the user is asking what tools I have access to... Since this is not a request to perform a task... the appropriate response would be to list them out."
+The model's `<think>` blocks remain its most distinctive feature. On P5, the reasoning varies between runs: sometimes it correctly reasons "this is not a request to perform a task" and lists tools in text, other times it outputs `get_weather(city: string)` descriptions that the parser now detects as function calls.
 
-Correct reasoning leading to correct action. But on P10:
+On P10, the model now correctly calls `get_weather("Bruges")` -- one of the calls previously hidden in its text response without `<tool_call>` tags. On P11 it correctly calls `search_files`. But P12 remains a failure: it calls `get_weather("Antwerp")` despite the weather being provided.
 
-> "To determine whether you should take the train or bike for your meeting... we'll need to gather some information..."
-
-The model then writes `{"name": "get_weather", "arguments": {"city": "Bruges"}}` in its text response -- but *without* wrapping it in `<tool_call>` tags, so the parser doesn't capture it. The reasoning identified the correct tool, the JSON was correctly formatted, but the output framing was wrong. This "almost there" pattern recurred on multiple prompts.
-
-On P11 the model claimed "I don't have the capability to search files based on patterns like quarterly reports" -- directly contradicting its own tool list. At 9,712 ms average latency (driven by thinking chains), it's slow for what it delivers.
+At 12,096 ms average latency and Agent Score 0.710, smollm3 sits between smollm2:1.7b (0.740, 1,626 ms) and the mid-tier models. The generational improvement from SmolLM2 is visible in multi-tool support (1.000) and higher raw action rate, but the restraint regression offsets it in the composite score.
 
 ### lfm2.5:1.2b (1.2B) -- From "Wrong Format" to Tied #1
 
@@ -317,8 +337,8 @@ All 11 original models were rerun fresh for Round 2. Some scores shifted signifi
 | qwen2.5:3b | 0.670 | 0.670 | 0.000 | Stable. |
 | llama3.2:3b | 0.660 | 0.660 | 0.000 | Stable. |
 | ministral-3:3b | 0.800 | 0.800 | 0.000 | Stable. |
-| deepseek-r1:1.5b | 0.600 | 0.600 | 0.000 | Stable (0/12 tools in both rounds). |
-| gemma3:1b | 0.600 | 0.600 | 0.000 | Stable (0/12 tools in both rounds). |
+| deepseek-r1:1.5b | 0.600 | 0.720 | +0.120 | Parser fix: bare funcall parser now reads `get_weather(Antwerp)` format. Perfect restraint, 0 wrong tools, but inconsistent action (0.300). |
+| gemma3:1b | 0.600 | 0.550 | -0.050 | Parser fix: funcall-in-tags parser now reads `<tool_call>get_weather(city: Antwerp)</tool_call>`. Revealed P5 restraint failure and wrong tools on P10/P12. Score *dropped* because old parser blindness was flattering restraint. |
 | bitnet-3B | 0.600 | 0.600 | 0.000 | Stable (incoherent in both rounds). |
 | qwen2.5:0.5b | 0.640 | 0.640 | 0.000 | Stable. |
 
@@ -330,13 +350,13 @@ This variance affects primarily the Wrong Tool metric, which contributes 30% of 
 
 ### P12 Remains the Hardest Prompt
 
-"The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" -- 3 of 21 models called the correct tool (`schedule_meeting`): qwen2.5:1.5b, llama3.2:3b, and bitnet-2B-4T. Ten models called `get_weather` (the penalized wrong tool), including jan-v3:4b which now registers as WRONG with the fixed parser. Seven models declined entirely, including lfm2.5:1.2b which conservatively avoids the trap.
+"The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" -- 3 of 21 models called the correct tool (`schedule_meeting`): qwen2.5:1.5b, llama3.2:3b, and bitnet-2B-4T. Eleven models called `get_weather` (the penalized wrong tool), including gemma3:1b and smollm3:3b which now register as WRONG with the improved parsers. Seven models declined entirely, including lfm2.5:1.2b which conservatively avoids the trap.
 
 P12 requires three capabilities simultaneously: reading provided context (weather is known), resisting a keyword trigger ("weather"), and identifying the actual requested action (scheduling). No model under 1.5B parameters gets this right.
 
 ### The Negation Test (P11) Separates Families
 
-"Don't check the weather in Antwerp, just find me the quarterly report." -- 8 models correctly called `search_files`:
+"Don't check the weather in Antwerp, just find me the quarterly report." -- 11 models correctly called `search_files`:
 
 | Model | Size | P11 Result |
 |---|---|---|
@@ -348,8 +368,11 @@ P12 requires three capabilities simultaneously: reading provided context (weathe
 | bitnet-2B-4T | 2B | search_files OK |
 | llama3.2:3b | 3B | search_files OK |
 | jan-v3:4b | 4B | search_files OK |
+| deepseek-r1:1.5b | 1.5B | search_files OK |
+| gemma3:1b | 1B | search_files OK |
+| smollm3:3b | 3B | search_files OK |
 
-All three Qwen3 sizes pass P11, as do both larger Qwen2.5, Granite4, and jan-v3 (now visible with the fixed parser). jan-v3's inclusion is notable: despite having zero restraint, it correctly follows the negation instruction here. The models that fail P11 by calling `get_weather` (qwen2.5:0.5b, functiongemma, llama3.2:1b, granite3.3:2b) all have either very small parameter counts or were designed without negation training.
+All three Qwen3 sizes pass P11, as do both larger Qwen2.5, Granite4, and jan-v3 (now visible with the fixed parser). The improved parsers also revealed that deepseek-r1, gemma3, and smollm3 pass P11 -- their correct `search_files` calls were previously invisible. The models that fail P11 by calling `get_weather` (qwen2.5:0.5b, functiongemma, llama3.2:1b, granite3.3:2b) all have either very small parameter counts or were designed without negation training.
 
 ### Thinking Mode: A Double-Edged Sword
 
@@ -359,7 +382,7 @@ Four models in Round 2 have thinking capability: qwen3:0.6b, qwen3:1.7b, qwen3:4
 |---|---|---|---|
 | qwen3:0.6b | 0.880 | 3,645 ms | 4,142 ms/point |
 | qwen3:4b | 0.880 | 63,717 ms | 72,406 ms/point |
-| smollm3:3b | 0.740 | 9,712 ms | 13,124 ms/point |
+| smollm3:3b | 0.710 | 12,096 ms | 17,036 ms/point |
 | qwen3:1.7b | 0.670 | 11,903 ms | 17,766 ms/point |
 
 qwen3:0.6b achieves the best latency/score ratio of any thinking model. qwen3:4b spends 17x more time thinking for the same score. smollm3:3b's thinking traces show correct reasoning that fails in execution -- it identifies the right tool but doesn't wrap the call in proper tags.
@@ -368,21 +391,23 @@ For tool calling specifically, longer thinking chains don't appear to help. The 
 
 ### Format Compliance Is Solvable -- And Solving It Changes Rankings
 
-In the initial Round 2 results, three models lost most of their tool calls to formatting issues rather than comprehension failures. After adding fallback parsers for two of them, two very different stories emerged:
+Across two rounds of parser improvements, five models were affected by format compliance issues. The fixes revealed three distinct outcomes: one model was genuinely excellent, two improved modestly, and two actually scored *worse* when the parser could finally see what they were doing.
 
 | Model | Initial Score | After Parser Fix | What Changed |
 |---|---|---|---|
 | lfm2.5:1.2b | 0.640 (Action 0.100) | **0.880** (Action 0.700) | Bracket notation `[tool(args)]` now parsed. Jumped from rank 13 to tied #1. |
 | jan-v3:4b | 0.490 (Action 0.100) | **0.560** (Action 0.900) | Bare JSON now parsed. Real problem visible: zero restraint, not format compliance. |
-| smollm3:3b | 0.740 (Action 0.600) | *(not fixed)* | Tool call JSON in text body without tags. Still loses credit on some prompts. |
+| deepseek-r1:1.5b | 0.600 (Action 0.000) | **0.720** (Action 0.300) | Bare funcall `get_weather(Antwerp)` now parsed. Perfect restraint, but very inconsistent action. |
+| smollm3:3b | 0.740 (Action 0.600) | **0.710** (Action 0.900) | Bare funcalls now parsed. Action improved but revealed P5 restraint failures. Net score *decreased*. |
+| gemma3:1b | 0.600 (Action 0.000) | **0.550** (Action 0.500) | Funcall-in-tags `<tool_call>fn(args)</tool_call>` now parsed. Revealed trigger-happy behavior and wrong tools. Net score *decreased*. |
 
-The lfm2.5 case is striking: a model that appeared mediocre was actually tied for the best in the benchmark. Its bracket notation was a perfectly consistent, well-structured output format -- just not the one the parser expected. The parser fix didn't change the model's behavior; it changed our ability to see what the model was already doing correctly.
+The lfm2.5 case remains the most striking: a model that appeared mediocre was actually tied for the best in the benchmark. Its bracket notation was a perfectly consistent, well-structured output format -- just not the one the parser expected.
 
-The jan-v3 case is the opposite lesson: fixing the format revealed that the model's low score wasn't primarily about format compliance. With parsing fixed, Action jumped to 0.900 (joint highest), but zero restraint and one wrong tool kept the Agent Score at 0.560. The format issue was masking the real problem.
+The gemma3 and smollm3 cases demonstrate the opposite phenomenon: **parser blindness can flatter a model's score**. Both models were calling tools on restraint prompts (P5) and picking wrong tools on hard prompts, but the old parser couldn't see those calls, so they appeared to have perfect restraint. Once the parser could read their function-call syntax, the true behavior emerged -- and it was worse than the format-blind score suggested.
 
-smollm3:3b remains partially affected. On some prompts it writes correctly formatted `<tool_call>` tags; on others it embeds valid JSON in its text response without tags. A text-body JSON parser could recover some of these calls, though smollm3's thinking traces sometimes produce the right tool name in reasoning without committing to a tool call in the output.
+deepseek-r1:1.5b is the clearest "format was the real problem" case after lfm2.5. The model has perfect restraint, zero wrong tools, and genuine comprehension -- but its bare function-call format is so inconsistent (different syntax each run) that only 3 of 10 actionable prompts produce parseable calls across majority voting.
 
-The broader lesson: benchmarks that rely on format compliance risk conflating output formatting with reasoning capability. lfm2.5 would have been dismissed as a weak tool-calling model based on its initial score. Adding a 50-line parser revealed it was one of the strongest.
+The broader lesson is nuanced: benchmarks that rely on format compliance don't just *underestimate* models; they can also *overestimate* them. The direction of the error depends on whether the model's hidden behavior was good (lfm2.5, deepseek-r1) or bad (gemma3, smollm3).
 
 ### Speed vs. Judgment Frontier
 
@@ -391,14 +416,15 @@ The broader lesson: benchmarks that rely on format compliance risk conflating ou
 | functiongemma | 0.640 | 476 | 270M |
 | qwen2.5:0.5b | 0.640 | 881 | 500M |
 | lfm2.5:1.2b | 0.880 | 1,470 | 1.2B |
+| deepseek-r1:1.5b | 0.720 | 1,672 | 1.5B |
 | bitnet-2B-4T | 0.810 | 2,036 | 2B |
 | qwen2.5:1.5b | 0.840 | 2,211 | 1.5B |
 | qwen3:0.6b | 0.880 | 3,645 | 600M |
 | granite4:3b | 0.670 | 2,402 | 3B |
 
-The speed-vs-judgment frontier shifted dramatically with the lfm2.5 parser fix. lfm2.5:1.2b now achieves the best Agent Score (0.880) at 1,470 ms -- faster than qwen3:0.6b (3,645 ms) and far faster than the other models tied at 0.880. The Pareto frontier for "fastest at each score level" now runs through functiongemma (0.640/476ms), lfm2.5:1.2b (0.880/1,470ms). qwen3:0.6b is no longer on the Pareto frontier -- lfm2.5 matches its score at 2.5x less latency.
+The speed-vs-judgment frontier shifted dramatically with the parser fixes. lfm2.5:1.2b achieves the best Agent Score (0.880) at 1,470 ms -- faster than qwen3:0.6b (3,645 ms) and far faster than the other models tied at 0.880. deepseek-r1:1.5b also improved its position: 0.720 at 1,672 ms makes it competitive in the sub-2s bracket. The Pareto frontier for "fastest at each score level" runs through functiongemma (0.640/476ms) and lfm2.5:1.2b (0.880/1,470ms).
 
-For latency-critical deployments under 1 second, functiongemma and qwen2.5:0.5b are the only options, both at 0.640. For sub-2 second deployments, lfm2.5:1.2b (1,470ms, 0.880) is the new best option.
+For latency-critical deployments under 1 second, functiongemma and qwen2.5:0.5b are the only options, both at 0.640. For sub-2 second deployments, lfm2.5:1.2b (1,470ms, 0.880) is the best option.
 
 ## Conclusions
 
@@ -410,7 +436,7 @@ For latency-critical deployments under 1 second, functiongemma and qwen2.5:0.5b 
 
 4. **Generational improvement is real.** granite3.3:2b (0.480) vs granite4:3b (0.670); smollm2:1.7b (0.740) vs smollm3:3b (0.740, matching score but with Multi-Tool 1.000). Both IBM and HuggingFace show clear improvements between model generations on the same task.
 
-5. **Format compliance is a separate axis from reasoning capability -- and fixing it changes rankings.** After adding fallback parsers for lfm2.5's bracket notation and jan-v3's bare JSON, lfm2.5 jumped from rank 13 to tied #1 (0.640 → 0.880). The model was always making correct tool-calling decisions; the benchmark couldn't see them. jan-v3 moved from 0.490 to 0.560, revealing that its real problem was zero restraint, not format compliance. smollm3 still loses some credit to format issues. The lesson: benchmarks that rely on format compliance risk conflating output formatting with reasoning capability. A 50-line parser addition revealed that a 1.2B state-space model was among the best tool-calling models tested.
+5. **Format compliance is a separate axis from reasoning capability -- and fixing it changes rankings in both directions.** After adding five fallback parsers across two rounds, the impact varied dramatically by model. lfm2.5 jumped from rank 13 to tied #1 (0.640 → 0.880) and deepseek-r1 improved from 0.600 to 0.720 -- both were genuinely good models hidden behind format issues. But gemma3 (0.600 → 0.550) and smollm3 (0.740 → 0.710) actually scored *worse* because the parser fix revealed they were calling tools on restraint prompts and picking wrong tools -- behavior the old parser couldn't see. The lesson: format-blind benchmarks don't just underestimate models; they can also overestimate them by hiding bad behavior behind parsing failures.
 
 6. **3-run majority voting has high variance on edge cases.** bitnet-2B-4T shifted from 0.570 to 0.810 between Round 1 and Round 2 reruns, entirely due to different outcomes on P10 and P12. The hard prompts are where this variance concentrates, because models that are borderline on a prompt will flip between calling the right tool, the wrong tool, or no tool depending on sampling. More runs would stabilize these scores, at the cost of longer benchmark time.
 
