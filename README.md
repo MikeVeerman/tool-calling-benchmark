@@ -2,9 +2,9 @@
 
 **Can a $1,000 laptop run an AI agent that knows when to use tools -- and when not to?**
 
-I tested 21 small open-weight models locally on CPU to see which ones can act -- and which ones know when not to. No cloud API. No GPU. Just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
+I tested 20 small open-weight models locally on CPU to see which ones can act -- and which ones know when not to. No cloud API. No GPU. Just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
 
-[Round 1](ROUND1_REPORT.md) tested 11 models from 7 organisations. After the post [went viral on r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/comments/1qyg10z/) , [Round 2](ROUND2_REPORT.md) added 10 community-requested models -- including every model that was suggested in the comments.
+[Round 1](ROUND1_REPORT.md) tested 11 models from 7 organisations. After the post [went viral on r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/comments/1qyg10z/), [Round 2](ROUND2_REPORT.md) added 10 community-requested models -- including every model that was suggested in the comments. [Round 3](ROUND3_REPORT.md) reran all 20 models with 20 runs each (up from 3) to stabilize the rankings and eliminate small-sample variance.
 
 The motivation is practical. Local and private AI agents are increasingly attractive -- no per-token costs, no data leaving the machine, no vendor lock-in. But an agent that acts incorrectly is worse than one that does nothing: a wrong API call costs money, sends the wrong message, or deletes the wrong file. The hard problem isn't generating well-formed JSON. It's deciding whether to act at all.
 
@@ -12,16 +12,16 @@ This benchmark measures **judgment** -- whether a model knows *when* to call a t
 
 ## TL;DR
 
-- **Four models tie for #1** at 0.880 Agent Score: lfm2.5:1.2b (a 1.2B state-space hybrid), qwen3:0.6b, qwen3:4b, and phi4-mini:3.8b. The fastest is lfm2.5 at 1,470 ms.
-- **lfm2.5:1.2b jumped from rank 13 to #1** after adding a parser for its bracket-notation output format. The model was always making correct decisions; the benchmark couldn't see them. A 50-line parser fix revealed a top-tier model.
-- Every model that successfully emitted tool calls can handle simple, unambiguous tool calls on CPU at 1-8s latency.
+- **qwen3:1.7b is the benchmark champion** at 0.960 Agent Score -- the only model to get all three hard prompts right while maintaining perfect restraint. It was ranked 11th in Round 2 with only 3 runs; 20 runs revealed it was always this good.
+- **lfm2.5:1.2b (0.920) is the best speed/quality ratio** -- a 1.2B state-space hybrid at 1,567 ms, nearly 7x faster than qwen3:1.7b for 0.040 less Agent Score.
+- **The Round 2 four-way tie at 0.880 was a small-sample artifact.** At 20 runs, those four models score 0.960, 0.920, 0.880, and 0.780. Seven models changed by more than 0.05.
+- **3-run majority voting was inadequate.** bitnet-2B-4T dropped from 0.810 to 0.530, phi4-mini from 0.880 to 0.780, while qwen3:1.7b rose from 0.670 to 0.960. Small samples hide the truth on borderline prompts.
+- Every model that successfully emits tool calls can handle simple, unambiguous tool calls on CPU at 1-8s latency.
 - When prompts require judgment -- resisting keyword triggers, respecting negation, noticing redundant information -- most sub-4B models fail.
-- The top-scoring models win by *declining to act* when uncertain, not by calling more tools. Under safety-weighted scoring, conservatism beats aggression.
-- Parameter count is a weak predictor of tool-calling quality. Rankings within the Qwen3 family are non-monotonic: 0.6B > 4B > 1.7B. A 1.2B state-space model ties 3.8B transformers.
-- A purpose-built function-calling model (functiongemma, 270M) is the fastest in the benchmark but falls into the same keyword traps as generic models 7x its size.
-- P12 ("The weather is 8°C and rainy. Should I schedule a meeting?") is the hardest prompt: only 3 of 21 models call the correct tool.
-- **Format compliance masks true behavior -- in both directions.** Parser fixes for 5 models revealed that format-blind scoring both underestimates (lfm2.5: 0.640 → 0.880) and overestimates (gemma3: 0.600 → 0.550) models by hiding their actual tool-calling behavior.
-- 3-run majority voting has high variance on hard prompts: bitnet-2B-4T shifted from 0.570 to 0.810 between runs due to different P10/P12 outcomes.
+- The #1 model wins by being both aggressive *and* accurate (Action 0.900 + Restraint 1.000), not just by being conservative.
+- Parameter count is a weak predictor. A 600M model (qwen3:0.6b) scores 0.880 while a 3.8B model (phi4-mini) scores 0.780.
+- P12 ("The weather is 8°C and rainy. Should I schedule a meeting?") remains the hardest prompt. Only qwen3:1.7b gets it right reliably at 20 runs.
+- **Format compliance masks true behavior -- in both directions.** Parser fixes for 5 models revealed that format-blind scoring both underestimates and overestimates models.
 
 ## Why this exists
 
@@ -31,7 +31,7 @@ But there's a harder question: when a prompt mentions "weather" but the correct 
 
 Cloud models handle this well. But what about local models running on your laptop's CPU? The small open-weight models (0.5B-3.8B parameters) that Ollama makes trivially easy to run -- can they actually *do* this?
 
-This benchmark tests all of that: 21 models from 10 organisations across 4 countries, 12 prompts, 3 runs each, on a machine with no discrete GPU.
+This benchmark tests all of that: 20 models from 10 organisations across 4 countries, 12 prompts, 20 runs each, on a machine with no discrete GPU.
 
 ## The test machine
 
@@ -72,7 +72,7 @@ Everything runs on CPU. This is intentional -- the point is to test what's achie
 
 After the [Reddit post](https://www.reddit.com/r/LocalLLaMA/comments/1qyg10z/), the community requested specific models. Every viable suggestion was added.
 
-**Qwen 3 (4B, 1.7B, 0.6B) -- the most-requested family.** Six separate users asked for Qwen3. All three sizes have built-in thinking capability. The 0.6B is the smallest model in the benchmark with native tool support. Tests whether the Qwen2.5 → Qwen3 generation jump matters for tool calling.
+**Qwen 3 (1.7B, 0.6B) -- the most-requested family.** Six separate users asked for Qwen3. Both sizes have built-in thinking capability. The 0.6B is the smallest model in the benchmark with native tool support. Tests whether the Qwen2.5 → Qwen3 generation jump matters for tool calling. (The 4B was tested in Round 2 but removed in Round 3 due to impractical latency -- 63s per prompt on CPU.)
 
 **FunctionGemma (270M) -- the specialist.** A 270M fine-tune built specifically for function calling. Two users predicted "very high performance per compute." At 270M it's the smallest model in the benchmark. Tests whether purpose-built fine-tuning beats general instruction tuning.
 
@@ -109,66 +109,63 @@ The benchmark uses 12 prompts that escalate in difficulty:
 - **Action Score:** correct_tool_calls / 10. How many of the 10 actionable prompts produced valid tool calls with the correct tool. For P10-P12, the tool must match the expected tool. Measures execution capability.
 - **Restraint Score:** correct_refusals / 2. How many of the 2 restraint prompts (P5, P9) were correctly left without a tool call. Measures policy calibration.
 - **Wrong Tool:** Count of specifically-bad tool calls on P10-P12 (0-3). Each hard prompt has a "wrong tool" that is worse than not calling any tool at all. Measures judgment under misleading context.
-- **Reliability:** Average per-prompt (successful_runs / 3). Computed from per-run data *before* majority voting. A model that passes a prompt in 2 of 3 runs gets 0.67 reliability for that prompt, even though majority voting calls it a pass. A coarse stability signal from a 3-run sample, not a deployment-grade confidence estimate.
+- **Reliability:** Average per-prompt (successful_runs / 20). Computed from per-run data *before* majority voting. A model that passes a prompt in 14 of 20 runs gets 0.70 reliability for that prompt, even though majority voting calls it a pass. A stability signal computed from 20 runs per prompt.
 - **Multi-Tool Accuracy:** correct_tools / required_tools for P8 (dual-tool prompt). P8 requires both `search_files` and `get_weather`. Ollama's native tool API returns only the first tool call, so this is N/A for native-tools models.
 - **Agent Score:** `Action × 0.4 + Restraint × 0.3 + Wrong-Tool-Avoidance × 0.3` where Wrong-Tool-Avoidance = (3 - wrong_tool_count) / 3. A model that calls tools aggressively but picks the wrong ones is penalized. A model that conservatively declines uncertain prompts is rewarded.
 - **Latency:** Wall-clock time per inference call (milliseconds).
 
-Everything is run 3 times. Correctness uses majority-vote aggregation; reliability uses per-run data.
+Everything is run 20 times. Correctness uses majority-vote aggregation; reliability uses per-run data.
 
 > **Context-window caveat:** All Ollama models were run with default settings. Ollama defaults to a 4,096-token context window (`num_ctx`), well below the training context of most models tested (e.g. 131,072 for Qwen 2.5). Our prompts are short enough that 4K is not a binding constraint here, but models may behave differently at longer context lengths or with `num_ctx` tuned to match `n_ctx_train`. Results should be read as "this model at Ollama defaults," not as the model's full capability ceiling.
 
 ## Results at a glance
 
-Agent Score rewards correct action **and** correct inaction; wrong-tool calls are penalized. Results below are from the latest run (Round 2, all 21 models rerun fresh).
+Agent Score rewards correct action **and** correct inaction; wrong-tool calls are penalized. Results below are from Round 3 (20 runs per model, majority-vote aggregation).
 
 | Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Agent Score | Avg ms |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | **lfm2.5:1.2b** | llama.cpp | openai-compat | US | 0.700 | 1.000 | 0 | **0.880** | 1,470 |
-| 1 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 0 | **0.880** | 5,460 |
-| 1 | **qwen3:0.6b** | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | **0.880** | 3,645 |
-| 1 | **qwen3:4b** | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | **0.880** | 63,717 |
-| 5 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 0 | **0.840** | 2,211 |
-| 6 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
-| 7 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.800 | 7,157 |
-| 8 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
-| 9 | **deepseek-r1:1.5b** | Ollama | raw-schema | CN | 0.300 | 1.000 | 0 | 0.720 | 1,672 |
-| 10 | **smollm3:3b** | Ollama | raw-schema | US | 0.900 | 0.500 | 1 | 0.710 | 12,096 |
-| 11 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 2,801 |
-| 11 | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 11,903 |
-| 11 | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.670 | 2,402 |
-| 14 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.660 | 1,726 |
-| 15 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
-| 15 | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 476 |
-| 17 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.600 | 11,362 |
-| 18 | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.560 | 2,335 |
-| 19 | **gemma3:1b** | Ollama | raw-schema | US | 0.500 | 0.500 | 1 | 0.550 | 2,426 |
-| 20 | **granite3.3:2b** | Ollama | native-tools | US | 0.700 | 0.000 | 1 | 0.480 | 1,650 |
-| 21 | **llama3.2:1b** | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.430 | 1,461 |
+| 1 | **qwen3:1.7b** | Ollama | native-tools | CN | 0.900 | 1.000 | 0 | **0.960** | 10,665 |
+| 2 | **lfm2.5:1.2b** | llama.cpp | openai-compat | US | 0.800 | 1.000 | 0 | **0.920** | 1,567 |
+| 3 | qwen3:0.6b | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | **0.880** | 3,410 |
+| 4 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.500 | 1.000 | 0 | 0.800 | 2,240 |
+| 4 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.800 | 7,505 |
+| 6 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 1 | 0.780 | 5,180 |
+| 7 | gemma3:1b | Ollama | raw-schema | US | 0.600 | 0.500 | 0 | 0.690 | 2,321 |
+| 8 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 3,014 |
+| 9 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.660 | 1,690 |
+| 10 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 1,015 |
+| 10 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 1,722 |
+| 10 | functiongemma | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 435 |
+| 13 | smollm3:3b | Ollama | raw-schema | US | 0.700 | 0.500 | 1 | 0.630 | 9,727 |
+| 14 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.600 | 1,549 |
+| 14 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.600 | 14,157 |
+| 16 | jan-v3:4b | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.560 | 2,322 |
+| 17 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.700 | 0.500 | 2 | 0.530 | 2,075 |
+| 18 | granite3.3:2b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.520 | 1,658 |
+| 18 | granite4:3b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.520 | 2,112 |
+| 20 | llama3.2:1b | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.430 | 1,596 |
 
-**Bold** = new in Round 2.
+### The new #1: qwen3:1.7b
 
-### The surprising result: a 1.2B state-space model ties for #1
+The Round 2 "middle child" turns out to be the benchmark champion. At 3 runs, qwen3:1.7b happened to fail P5 and P9 restraint in 2/3 runs each, producing a misleading Restraint score of 0.500. At 20 runs, it passes both comfortably. It's also the only model to get all three hard prompts right (P10: get_weather, P11: search_files, P12: schedule_meeting) -- Action 0.900 with perfect Restraint and zero wrong tools.
 
-Four models share the top score (0.880): lfm2.5:1.2b, phi4-mini:3.8b, qwen3:0.6b, and qwen3:4b. The biggest surprise is **lfm2.5:1.2b** -- Liquid AI's state-space hybrid that initially scored 0.640 because the parser couldn't read its bracket-notation output (`[get_weather(city="Antwerp")]`). After adding a fallback parser, it jumped to 0.880: perfect restraint, zero wrong tools, and the fastest latency at the top tier (1,470 ms). It's the only non-transformer architecture in the #1 tier.
-
-qwen3:0.6b -- at just 600 million parameters -- also ties for #1. The Qwen3 family rankings are non-monotonic: 0.6B > 4B > 1.7B. The 1.7B sits in a capability valley -- large enough to be aggressive about calling tools, not large enough to exercise judgment about when not to.
+**lfm2.5:1.2b** confirms as the best speed/quality ratio: 0.920 Agent Score at 1,567 ms -- nearly 7x faster than qwen3:1.7b for only 0.040 less. It's the only non-transformer in the top tier.
 
 ### Edge agent mini leaderboard (sub-2B models)
 
 | Rank | Model | Backend | Mode | Action | Restraint | Wrong Tool | Agent Score | Avg ms |
 |---|---|---|---|---|---|---|---|---|
-| 1 | **lfm2.5:1.2b** | llama.cpp | openai-compat | 0.700 | 1.000 | 0 | **0.880** | 1,470 |
-| 1 | **qwen3:0.6b** | Ollama | native-tools | 0.700 | 1.000 | 0 | **0.880** | 3,645 |
-| 3 | qwen2.5:1.5b | Ollama | native-tools | 0.600 | 1.000 | 0 | **0.840** | 2,211 |
-| 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
-| 5 | smollm2:1.7b | Ollama | native-tools | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
-| 6 | **deepseek-r1:1.5b** | Ollama | raw-schema | 0.300 | 1.000 | 0 | 0.720 | 1,672 |
-| 7 | **qwen3:1.7b** | Ollama | native-tools | 0.800 | 0.500 | 1 | 0.670 | 11,903 |
-| 8 | qwen2.5:0.5b | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 881 |
-| 8 | **functiongemma** | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 476 |
-| 10 | **gemma3:1b** | Ollama | raw-schema | 0.500 | 0.500 | 1 | 0.550 | 2,426 |
-| 11 | **llama3.2:1b** | Ollama | native-tools | 0.700 | 0.500 | 3 | 0.430 | 1,461 |
+| 1 | **qwen3:1.7b** | Ollama | native-tools | 0.900 | 1.000 | 0 | **0.960** | 10,665 |
+| 2 | **lfm2.5:1.2b** | llama.cpp | openai-compat | 0.800 | 1.000 | 0 | **0.920** | 1,567 |
+| 3 | qwen3:0.6b | Ollama | native-tools | 0.700 | 1.000 | 0 | 0.880 | 3,410 |
+| 4 | qwen2.5:1.5b | Ollama | native-tools | 0.500 | 1.000 | 0 | 0.800 | 2,240 |
+| 5 | gemma3:1b | Ollama | raw-schema | 0.600 | 0.500 | 0 | 0.690 | 2,321 |
+| 6 | qwen2.5:0.5b | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 1,015 |
+| 6 | smollm2:1.7b | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 1,722 |
+| 6 | functiongemma | Ollama | native-tools | 0.600 | 1.000 | 2 | 0.640 | 435 |
+| 9 | deepseek-r1:1.5b | Ollama | raw-schema | 0.000 | 1.000 | 0 | 0.600 | 1,549 |
+| 10 | bitnet-2B-4T | bitnet.cpp | openai-compat | 0.700 | 0.500 | 2 | 0.530 | 2,075 |
+| 11 | llama3.2:1b | Ollama | native-tools | 0.700 | 0.500 | 3 | 0.430 | 1,596 |
 
 ## What we learned
 
@@ -194,25 +191,34 @@ After the Reddit post, 10 community-requested models were added. The full analys
 6. **3-run majority voting has high variance on hard prompts.** bitnet-2B-4T shifted from 0.570 to 0.810 between Round 1 and Round 2 reruns, entirely due to different outcomes on P10 and P12.
 7. **Thinking mode is a double-edged sword.** qwen3:4b spends 63 seconds average per prompt thinking, for the same score as the 0.6B at 3.6 seconds. For tool-calling decisions, longer thinking chains don't consistently help.
 
+### Round 3: The 20-run validation
+
+Round 3 reran all 20 models with 20 runs each to eliminate small-sample variance. The full analysis is in [ROUND3_REPORT.md](ROUND3_REPORT.md). Key findings:
+
+1. **qwen3:1.7b is the benchmark champion at 0.960.** Jumped from 11th to 1st. Its Round 2 restraint failures were borderline calls that happened to go wrong in 2/3 runs. At 20 runs, it passes P5 and P9 comfortably and is the only model to get all three hard prompts right.
+2. **The Round 2 four-way tie was a sampling artifact.** Those four models now score 0.960, 0.920, 0.880, and 0.780 -- spread across a 0.180 range.
+3. **Seven models changed by more than 0.05.** bitnet-2B-4T dropped 0.280, phi4-mini dropped 0.100, granite4 dropped 0.150. In the other direction, qwen3:1.7b gained 0.290 and gemma3:1b gained 0.140.
+4. **deepseek-r1:1.5b effectively doesn't work for tool calling.** Action 0.000 at 20 runs -- it never reliably produces a parseable tool call. Its Round 2 score was a fluke.
+5. **The gap between "works" and "works reliably" is wider than expected.** Many models hover around 50% call rate on borderline prompts. At 3 runs, a coin flip decides their score. At 20 runs, the truth emerges.
+
 ## The bottom line
 
-After testing 21 models across two rounds -- 756 total inference calls on CPU -- the picture is clearer than it was with 11.
+After testing 20 models across three rounds -- 4,800 total inference calls on CPU -- the picture is clearer and more nuanced than early results suggested.
 
-**Local tool-calling agents work today on commodity hardware**, and they're better than expected. Four models achieve 0.880 Agent Score, with the fastest (lfm2.5:1.2b) doing it in 1.5 seconds. Simple, unambiguous tool dispatch is a solved problem at every size from 270M up.
+**Local tool-calling agents work today on commodity hardware**, and they're better than expected. Two models exceed 0.900 Agent Score, with lfm2.5:1.2b doing it in 1.6 seconds. Simple, unambiguous tool dispatch is a solved problem at every size from 270M up.
 
-**The judgment gap is real but narrowing.** In Round 1, no model reliably handled all three judgment dimensions (keyword resistance, negation following, context awareness). In Round 2, four models handle two of three with perfect restraint and zero wrong tools. P12 (context awareness) remains the hardest: only 3 of 21 models get it right. But the trajectory from qwen2.5 to qwen3 suggests the next generation may close this gap.
+**One model can do it all.** qwen3:1.7b (0.960) is the only model to combine high action (0.900), perfect restraint, and zero wrong tools -- including all three hard prompts. This wasn't visible at 3 runs. The benchmark's hardest prompt (P12) was previously unsolvable; qwen3:1.7b solves it reliably.
 
-**The conservative strategy keeps winning**, and the community-requested models confirmed rather than overturned this finding. The top models in both rounds share the same pattern: perfect restraint, zero wrong tools, moderate action. Under a scoring formula that penalizes wrong actions more than missed ones, knowing when *not* to act is the dominant skill. This isn't a universal truth -- it reflects a specific deployment preference -- but it's the right default for autonomous agents where wrong actions have consequences.
+**Sample size matters more than most benchmarks acknowledge.** The Round 2 leaderboard was substantially wrong on 7 of 21 models. Rankings based on 3 runs should be treated as preliminary. For tool-calling benchmarks at temperature > 0, 10-20 runs is the minimum for stable results on borderline prompts.
 
-**How you parse matters as much as what you test.** Five models needed fallback parsers for non-standard output formats. lfm2.5:1.2b jumped from rank 13 to tied #1 after a bracket-notation parser was added. But the lesson isn't just about underestimation: gemma3:1b and smollm3:3b actually scored *worse* after parser fixes, because the old parser was hiding their restraint failures. Format-blind benchmarks can flatter models by missing bad behavior just as easily as they penalize good behavior. Any tool-calling benchmark should consider model-specific output formats or risk conflating format training with reasoning capability.
+**How you parse matters as much as what you test.** Five models needed fallback parsers for non-standard output formats. Format-blind benchmarks can both underestimate models (lfm2.5: 0.640 → 0.920) and overestimate them (gemma3: 0.600 → 0.690 after a complex journey through parser fixes).
 
 For anyone building a local agent pipeline:
 
-- **For routing clear-cut requests:** Almost any functional model works. qwen2.5:0.5b handles "check the weather in Paris" at sub-1s latency. functiongemma does it at 476ms. The problem is solved.
-- **For judgment-sensitive tasks:** lfm2.5:1.2b is the new top recommendation. 1.2B parameters, 1.5s average latency, 0.880 Agent Score with perfect restraint and multi-tool support. It requires a bracket-notation parser (not standard `<tool_call>` tags). If you need standard output format, qwen3:0.6b (0.880, 3.6s) is the best Ollama-native choice. qwen2.5:1.5b (0.840, 2.2s) is a strong alternative if you want faster inference without a custom parser.
-- **For latency-critical deployments under 1 second:** functiongemma (476ms, 0.640) and qwen2.5:0.5b (881ms, 0.640) are the only options. Both handle easy prompts well but fail on judgment traps.
-- **For maximum action rate:** bitnet-2B-4T (Action 0.900, Multi-Tool 1.000) and llama3.2:3b (Action 0.900) call tools most aggressively. Both have restraint problems -- llama3.2 calls a tool on every prompt without exception. Use these only with a human-in-the-loop or a strict safety layer.
-- **Full autonomy is still premature at this model size.** Even the best model (qwen3:0.6b) misses 30% of actionable prompts. The failure mode to guard against isn't "model refuses to act" -- it's "model confidently takes the wrong action." Confirmation prompts for destructive actions, tool allowlists, or escalation to a larger model for ambiguous prompts remain necessary.
+- **For judgment-sensitive tasks:** qwen3:1.7b (0.960, 10.7s) is the top recommendation if you can tolerate the latency. lfm2.5:1.2b (0.920, 1.6s) is the best choice if speed matters -- nearly 7x faster for 0.040 less score. It requires a bracket-notation parser. qwen3:0.6b (0.880, 3.4s) is the best Ollama-native option.
+- **For routing clear-cut requests:** Almost any functional model works. functiongemma does it at 435ms. The problem is solved.
+- **For latency-critical deployments under 1 second:** functiongemma (435ms, 0.640) and qwen2.5:0.5b (1,015ms, 0.640) are the only options. Both fail on judgment traps.
+- **Full autonomy is still premature at this model size.** Even the best model misses 10% of actionable prompts. The failure mode to guard against isn't "model refuses to act" -- it's "model confidently takes the wrong action." Confirmation prompts for destructive actions remain necessary.
 - **Test your actual prompts.** Rankings here are specific to this prompt set, this scoring formula, and these model-protocol pairs. Run your own prompts before trusting any leaderboard, including this one.
 
 ## Caveats and limitations
@@ -222,7 +228,7 @@ This benchmark has a narrow scope by design, and the results should be interpret
 - **Small prompt set.** 12 prompts (3 of which test judgment) is enough to reveal patterns but not enough to make strong statistical claims. Confirming the failure modes observed would require a larger and more varied prompt set.
 - **Safety-weighted scoring.** The Agent Score gives 60% combined weight to restraint and wrong-tool-avoidance, structurally favoring conservative models. Under an action-maximizing formula, aggressive models like llama3.2:3b (Action 0.900) and bitnet-2B-4T (Action 0.900) would rank much higher. The scoring reflects one deployment preference, not a universal truth.
 - **Model-protocol pairs, not models in isolation.** Each result reflects a specific model running through a specific backend (Ollama native tools, Ollama raw prompt, llama.cpp, or BitNet). The same model may behave very differently with a different interaction contract -- phi4-mini's score jumped dramatically when switched from native tools to raw prompt in Round 1. Rankings should not be read as generalizing across protocols.
-- **Three runs per prompt.** Majority voting stabilizes easy prompts but not hard ones. bitnet-2B-4T's Agent Score shifted by 0.240 between Round 1 and Round 2 reruns, entirely from different P10/P12 outcomes. Models near decision boundaries on hard prompts will fluctuate.
+- **Twenty runs per prompt (Round 3).** Majority voting now stabilizes most prompts. The upgrade from 3 to 20 runs changed 7 of 20 models by more than 0.05, confirming that 3 runs was insufficient. Twenty runs is adequate for this prompt set but models near 50% call rate on specific prompts may still fluctuate slightly.
 - **Format compliance affects scores -- and we fixed five cases.** Five models needed fallback parsers across two rounds: lfm2.5 (bracket notation), jan-v3 (bare JSON), gemma3 (funcall-in-tags), deepseek-r1 (bare funcalls), and smollm3 (mixed formats). The fixes improved some scores (lfm2.5: 0.640 → 0.880, deepseek-r1: 0.600 → 0.720) but revealed hidden problems in others (gemma3: 0.600 → 0.550, smollm3: 0.740 → 0.710). Format-blind parsing can flatter a model by hiding restraint failures. Scores partly reflect format training, and benchmarks should consider model-specific parsers.
 - **Default Ollama settings.** All Ollama models ran with default `num_ctx` (4,096 tokens) and default sampling parameters (temperature, top_p, etc.). Our prompts are short enough that context isn't a binding constraint, but results reflect "model at Ollama defaults," not full capability.
 - **CPU-only, single machine.** All inference ran on one AMD Ryzen AI 7 350. Latency numbers are specific to this hardware and would differ on other CPUs or with GPU acceleration. Relative rankings should be more stable than absolute latencies.
@@ -313,7 +319,7 @@ pip install ollama requests
 python bench.py
 ```
 
-The full run (21 models x 12 prompts x 3 runs = 756 inference calls) takes roughly 2-3 hours on the hardware described above. Most of that time is qwen3:4b (thinking mode), BitNet 3B (base model), and ministral-3:3b -- the other models finish faster.
+The full run (20 models x 12 prompts x 20 runs = 4,800 inference calls) takes roughly 5 hours on the hardware described above. Most of that time is qwen3:1.7b (thinking mode), BitNet 3B (base model), smollm3:3b, and ministral-3:3b -- the other models finish faster. For a quick test, use `--num-runs 3` (runs in ~45 minutes).
 
 ### Customising
 
