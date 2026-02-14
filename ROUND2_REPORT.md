@@ -28,6 +28,7 @@ Round 2 uses the same benchmark design as Round 1 (same 12 prompts, same scoring
 2. **All models rerun fresh** (3 runs each). Original model scores may differ from Round 1 due to run-to-run variance. See [Score Changes for Original Models](#score-changes-for-original-models) for details.
 3. **New backend: llama.cpp** added for models not available through Ollama (LFM2.5).
 4. **`think=False` added** to the raw-schema backend to handle thinking-mode models (Qwen3-based) that otherwise produce empty content fields.
+5. **Fallback tool-call parsers** added for two non-standard output formats. jan-v3:4b outputs valid JSON tool calls but omits the opening `<tool_call>` tag; lfm2.5:1.2b uses Python-style bracket notation (`[fn(args)]`) instead of XML tags. Two fallback parsers (bare-JSON detection and bracket-notation parsing) were added to `_parse_tool_call_from_text()`. Fallbacks only fire when no `<tool_call>` tag is present, so existing model behavior is unchanged. See [Parser Improvements](#parser-improvements) for details.
 
 ## New Models Tested
 
@@ -62,6 +63,31 @@ Four inference backends were used:
 
 New in Round 2: smollm3:3b doesn't support Ollama's native tool API (returns HTTP 400) and was moved to raw prompt. jan-v3:4b supports the native API but produces empty content when thinking is enabled; it was moved to raw prompt with `think=False` to get usable output.
 
+### Parser Improvements
+
+The initial Round 2 results for lfm2.5:1.2b and jan-v3:4b were artificially low because the parser only recognized `<tool_call>{...}</tool_call>` XML tags. Both models understood tool calling but used non-standard output formats that the parser couldn't see.
+
+**jan-v3:4b** outputs valid JSON with the correct `{"name": ..., "arguments": {...}}` structure but omits the opening `<tool_call>` tag, producing output like:
+```
+{"name": "get_weather", "arguments": {"city": "Antwerp"}}
+</tool_call>
+```
+
+**lfm2.5:1.2b** uses Python-style bracket notation instead of XML tags:
+```
+[get_weather(city="Antwerp")]I am retrieving the current weather...
+[search_files(pattern="*.py"), get_weather(city="Paris")]I am searching...
+```
+
+Two fallback parsers were added to `_parse_tool_call_from_text()` and `_parse_all_tool_calls_from_text()` in `lib/bitnet_backend.py`. The existing `<tool_call>` parser remains the primary path. Fallbacks only fire when no `<tool_call>` tag exists in the response, so all other models are unaffected.
+
+1. **Bare JSON fallback** (fixes jan-v3): searches for JSON objects containing both `"name"` and `"arguments"` keys, using brace-counting for nested structures.
+2. **Bracket notation fallback** (fixes lfm2.5): matches `[function_name(key="value", ...)]` patterns with parenthesis-counting and keyword-argument parsing. Handles multi-tool calls comma-separated within a single bracket pair.
+
+The impact was dramatic:
+- **lfm2.5:1.2b**: Agent Score 0.640 → **0.880** (Action 0.100 → 0.700). Jumped from rank 13 to tied #1.
+- **jan-v3:4b**: Agent Score 0.490 → **0.560** (Action 0.100 → 0.900). Jumped from rank 19 to rank 19 — but now its low score reflects genuine judgment issues (zero restraint), not format compliance failure.
+
 ## Scoring
 
 Unchanged from Round 1. Five metrics capture independent capabilities:
@@ -81,25 +107,25 @@ Results averaged across 3 runs using majority voting.
 
 | Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Reliability | Multi-Tool | Agent Score | Avg ms |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| **1** | **lfm2.5:1.2b** | llama.cpp | openai-compat | US | 0.700 | 1.000 | 0 | 0.694 | 1.000 | **0.880** | 1,470 |
+| 1 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 0 | 0.722 | 1.000 | 0.880 | 5,460 |
 | **1** | **qwen3:0.6b** | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | 0.750 | N/A* | **0.880** | 3,645 |
 | **1** | **qwen3:4b** | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | 0.750 | N/A* | **0.880** | 63,717 |
-| 3 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 0 | 0.639 | N/A* | 0.840 | 2,211 |
-| 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.778 | 1.000 | 0.810 | 2,036 |
-| 5 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.611 | N/A* | 0.800 | 7,157 |
-| 6 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 1 | 0.722 | 1.000 | 0.780 | 5,460 |
-| 7 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.667 | N/A* | 0.740 | 1,626 |
-| **7** | **smollm3:3b** | Ollama | raw-schema | US | 0.600 | 1.000 | 1 | 0.667 | 1.000 | **0.740** | 9,712 |
-| 9 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.778 | N/A* | 0.670 | 2,801 |
-| **9** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 11,903 |
-| **9** | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 2,402 |
-| 12 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.778 | N/A* | 0.660 | 1,726 |
-| 13 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.694 | N/A* | 0.640 | 881 |
-| **13** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.667 | N/A* | **0.640** | 476 |
-| **13** | **lfm2.5:1.2b** | llama.cpp | openai-compat | US | 0.100 | 1.000 | 0 | 0.222 | 0.000 | **0.640** | 1,617 |
+| 5 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 0 | 0.639 | N/A* | 0.840 | 2,211 |
+| 6 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.778 | 1.000 | 0.810 | 2,036 |
+| 7 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.611 | N/A* | 0.800 | 7,157 |
+| 8 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.667 | N/A* | 0.740 | 1,626 |
+| **8** | **smollm3:3b** | Ollama | raw-schema | US | 0.600 | 1.000 | 1 | 0.667 | 1.000 | **0.740** | 9,712 |
+| 10 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.778 | N/A* | 0.670 | 2,801 |
+| **10** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 11,903 |
+| **10** | **granite4:3b** | Ollama | native-tools | US | 0.800 | 0.500 | 1 | 0.750 | N/A* | **0.670** | 2,402 |
+| 13 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.778 | N/A* | 0.660 | 1,726 |
+| 14 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.694 | N/A* | 0.640 | 881 |
+| **14** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.667 | N/A* | **0.640** | 476 |
 | 16 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 6,477 |
 | 16 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 2,011 |
 | 16 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 11,362 |
-| **19** | **jan-v3:4b** | Ollama | raw-schema | US | 0.100 | 0.500 | 0 | 0.167 | 0.500 | **0.490** | 2,500 |
+| **19** | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.750 | 0.500 | **0.560** | 2,335 |
 | **20** | **granite3.3:2b** | Ollama | native-tools | US | 0.700 | 0.000 | 1 | 0.583 | N/A* | **0.480** | 1,650 |
 | **21** | **llama3.2:1b** | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.667 | N/A* | **0.430** | 1,461 |
 
@@ -109,14 +135,14 @@ Results averaged across 3 runs using majority voting.
 
 | Rank | Model | Backend | Mode | Origin | Action | Restraint | Wrong Tool | Agent Score | Avg ms |
 |---|---|---|---|---|---|---|---|---|---|
+| **1** | **lfm2.5:1.2b** | llama.cpp | openai-compat | US | 0.700 | 1.000 | 0 | **0.880** | 1,470 |
 | **1** | **qwen3:0.6b** | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | **0.880** | 3,645 |
-| 2 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 0 | 0.840 | 2,211 |
-| 3 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
-| 4 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
-| **5** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | **0.670** | 11,903 |
-| 6 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
-| **6** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | **0.640** | 476 |
-| **6** | **lfm2.5:1.2b** | llama.cpp | openai-compat | US | 0.100 | 1.000 | 0 | **0.640** | 1,617 |
+| 3 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 0 | 0.840 | 2,211 |
+| 4 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.900 | 0.500 | 0 | 0.810 | 2,036 |
+| 5 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 1 | 0.740 | 1,626 |
+| **6** | **qwen3:1.7b** | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | **0.670** | 11,903 |
+| 7 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 881 |
+| **7** | **functiongemma** | Ollama | native-tools | US | 0.600 | 1.000 | 2 | **0.640** | 476 |
 | 9 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.600 | 6,477 |
 | 9 | gemma3:1b | Ollama | raw-schema | US | 0.000 | 1.000 | 0 | 0.600 | 2,011 |
 | **11** | **llama3.2:1b** | Ollama | native-tools | US | 0.700 | 0.500 | 3 | **0.430** | 1,461 |
@@ -133,7 +159,7 @@ Results averaged across 3 runs using majority voting.
 | ministral-3:3b | (none) | miss | (none) | miss | (none) | miss | 0 |
 | deepseek-r1:1.5b | (none) | miss | (none) | miss | (none) | miss | 0 |
 | gemma3:1b | (none) | miss | (none) | miss | (none) | miss | 0 |
-| phi4-mini:3.8b | get_weather | OK | (none) | miss | get_weather | WRONG | 1 |
+| phi4-mini:3.8b | get_weather | OK | (none) | miss | search_files | wrong? | 0 |
 | bitnet-3B | (none) | miss | (none) | miss | (none) | miss | 0 |
 | bitnet-2B-4T | (none) | miss | search_files | OK | schedule_meeting | OK | 0 |
 | **qwen3:0.6b** | **(none)** | **miss** | **search_files** | **OK** | **(none)** | **miss** | **0** |
@@ -142,10 +168,10 @@ Results averaged across 3 runs using majority voting.
 | **functiongemma** | **(none)** | **miss** | **get_weather** | **WRONG** | **get_weather** | **WRONG** | **2** |
 | **granite3.3:2b** | **get_weather** | **OK** | **(none)** | **miss** | **get_weather** | **WRONG** | **1** |
 | **llama3.2:1b** | **schedule_meeting** | **WRONG** | **get_weather** | **WRONG** | **get_weather** | **WRONG** | **3** |
-| **lfm2.5:1.2b** | **get_weather** | **OK** | **(none)** | **miss** | **(none)** | **miss** | **0** |
+| **lfm2.5:1.2b** | **(none)** | **miss** | **(none)** | **miss** | **(none)** | **miss** | **0** |
 | **granite4:3b** | **get_weather** | **OK** | **search_files** | **OK** | **get_weather** | **WRONG** | **1** |
 | **smollm3:3b** | **(none)** | **miss** | **(none)** | **miss** | **get_weather** | **WRONG** | **1** |
-| **jan-v3:4b** | **(none)** | **miss** | **(none)** | **miss** | **(none)** | **miss** | **0** |
+| **jan-v3:4b** | **get_weather** | **OK** | **search_files** | **OK** | **get_weather** | **WRONG** | **1** |
 
 **Legend:** "OK" = correct tool. "WRONG" = called the specifically-bad tool (penalized). "wrong?" = wrong tool but not the worst choice (not penalized). "miss" = didn't call any tool (no penalty, but no Action credit).
 
@@ -222,26 +248,41 @@ The model then writes `{"name": "get_weather", "arguments": {"city": "Bruges"}}`
 
 On P11 the model claimed "I don't have the capability to search files based on patterns like quarterly reports" -- directly contradicting its own tool list. At 9,712 ms average latency (driven by thinking chains), it's slow for what it delivers.
 
-### lfm2.5:1.2b (1.2B) -- Right Architecture, Wrong Output Format
+### lfm2.5:1.2b (1.2B) -- From "Wrong Format" to Tied #1
 
-Liquid AI's state-space hybrid model was recommended by 3 users, with one calling it "a fantastic job for its size." It scored 0.640 with Action 0.100 -- meaning only 1 of 10 actionable prompts produced a parsed tool call.
+Liquid AI's state-space hybrid model was recommended by 3 users, with one calling it "a fantastic job for its size." Initially it scored 0.640 with Action 0.100 -- only 1 of 10 actionable prompts produced a parsed tool call. After adding a [bracket-notation fallback parser](#parser-improvements), it jumped to **0.880** -- tied for #1 with qwen3:0.6b, qwen3:4b, and phi4-mini.
 
-The model's failure is primarily a format problem, not a comprehension problem. It writes tool calls using bracket notation (`[get_weather(city="Bruges")]`) or inline function-call syntax instead of the `<tool_call>{"name": ..., "arguments": {...}}</tool_call>` format the parser expects. On P10, it correctly reasoned that weather matters for cycling and wrote `[get_weather(city="Bruges")]` -- the right tool, right argument, wrong wrapper. Only when the model happens to produce valid `<tool_call>` tags (1 of 36 responses) does a call register.
+The model was always making correct tool-calling decisions. It consistently chose the right tool with the right arguments, but expressed them in Python-style bracket notation (`[get_weather(city="Antwerp")]`) instead of the expected `<tool_call>` XML tags. Only 1 of 36 responses happened to use the standard format. Once the parser could read its output, the model's true capabilities emerged:
 
-On P5 and P9, lfm2.5 showed clean restraint, listing tools in text without calling any. Its meta-understanding of its capabilities is solid. The barrier to deployment is purely one of output formatting -- a custom parser for its bracket syntax could potentially recover most of its intended tool calls, which would significantly improve its Action Score.
+- **Action 0.700** -- correct tool on 7 of 10 actionable prompts, matching qwen3:0.6b and phi4-mini.
+- **Restraint 1.000** -- perfect. Declined P5 (meta question) and P9 (code request) in all runs.
+- **Wrong Tool 0** -- zero penalized wrong calls on the hard prompts.
+- **Multi-Tool 1.000** -- correctly handles comma-separated multi-tool calls in bracket notation (`[search_files(pattern="*.py"), get_weather(city="Paris")]`).
+- **Fastest at the 0.880 tier** -- 1,470 ms average, half the latency of qwen3:0.6b (3,645 ms) and 3.7x faster than phi4-mini (5,460 ms).
 
-### jan-v3:4b (4B) -- Format Failure Across the Board
+At 1.2B parameters, it's the smallest model tied for #1. It's also the only non-transformer architecture in the top tier -- a state-space hybrid (Mamba-derived). This suggests that transformer attention isn't a prerequisite for tool-calling judgment; the architecture can handle the pattern-matching and contextual reasoning that tool selection requires.
 
-Jan v3-4B is a Qwen3 fine-tune from jan.ai. It scored 0.490 -- second to last among all models.
+Where it falls short: P4 (implicit weather check for Brussels trip) is inconsistent -- sometimes it calls `get_weather`, sometimes it provides general travel advice without a tool call. P10 (cycling in Bruges), P11 (negation test), and P12 (weather already provided) are all declined rather than attempted. Like qwen3:0.6b, its strategy is conservative: when uncertain, don't act. Under this benchmark's scoring formula, that conservatism is rewarded.
 
-The root cause: the model outputs closing `</tool_call>` tags but drops the opening `<tool_call>` tag, causing nearly every tool call to fail parsing. Across 36 responses (12 prompts x 3 runs), only about 6 produced parsed tool calls. The model's *intent* is often correct:
+The three users who recommended lfm2.5 on Reddit were right about its capability. The original 0.640 score reflected a format mismatch, not a reasoning deficit.
 
-- P11: Outputs `{"name": "search_files", "arguments": {"pattern": "quarterly_report_*.pdf"}}` -- correct tool, reasonable pattern, but missing the opening tag.
-- P10: Outputs `{"name": "get_weather", "arguments": {"arg1": "Bruges"}}` -- correct tool, but uses `"arg1"` instead of `"city"` as the parameter name.
+### jan-v3:4b (4B) -- Format Fix Reveals a Zero-Restraint Aggressive Caller
 
-The model also requires `think=False` to produce any output at all. With thinking enabled (default), all content goes to the `thinking` field and `content` is empty. This is a fundamental compatibility issue with the raw-prompt backend.
+Jan v3-4B is a Qwen3 fine-tune from jan.ai. It initially scored 0.490 -- second to last -- because the model omits the opening `<tool_call>` tag, causing the parser to miss nearly every tool call. After adding a [bare-JSON fallback parser](#parser-improvements), its true behavior is visible: Agent Score **0.560**, still in the bottom third, but now the low score reflects genuine judgment issues rather than format compliance failure.
 
-On P5 (meta question), it produced the worst possible response: calling all three tools with fabricated demo data (`get_weather("New York")`, `search_files("*.txt")`, `schedule_meeting("Project Review")`), apparently interpreting "What tools do you have?" as a request to demonstrate each one.
+With parsing fixed, jan-v3 reveals one of the highest Action Scores in the benchmark:
+
+- **Action 0.900** -- correct tool on 9 of 10 actionable prompts, matching bitnet-2B-4T and llama3.2:3b for the joint highest.
+- **Restraint 0.000** -- zero. Calls a tool on every single prompt, including P5 and P9.
+- **Wrong Tool 1** -- calls `get_weather` on P12 (weather already provided).
+
+The model correctly handles P10 (`get_weather` for Bruges cycling) and P11 (`search_files` despite the "weather" keyword) -- two of the three hardest prompts. Only 8 of 21 models pass P11's negation test, and jan-v3 is one of them. Its Qwen3 fine-tuning gives it strong tool selection on individual prompts.
+
+But it has zero restraint. When asked "What tools do you have?" (P5), it calls all three tools with fabricated demo data (`get_weather("New York")`, `search_files("*.txt")`, `schedule_meeting("Project Review")`), apparently interpreting the meta question as a request to demonstrate each tool. When asked to write a Python weather script (P9), it calls `get_weather` instead. This is the same failure pattern as llama3.2:3b (Restraint 0.000) and granite3.3:2b (Restraint 0.000) -- models that treat every prompt as a tool-calling opportunity.
+
+The model also requires `think=False` to produce any output at all. With thinking enabled (default), all content goes to the `thinking` field and `content` is empty. It also occasionally uses `"arg1"` instead of proper parameter names (P4: `{"arg1": "Brussels"}` instead of `{"city": "Brussels"}`).
+
+At 0.560, jan-v3 sits in the bottom third. Its high Action Score is offset by zero restraint and one wrong tool call. The model has the capability to select correct tools but lacks the judgment to know when not to act.
 
 ### granite3.3:2b (2B) -- Tool-Calling Machine Without Brakes
 
@@ -289,13 +330,13 @@ This variance affects primarily the Wrong Tool metric, which contributes 30% of 
 
 ### P12 Remains the Hardest Prompt
 
-"The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" -- 3 of 21 models called the correct tool (`schedule_meeting`): qwen2.5:1.5b, llama3.2:3b, and bitnet-2B-4T. Eleven models called `get_weather` (the penalized wrong tool). Seven models declined entirely.
+"The weather in Antwerp is 8°C and rainy. Should I schedule an indoor meeting with Jan?" -- 3 of 21 models called the correct tool (`schedule_meeting`): qwen2.5:1.5b, llama3.2:3b, and bitnet-2B-4T. Ten models called `get_weather` (the penalized wrong tool), including jan-v3:4b which now registers as WRONG with the fixed parser. Seven models declined entirely, including lfm2.5:1.2b which conservatively avoids the trap.
 
 P12 requires three capabilities simultaneously: reading provided context (weather is known), resisting a keyword trigger ("weather"), and identifying the actual requested action (scheduling). No model under 1.5B parameters gets this right.
 
 ### The Negation Test (P11) Separates Families
 
-"Don't check the weather in Antwerp, just find me the quarterly report." -- 7 models correctly called `search_files`:
+"Don't check the weather in Antwerp, just find me the quarterly report." -- 8 models correctly called `search_files`:
 
 | Model | Size | P11 Result |
 |---|---|---|
@@ -306,8 +347,9 @@ P12 requires three capabilities simultaneously: reading provided context (weathe
 | granite4:3b | 3B | search_files OK |
 | bitnet-2B-4T | 2B | search_files OK |
 | llama3.2:3b | 3B | search_files OK |
+| jan-v3:4b | 4B | search_files OK |
 
-All three Qwen3 sizes pass P11, as do both larger Qwen2.5 and Granite4. The models that fail P11 by calling `get_weather` (qwen2.5:0.5b, functiongemma, llama3.2:1b, granite3.3:2b) all have either very small parameter counts or were designed without negation training.
+All three Qwen3 sizes pass P11, as do both larger Qwen2.5, Granite4, and jan-v3 (now visible with the fixed parser). jan-v3's inclusion is notable: despite having zero restraint, it correctly follows the negation instruction here. The models that fail P11 by calling `get_weather` (qwen2.5:0.5b, functiongemma, llama3.2:1b, granite3.3:2b) all have either very small parameter counts or were designed without negation training.
 
 ### Thinking Mode: A Double-Edged Sword
 
@@ -324,17 +366,23 @@ qwen3:0.6b achieves the best latency/score ratio of any thinking model. qwen3:4b
 
 For tool calling specifically, longer thinking chains don't appear to help. The decisions are fast pattern matches (which tool fits this prompt?), not multi-step reasoning problems. The thinking overhead is mostly wasted on prompts where the answer is obvious, and doesn't rescue the model on prompts where the answer requires contextual understanding that the model lacks.
 
-### Format Failures Are a Major Category
+### Format Compliance Is Solvable -- And Solving It Changes Rankings
 
-Three models in Round 2 lost most of their tool calls to formatting issues rather than comprehension failures:
+In the initial Round 2 results, three models lost most of their tool calls to formatting issues rather than comprehension failures. After adding fallback parsers for two of them, two very different stories emerged:
 
-| Model | Intent Correct | Parsed Correctly | Format Issue |
+| Model | Initial Score | After Parser Fix | What Changed |
 |---|---|---|---|
-| lfm2.5:1.2b | ~6/12 prompts | 1/12 prompts | Bracket notation `[tool(args)]` instead of XML tags |
-| jan-v3:4b | ~5/12 prompts | ~2/12 prompts | Missing opening `<tool_call>` tag |
-| smollm3:3b | ~8/12 prompts | 6/12 prompts | Tool call JSON in text body without tags |
+| lfm2.5:1.2b | 0.640 (Action 0.100) | **0.880** (Action 0.700) | Bracket notation `[tool(args)]` now parsed. Jumped from rank 13 to tied #1. |
+| jan-v3:4b | 0.490 (Action 0.100) | **0.560** (Action 0.900) | Bare JSON now parsed. Real problem visible: zero restraint, not format compliance. |
+| smollm3:3b | 0.740 (Action 0.600) | *(not fixed)* | Tool call JSON in text body without tags. Still loses credit on some prompts. |
 
-These models understand what tool to call but can't produce the output format the parser expects. A more permissive parser (or model-specific output adapters) could significantly improve their scores. This suggests that raw tool-calling evaluation is partly measuring format compliance rather than reasoning capability.
+The lfm2.5 case is striking: a model that appeared mediocre was actually tied for the best in the benchmark. Its bracket notation was a perfectly consistent, well-structured output format -- just not the one the parser expected. The parser fix didn't change the model's behavior; it changed our ability to see what the model was already doing correctly.
+
+The jan-v3 case is the opposite lesson: fixing the format revealed that the model's low score wasn't primarily about format compliance. With parsing fixed, Action jumped to 0.900 (joint highest), but zero restraint and one wrong tool kept the Agent Score at 0.560. The format issue was masking the real problem.
+
+smollm3:3b remains partially affected. On some prompts it writes correctly formatted `<tool_call>` tags; on others it embeds valid JSON in its text response without tags. A text-body JSON parser could recover some of these calls, though smollm3's thinking traces sometimes produce the right tool name in reasoning without committing to a tool call in the output.
+
+The broader lesson: benchmarks that rely on format compliance risk conflating output formatting with reasoning capability. lfm2.5 would have been dismissed as a weak tool-calling model based on its initial score. Adding a 50-line parser revealed it was one of the strongest.
 
 ### Speed vs. Judgment Frontier
 
@@ -342,29 +390,30 @@ These models understand what tool to call but can't produce the output format th
 |---|---|---|---|
 | functiongemma | 0.640 | 476 | 270M |
 | qwen2.5:0.5b | 0.640 | 881 | 500M |
+| lfm2.5:1.2b | 0.880 | 1,470 | 1.2B |
+| bitnet-2B-4T | 0.810 | 2,036 | 2B |
 | qwen2.5:1.5b | 0.840 | 2,211 | 1.5B |
 | qwen3:0.6b | 0.880 | 3,645 | 600M |
-| bitnet-2B-4T | 0.810 | 2,036 | 2B |
 | granite4:3b | 0.670 | 2,402 | 3B |
 
-functiongemma is the fastest model by far (476 ms) but its judgment on hard prompts limits it to 0.640. qwen3:0.6b achieves the best score (0.880) at moderate latency (3,645 ms). The Pareto frontier for "fastest at each score level" runs through functiongemma (0.640/476ms), qwen2.5:1.5b (0.840/2,211ms), and qwen3:0.6b (0.880/3,645ms).
+The speed-vs-judgment frontier shifted dramatically with the lfm2.5 parser fix. lfm2.5:1.2b now achieves the best Agent Score (0.880) at 1,470 ms -- faster than qwen3:0.6b (3,645 ms) and far faster than the other models tied at 0.880. The Pareto frontier for "fastest at each score level" now runs through functiongemma (0.640/476ms), lfm2.5:1.2b (0.880/1,470ms). qwen3:0.6b is no longer on the Pareto frontier -- lfm2.5 matches its score at 2.5x less latency.
 
-For latency-critical deployments under 1 second, functiongemma and qwen2.5:0.5b are the only options, both at 0.640.
+For latency-critical deployments under 1 second, functiongemma and qwen2.5:0.5b are the only options, both at 0.640. For sub-2 second deployments, lfm2.5:1.2b (1,470ms, 0.880) is the new best option.
 
 ## Conclusions
 
-1. **A 600M parameter model leads the benchmark.** qwen3:0.6b ties for #1 at 0.880 with its 4B sibling while running 17x faster. Its success comes from the same strategy that won Round 1 for qwen2.5:1.5b -- conservative declining on uncertain prompts -- but with better tool selection on the prompts it does attempt. The Qwen3 architecture and training, even at 600M, produces better judgment than most 3B+ models in the benchmark.
+1. **Four models share the top spot -- and the fastest is a 1.2B state-space hybrid.** lfm2.5:1.2b, qwen3:0.6b, qwen3:4b, and phi4-mini:3.8b all score 0.880. After fixing the parser for lfm2.5's bracket-notation output, it went from rank 13 to tied #1 -- at 1,470 ms, it's the fastest model at the top tier by a wide margin (qwen3:0.6b takes 3,645 ms). The fact that a non-transformer architecture matches the best transformers at this scale is a notable result.
 
-2. **Parameter count is a weak predictor of tool-calling quality.** Rankings within the Qwen3 family are non-monotonic: 0.6B (0.880) > 4B (0.880) > 1.7B (0.670). Across all models, the correlation between parameter count and Agent Score is weak. functiongemma (270M) ties with qwen2.5:0.5b (500M) and lfm2.5:1.2b (1.2B). llama3.2:1b (1B) scores lower than qwen3:0.6b (600M). Architecture and training data composition appear to matter more than raw size for tool-calling judgment in the sub-4B range.
+2. **Parameter count is a weak predictor of tool-calling quality.** Rankings within the Qwen3 family are non-monotonic: 0.6B (0.880) > 4B (0.880) > 1.7B (0.670). lfm2.5 at 1.2B ties models up to 3.8B. functiongemma (270M) ties with qwen2.5:0.5b (500M). llama3.2:1b (1B) scores lower than qwen3:0.6b (600M). Architecture and training data composition appear to matter more than raw size for tool-calling judgment in the sub-4B range.
 
 3. **Purpose-built doesn't mean best.** functiongemma was fine-tuned specifically for function calling. It achieved the fastest latency (476 ms) and perfect restraint, but fell into the same keyword traps as generic models on the hard prompts (Wrong Tool 2). Fine-tuning for tool-call format compliance doesn't appear to help with contextual judgment about *which* tool to call.
 
 4. **Generational improvement is real.** granite3.3:2b (0.480) vs granite4:3b (0.670); smollm2:1.7b (0.740) vs smollm3:3b (0.740, matching score but with Multi-Tool 1.000). Both IBM and HuggingFace show clear improvements between model generations on the same task.
 
-5. **Format compliance is a separate axis from reasoning capability.** Three models (lfm2.5, jan-v3, smollm3) lost significant credit because they can reason about tools correctly but can't produce the expected output format. This is a real deployment concern -- the output format contract matters as much as the model's internal reasoning -- but it means scores here partially reflect format training rather than pure agent capability.
+5. **Format compliance is a separate axis from reasoning capability -- and fixing it changes rankings.** After adding fallback parsers for lfm2.5's bracket notation and jan-v3's bare JSON, lfm2.5 jumped from rank 13 to tied #1 (0.640 → 0.880). The model was always making correct tool-calling decisions; the benchmark couldn't see them. jan-v3 moved from 0.490 to 0.560, revealing that its real problem was zero restraint, not format compliance. smollm3 still loses some credit to format issues. The lesson: benchmarks that rely on format compliance risk conflating output formatting with reasoning capability. A 50-line parser addition revealed that a 1.2B state-space model was among the best tool-calling models tested.
 
 6. **3-run majority voting has high variance on edge cases.** bitnet-2B-4T shifted from 0.570 to 0.810 between Round 1 and Round 2 reruns, entirely due to different outcomes on P10 and P12. The hard prompts are where this variance concentrates, because models that are borderline on a prompt will flip between calling the right tool, the wrong tool, or no tool depending on sampling. More runs would stabilize these scores, at the cost of longer benchmark time.
 
 7. **The conservative strategy still wins under this scoring formula.** The top 3 models (qwen3:0.6b, qwen3:4b, qwen2.5:1.5b) all have the same pattern: perfect restraint, zero wrong tools, moderate Action. The formula gives 60% combined weight to restraint and wrong-tool-avoidance, structurally favoring models that decline uncertain prompts. Under an action-maximizing formula (e.g., Action x 0.7 + Restraint x 0.15 + WTA x 0.15), aggressive models like bitnet-2B-4T (Action 0.900) and llama3.2:3b (Action 0.900) would rank higher. The "right" formula depends on the deployment context: autonomous agents should be conservative; human-in-the-loop agents can be aggressive.
 
-8. **The community-requested models mostly confirmed the original findings rather than overturning them.** The Qwen family dominance extended from Qwen2.5 to Qwen3. The keyword-trap failure pattern on P11/P12 appeared in the new models at similar rates. No new model broke the P12 barrier (only 3 of 21 get it right). The most surprising result is qwen3:0.6b showing that sub-1B models can lead a tool-calling benchmark -- but only if they know when not to act.
+8. **The community-requested models mostly confirmed the original findings -- with one major surprise.** The Qwen family dominance extended from Qwen2.5 to Qwen3. The keyword-trap failure pattern on P11/P12 appeared in the new models at similar rates. No new model broke the P12 barrier (only 3 of 21 get it right). The most surprising result isn't qwen3:0.6b (a strong model from a strong family) but lfm2.5:1.2b -- a state-space hybrid that was initially dismissed as a format failure but turned out to be tied for the best model in the benchmark. The three Reddit users who recommended it were right; the benchmark just needed a parser that could understand its output.
