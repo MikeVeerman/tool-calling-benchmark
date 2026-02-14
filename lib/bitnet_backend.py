@@ -1,6 +1,7 @@
 """BitNet backend: server lifecycle, runner, and text-based tool-call parsing."""
 
 import json
+import re
 import subprocess
 import time
 
@@ -80,35 +81,243 @@ def stop_bitnet_server():
         _bitnet_current_model = None
 
 
-def _parse_tool_call_from_text(content: str) -> dict | None:
-    """Parse <tool_call>{...} from raw text using brace-counting for nested JSON."""
-    idx = content.find("<tool_call>")
-    if idx == -1:
-        return None
-    rest = content[idx + len("<tool_call>"):].lstrip()
-    if not rest.startswith("{"):
-        return None
-    # Count braces to find the complete JSON object
+def _parse_bare_json_tool_call(content: str) -> dict | None:
+    """Fallback: parse bare JSON object with "name" and "arguments" keys."""
+    idx = 0
+    while idx < len(content):
+        brace = content.find("{", idx)
+        if brace == -1:
+            break
+        depth = 0
+        end = -1
+        for i in range(brace, len(content)):
+            if content[i] == "{":
+                depth += 1
+            elif content[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end == -1:
+            break
+        try:
+            call = json.loads(content[brace:end])
+            if isinstance(call, dict) and "name" in call and "arguments" in call:
+                args = call["arguments"]
+                json.dumps(args)  # validate serialisable
+                return {"name": call["name"], "arguments": args, "valid": True}
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+        idx = brace + 1
+    return None
+
+
+def _parse_bare_json_all_tool_calls(content: str) -> list[dict]:
+    """Fallback: parse all bare JSON tool call objects from text."""
+    results = []
+    idx = 0
+    while idx < len(content):
+        brace = content.find("{", idx)
+        if brace == -1:
+            break
+        depth = 0
+        end = -1
+        for i in range(brace, len(content)):
+            if content[i] == "{":
+                depth += 1
+            elif content[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end == -1:
+            break
+        try:
+            call = json.loads(content[brace:end])
+            if isinstance(call, dict) and "name" in call and "arguments" in call:
+                args = call["arguments"]
+                json.dumps(args)
+                results.append({"name": call["name"], "arguments": args, "valid": True})
+                idx = end
+                continue
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+        idx = brace + 1
+    return results
+
+
+def _parse_bracket_args(args_str: str) -> dict:
+    """Parse keyword arguments from bracket notation: key="value", key=[list]."""
+    args = {}
+    pos = 0
+    while pos < len(args_str):
+        # Skip whitespace and commas between args
+        while pos < len(args_str) and args_str[pos] in " ,\t\n":
+            pos += 1
+        if pos >= len(args_str):
+            break
+        # Match key=
+        km = re.match(r"(\w+)\s*=\s*", args_str[pos:])
+        if not km:
+            break
+        key = km.group(1)
+        pos += km.end()
+        if pos >= len(args_str):
+            break
+        ch = args_str[pos]
+        if ch in ('"', "'"):
+            # Quoted string: find matching close quote
+            end = pos + 1
+            while end < len(args_str) and args_str[end] != ch:
+                end += 1
+            args[key] = args_str[pos + 1:end]
+            pos = end + 1 if end < len(args_str) else end
+        elif ch == "[":
+            # Array: find matching ]
+            depth = 1
+            end = pos + 1
+            while end < len(args_str) and depth > 0:
+                if args_str[end] == "[":
+                    depth += 1
+                elif args_str[end] == "]":
+                    depth -= 1
+                end += 1
+            arr_str = args_str[pos:end]
+            try:
+                args[key] = json.loads(arr_str)
+            except json.JSONDecodeError:
+                args[key] = arr_str
+            pos = end
+        else:
+            # Bare value (number, etc.)
+            end = pos
+            while end < len(args_str) and args_str[end] not in ",)":
+                end += 1
+            val = args_str[pos:end].strip()
+            try:
+                args[key] = int(val)
+            except ValueError:
+                try:
+                    args[key] = float(val)
+                except ValueError:
+                    args[key] = val
+            pos = end
+    return args
+
+
+def _parse_bracket_tool_calls(content: str) -> list[dict]:
+    """Fallback: parse bracket-notation tool calls like [fn(arg="val")].
+
+    Handles formats like:
+        [get_weather(city="Antwerp")]
+        [search_files(pattern="*.py"), get_weather(city="Paris")]
+    """
+    m = re.search(r"\[(\w+)\(", content)
+    if not m:
+        return []
+    start = m.start()
+    # Find matching closing bracket (track depth, skip strings)
     depth = 0
     end = -1
-    for i, c in enumerate(rest):
-        if c == "{":
-            depth += 1
-        elif c == "}":
-            depth -= 1
-            if depth == 0:
-                end = i + 1
-                break
+    in_str = False
+    str_ch = None
+    for i in range(start, len(content)):
+        c = content[i]
+        if in_str:
+            if c == str_ch:
+                in_str = False
+        else:
+            if c in ('"', "'"):
+                in_str = True
+                str_ch = c
+            elif c == "[":
+                depth += 1
+            elif c == "]":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
     if end == -1:
-        return None
-    try:
-        call = json.loads(rest[:end])
-        fname = call.get("name", "")
-        args = call.get("arguments", {})
-        json.dumps(args)  # validate serialisable
-        return {"name": fname, "arguments": args, "valid": True}
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return {"name": None, "arguments": None, "valid": False}
+        return []
+    inner = content[start + 1:end]
+
+    # Find each function_name(args) call within the brackets
+    results = []
+    call_re = re.compile(r"(\w+)\(")
+    pos = 0
+    while pos < len(inner):
+        cm = call_re.search(inner, pos)
+        if not cm:
+            break
+        fname = cm.group(1)
+        paren_start = cm.end()
+        # Find matching closing paren (skip strings)
+        pdepth = 1
+        in_s = False
+        s_ch = None
+        paren_end = -1
+        for j in range(paren_start, len(inner)):
+            c = inner[j]
+            if in_s:
+                if c == s_ch:
+                    in_s = False
+            else:
+                if c in ('"', "'"):
+                    in_s = True
+                    s_ch = c
+                elif c == "(":
+                    pdepth += 1
+                elif c == ")":
+                    pdepth -= 1
+                    if pdepth == 0:
+                        paren_end = j
+                        break
+        if paren_end == -1:
+            pos = paren_start
+            continue
+        args_str = inner[paren_start:paren_end]
+        parsed_args = _parse_bracket_args(args_str)
+        results.append({"name": fname, "arguments": parsed_args, "valid": True})
+        pos = paren_end + 1
+    return results
+
+
+def _parse_tool_call_from_text(content: str) -> dict | None:
+    """Parse tool call from raw text. Primary: <tool_call> tags. Fallbacks: bare JSON, bracket notation."""
+    idx = content.find("<tool_call>")
+    if idx != -1:
+        rest = content[idx + len("<tool_call>"):].lstrip()
+        if not rest.startswith("{"):
+            return None
+        # Count braces to find the complete JSON object
+        depth = 0
+        end = -1
+        for i, c in enumerate(rest):
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end == -1:
+            return None
+        try:
+            call = json.loads(rest[:end])
+            fname = call.get("name", "")
+            args = call.get("arguments", {})
+            json.dumps(args)  # validate serialisable
+            return {"name": fname, "arguments": args, "valid": True}
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return {"name": None, "arguments": None, "valid": False}
+    # No <tool_call> tag — try fallbacks
+    result = _parse_bare_json_tool_call(content)
+    if result:
+        return result
+    bracket_calls = _parse_bracket_tool_calls(content)
+    if bracket_calls:
+        return bracket_calls[0]
+    return None
 
 
 def _parse_all_tool_calls_from_text(content: str) -> list[dict]:
@@ -151,7 +360,13 @@ def _parse_all_tool_calls_from_text(content: str) -> list[dict]:
             pass  # skip invalid block, continue to next
         # Advance past this block
         search_start = idx + len("<tool_call>") + end
-    return results
+    if results or "<tool_call>" in content:
+        return results
+    # No <tool_call> tags — try fallbacks
+    bare = _parse_bare_json_all_tool_calls(content)
+    if bare:
+        return bare
+    return _parse_bracket_tool_calls(content)
 
 
 def run_one_bitnet(prompt: str) -> dict:

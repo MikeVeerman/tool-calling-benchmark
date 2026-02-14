@@ -128,7 +128,7 @@ def run_one_ollama_raw(model: str, prompt: str) -> dict:
 
     t0 = time.perf_counter()
     try:
-        resp = ollama.chat(model=model, messages=messages)
+        resp = ollama.chat(model=model, messages=messages, think=False)
     except Exception as e:
         elapsed = (time.perf_counter() - t0) * 1000
         return {

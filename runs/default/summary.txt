@@ -1,5 +1,5 @@
 ================================================================================================================================================================
-SUMMARY (18 models)
+SUMMARY (21 models)
 ================================================================================================================================================================
 
 ================================================================================================================================================================
@@ -138,7 +138,7 @@ phi4-mini:3.8b       P8     YES      search_files         OK         2928
 phi4-mini:3.8b       P9     no       -                    -         20483
 phi4-mini:3.8b       P10    YES      get_weather          OK         6265
 phi4-mini:3.8b       P11    no       -                    -          4658
-phi4-mini:3.8b       P12    YES      get_weather          OK         7042
+phi4-mini:3.8b       P12    YES      search_files         OK         7042
 -------------------------------------------------------------------------
 bitnet-3B            P1     no       -                    -         10055
 bitnet-3B            P2     no       -                    -          7819
@@ -244,18 +244,57 @@ llama3.2:1b          P10    YES      schedule_meeting     OK         1970
 llama3.2:1b          P11    YES      get_weather          OK         1616
 llama3.2:1b          P12    YES      get_weather          OK         2410
 -------------------------------------------------------------------------
-lfm2.5:1.2b          P1     no       -                    -           933
-lfm2.5:1.2b          P2     no       -                    -          1074
-lfm2.5:1.2b          P3     no       -                    -          2066
-lfm2.5:1.2b          P4     no       -                    -          1383
-lfm2.5:1.2b          P5     no       -                    -          1214
-lfm2.5:1.2b          P6     no       -                    -          1126
-lfm2.5:1.2b          P7     no       -                    -          2073
-lfm2.5:1.2b          P8     no       -                    -          1299
-lfm2.5:1.2b          P9     no       -                    -          4353
-lfm2.5:1.2b          P10    YES      get_weather          OK         1193
-lfm2.5:1.2b          P11    no       -                    -          1456
-lfm2.5:1.2b          P12    no       -                    -          1229
+lfm2.5:1.2b          P1     YES      get_weather          OK          894
+lfm2.5:1.2b          P2     YES      search_files         OK         1049
+lfm2.5:1.2b          P3     YES      schedule_meeting     OK         1993
+lfm2.5:1.2b          P4     YES      get_weather          OK         1054
+lfm2.5:1.2b          P5     no       -                    -          1607
+lfm2.5:1.2b          P6     YES      get_weather          OK         1106
+lfm2.5:1.2b          P7     YES      schedule_meeting     OK         2123
+lfm2.5:1.2b          P8     YES      search_files         OK         1197
+lfm2.5:1.2b          P9     no       -                    -          3052
+lfm2.5:1.2b          P10    no       -                    -           808
+lfm2.5:1.2b          P11    no       -                    -          1313
+lfm2.5:1.2b          P12    no       -                    -          1443
+-------------------------------------------------------------------------
+granite4:3b          P1     YES      get_weather          OK         2176
+granite4:3b          P2     no       -                    -          1626
+granite4:3b          P3     YES      schedule_meeting     OK         3591
+granite4:3b          P4     YES      get_weather          OK         1599
+granite4:3b          P5     no       -                    -          5162
+granite4:3b          P6     YES      get_weather          OK         1624
+granite4:3b          P7     YES      schedule_meeting     OK         4564
+granite4:3b          P8     YES      search_files         OK         1686
+granite4:3b          P9     YES      get_weather          OK         1644
+granite4:3b          P10    YES      get_weather          OK         1738
+granite4:3b          P11    YES      search_files         OK         1742
+granite4:3b          P12    YES      get_weather          OK         1678
+-------------------------------------------------------------------------
+smollm3:3b           P1     YES      get_weather          OK        10417
+smollm3:3b           P2     YES      search_files         OK        15141
+smollm3:3b           P3     YES      schedule_meeting     OK        10630
+smollm3:3b           P4     no       -                    -          4466
+smollm3:3b           P5     no       -                    -         14459
+smollm3:3b           P6     YES      get_weather          OK         3218
+smollm3:3b           P7     YES      schedule_meeting     OK        14906
+smollm3:3b           P8     YES      search_files         OK         3601
+smollm3:3b           P9     no       -                    -         17556
+smollm3:3b           P10    no       -                    -          9699
+smollm3:3b           P11    no       -                    -          7421
+smollm3:3b           P12    YES      get_weather          OK         5026
+-------------------------------------------------------------------------
+jan-v3:4b            P1     YES      get_weather          OK         2363
+jan-v3:4b            P2     YES      search_files         OK         1259
+jan-v3:4b            P3     YES      schedule_meeting     OK         4294
+jan-v3:4b            P4     YES      get_weather          OK         1464
+jan-v3:4b            P5     YES      search_files         OK         4989
+jan-v3:4b            P6     YES      get_weather          OK         1525
+jan-v3:4b            P7     YES      schedule_meeting     OK         3495
+jan-v3:4b            P8     YES      get_weather          OK         2472
+jan-v3:4b            P9     YES      get_weather          OK         1414
+jan-v3:4b            P10    YES      get_weather          OK         1576
+jan-v3:4b            P11    YES      search_files         OK         1638
+jan-v3:4b            P12    YES      get_weather          OK         1530
 -------------------------------------------------------------------------
 
 ================================================================================================================================================================
@@ -263,22 +302,25 @@ SUMMARY (sorted by Agent Score)
 ================================================================================================================================================================
 Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
 ----------------------------------------------------------------------------------------------------------------------------------------
+phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           0        0.722       1.000        0.880    5460
 qwen3:0.6b           Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880    3645
 qwen3:4b             Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880   63717
+lfm2.5:1.2b          llama.cpp    openai-compat  US          0.700      1.000           0        0.694       1.000        0.880    1470
 qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
 bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
 ministral-3:3b       Ollama       native-tools   FR          0.500      1.000           0        0.611        N/A*        0.800    7157
-phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           1        0.722       1.000        0.780    5460
 smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
+smollm3:3b           Ollama       raw-schema     US          0.600      1.000           1        0.667       1.000        0.740    9712
 qwen2.5:3b           Ollama       native-tools   CN          0.800      0.500           1        0.778        N/A*        0.670    2801
 qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
+granite4:3b          Ollama       native-tools   US          0.800      0.500           1        0.750        N/A*        0.670    2402
 llama3.2:3b          Ollama       native-tools   US          0.900      0.000           0        0.778        N/A*        0.660    1726
 qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
 functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
-lfm2.5:1.2b          llama.cpp    openai-compat  US          0.100      1.000           0        0.222       0.000        0.640    1617
 deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
 gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
 bitnet-3B            bitnet.cpp   openai-compat  US/1bit     0.000      1.000           0        0.167       0.000        0.600   11362
+jan-v3:4b            Ollama       raw-schema     US          0.900      0.000           1        0.750       0.500        0.560    2335
 granite3.3:2b        Ollama       native-tools   US          0.700      0.000           1        0.583        N/A*        0.480    1650
 llama3.2:1b          Ollama       native-tools   US          0.700      0.500           3        0.667        N/A*        0.430    1461
 
@@ -289,13 +331,13 @@ EDGE AGENT MINI LEADERBOARD (sub-2B models)
 #    Model                Backend      Mode           Origin     Action  Restraint  Wrong Tool  Reliability  Multi-Tool  Agent Score   Avg ms
 ---------------------------------------------------------------------------------------------------------------------------------------------
 1    qwen3:0.6b           Ollama       native-tools   CN          0.700      1.000           0        0.750        N/A*        0.880    3645
-2    qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
-3    bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
-4    smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
-5    qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
-6    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
-7    functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
-8    lfm2.5:1.2b          llama.cpp    openai-compat  US          0.100      1.000           0        0.222       0.000        0.640    1617
+2    lfm2.5:1.2b          llama.cpp    openai-compat  US          0.700      1.000           0        0.694       1.000        0.880    1470
+3    qwen2.5:1.5b         Ollama       native-tools   CN          0.600      1.000           0        0.639        N/A*        0.840    2211
+4    bitnet-2B-4T         bitnet.cpp   openai-compat  US/1bit     0.900      0.500           0        0.778       1.000        0.810    2036
+5    smollm2:1.7b         Ollama       native-tools   US          0.600      1.000           1        0.667        N/A*        0.740    1626
+6    qwen3:1.7b           Ollama       native-tools   CN          0.800      0.500           1        0.750        N/A*        0.670   11903
+7    qwen2.5:0.5b         Ollama       native-tools   CN          0.600      1.000           2        0.694        N/A*        0.640     881
+8    functiongemma        Ollama       native-tools   US          0.600      1.000           2        0.667        N/A*        0.640     476
 9    deepseek-r1:1.5b     Ollama       raw-schema     CN          0.000      1.000           0        0.167       0.000        0.600    6477
 10   gemma3:1b            Ollama       raw-schema     US          0.000      1.000           0        0.167       0.000        0.600    2011
 11   llama3.2:1b          Ollama       native-tools   US          0.700      0.500           3        0.667        N/A*        0.430    1461
@@ -321,7 +363,7 @@ smollm2:1.7b         (none)               miss     (none)               miss    
 ministral-3:3b       (none)               miss     (none)               miss     (none)               miss          0
 deepseek-r1:1.5b     (none)               miss     (none)               miss     (none)               miss          0
 gemma3:1b            (none)               miss     (none)               miss     (none)               miss          0
-phi4-mini:3.8b       get_weather          OK       (none)               miss     get_weather          WRONG         1
+phi4-mini:3.8b       get_weather          OK       (none)               miss     search_files         wrong?        1
 bitnet-3B            (none)               miss     (none)               miss     (none)               miss          0
 bitnet-2B-4T         (none)               miss     search_files         OK       schedule_meeting     OK            0
 qwen3:0.6b           (none)               miss     search_files         OK       (none)               miss          0
@@ -330,5 +372,8 @@ qwen3:4b             (none)               miss     search_files         OK      
 functiongemma        (none)               miss     get_weather          WRONG    get_weather          WRONG         2
 granite3.3:2b        get_weather          OK       (none)               miss     get_weather          WRONG         1
 llama3.2:1b          schedule_meeting     WRONG    get_weather          WRONG    get_weather          WRONG         3
-lfm2.5:1.2b          get_weather          OK       (none)               miss     (none)               miss          0
+lfm2.5:1.2b          (none)               miss     (none)               miss     (none)               miss          0
+granite4:3b          get_weather          OK       search_files         OK       get_weather          WRONG         1
+smollm3:3b           (none)               miss     (none)               miss     get_weather          WRONG         1
+jan-v3:4b            get_weather          OK       search_files         OK       get_weather          WRONG         1
 

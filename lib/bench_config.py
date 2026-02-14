@@ -169,6 +169,9 @@ ALL_MODELS = [
     {"name": "llama3.2:1b",     "backend": "ollama",  "origin": "US"},
     {"name": "lfm2.5:1.2b",    "backend": "llamacpp", "origin": "US",
      "model_id": "LiquidAI/LFM2.5-1.2B-Instruct-GGUF"},
+    {"name": "granite4:3b",    "backend": "ollama",  "origin": "US"},
+    {"name": "smollm3:3b",     "backend": "ollama_raw",  "origin": "US"},
+    {"name": "jan-v3:4b",      "backend": "ollama_raw",  "origin": "US"},
 ]
 
 # Sub-2B models for the "edge agent" mini leaderboard
