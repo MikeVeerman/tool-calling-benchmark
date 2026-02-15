@@ -1,0 +1,527 @@
+{
+  "model_name": "nanbeige4.1:3b",
+  "model_info": {
+    "name": "nanbeige4.1:3b",
+    "backend": "llamacpp",
+    "origin": "CN",
+    "model_id": "Edge-Quant/Nanbeige4.1-3B-Q4_K_M-GGUF"
+  },
+  "bench_version": "ea21e11afd31",
+  "num_runs": 3,
+  "timestamp": "2026-02-15T18:19:30",
+  "runs": [
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 7831,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Antwerp\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 10767,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 14468,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Sprint Review\", \"time\": \"2025-02-10T14:00:00\", \"attendees\": [\"alice@co.com\", \"bob@co.com\"]}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Sprint Review",
+              "time": "2025-02-10T14:00:00",
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 28097,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 18973,
+        "error": null,
+        "raw_content": "The tools I have access to are:\n\n1. **`get_weather(city: string)`** \u2013 Retrieves the current weather for a specified city.\n2. **`search_files(pattern: string)`** \u2013 Searches for files matching a glob pattern (e.g., `*.txt`, `report_*.pdf`).\n3. **`schedule_meeting(title: string, time: string, attendees?: string[])`** \u2013 Schedules a meeting with optional attendees.\n\nLet me know how I can assist! \ud83d\ude0a",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "attendees?: string[]",
+              "time": "string"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 27319,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 26017,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Q3 Roadmap\", \"time\": \"next Tuesday at 3pm\", \"attendees\": [\"dave@co.com\", \"susan@co.com\"]}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Q3 Roadmap",
+              "time": "next Tuesday at 3pm",
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 21580,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}</tool_call>\n<tool_call> {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 28926,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 27532,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 27237,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 28425,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 9605,
+        "error": null,
+        "raw_content": "<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Antwerp\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 21248,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 25684,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Sprint Review\", \"time\": \"2025-02-10T14:00:00\", \"attendees\": [\"alice@co.com\", \"bob@co.com\"]}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Sprint Review",
+              "time": "2025-02-10T14:00:00",
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 27666,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 28093,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 29325,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 23052,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Q3 Roadmap\", \"time\": \"next Tuesday at 3pm\", \"attendees\": [\"dave@co.com\", \"susan@co.com\"]}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Q3 Roadmap",
+              "time": "next Tuesday at 3pm",
+              "attendees": [
+                "dave@co.com",
+                "susan@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 20664,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}</tool_call>\n<tool_call> {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 27313,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 28347,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 22802,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"quarterly report\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "quarterly report"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 28959,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      }
+    ],
+    [
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 8762,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Antwerp\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Antwerp"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 13759,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "schedule_meeting",
+        "valid_args": true,
+        "latency_ms": 21710,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Sprint Review\", \"time\": \"2025-02-10T14:00:00\", \"attendees\": [\"alice@co.com\", \"bob@co.com\"]}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "schedule_meeting",
+            "arguments": {
+              "title": "Sprint Review",
+              "time": "2025-02-10T14:00:00",
+              "attendees": [
+                "alice@co.com",
+                "bob@co.com"
+              ]
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": true,
+        "tool_name": "get_weather",
+        "valid_args": true,
+        "latency_ms": 21177,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Brussels\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Brussels"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25664,
+        "error": null,
+        "raw_content": "The tools I have access to are:\n\n1. **`get_weather(city: string)`** \u2013 Retrieve the current weather conditions for a specified city.\n2. **`search_files(pattern: string)`**",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25712,
+        "error": null,
+        "raw_content": "The user is asking for the weather in the city where the next sprint review is taking place, but they haven't specified the city name. To fulfill this request, I need to know **which city** the sprint review is located in. \n\nSince the `get_weather` tool requires a `city` parameter and the user hasn\u2019t provided it, I should ask for clarification.\n\n<response>\nTo check the weather for your next sprint review, I\u2019ll need",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25919,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": true,
+        "tool_name": "search_files",
+        "valid_args": true,
+        "latency_ms": 15737,
+        "error": null,
+        "raw_content": "<tool_call> {\"name\": \"search_files\", \"arguments\": {\"pattern\": \"*.py\"}}\n</tool_call>\n<tool_call> {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}\n</tool_call>",
+        "all_tool_calls": [
+          {
+            "name": "search_files",
+            "arguments": {
+              "pattern": "*.py"
+            },
+            "valid": true
+          },
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Paris"
+            },
+            "valid": true
+          }
+        ]
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25954,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25784,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25400,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      },
+      {
+        "tool_called": false,
+        "tool_name": null,
+        "valid_args": null,
+        "latency_ms": 25711,
+        "error": null,
+        "raw_content": "",
+        "all_tool_calls": []
+      }
+    ]
+  ]
+}

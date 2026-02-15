@@ -1,5 +1,5 @@
 ================================================================================================================================================================
-SUMMARY (20 models)
+SUMMARY (21 models)
 ================================================================================================================================================================
 
 ================================================================================================================================================================
@@ -66,7 +66,7 @@ llama3.2:3b          P1     YES      get_weather          OK         1234
 llama3.2:3b          P2     YES      search_files         OK          962
 llama3.2:3b          P3     YES      schedule_meeting     OK         3019
 llama3.2:3b          P4     YES      get_weather          OK         1022
-llama3.2:3b          P5     YES      get_weather          OK         2041
+llama3.2:3b          P5     YES      search_files         OK         2041
 llama3.2:3b          P6     YES      get_weather          OK         1204
 llama3.2:3b          P7     YES      schedule_meeting     OK         3339
 llama3.2:3b          P8     YES      search_files         OK         1844
@@ -283,6 +283,19 @@ jan-v3:4b            P10    YES      get_weather          OK         1623
 jan-v3:4b            P11    YES      search_files         OK         1709
 jan-v3:4b            P12    YES      get_weather          OK         1562
 -------------------------------------------------------------------------
+nanbeige4.1:3b       P1     YES      get_weather          OK         8733
+nanbeige4.1:3b       P2     YES      search_files         OK        15258
+nanbeige4.1:3b       P3     YES      schedule_meeting     OK        20621
+nanbeige4.1:3b       P4     no       -                    -         25647
+nanbeige4.1:3b       P5     no       -                    -         24243
+nanbeige4.1:3b       P6     no       -                    -         27452
+nanbeige4.1:3b       P7     YES      schedule_meeting     OK        24996
+nanbeige4.1:3b       P8     YES      search_files         OK        19327
+nanbeige4.1:3b       P9     no       -                    -         27398
+nanbeige4.1:3b       P10    no       -                    -         27221
+nanbeige4.1:3b       P11    no       -                    -         25146
+nanbeige4.1:3b       P12    no       -                    -         27698
+-------------------------------------------------------------------------
 
 ================================================================================================================================================================
 SUMMARY (sorted by Agent Score)
@@ -294,6 +307,7 @@ lfm2.5:1.2b          llama.cpp    openai-compat  US          0.800      1.000   
 qwen3:0.6b           Ollama       native-tools   CN          0.700      1.000           0        0.729        N/A*        0.880    3410
 qwen2.5:1.5b         Ollama       native-tools   CN          0.500      1.000           0        0.625        N/A*        0.800    2240
 ministral-3:3b       Ollama       native-tools   FR          0.500      1.000           0        0.583        N/A*        0.800    7505
+nanbeige4.1:3b       llama.cpp    openai-compat  CN          0.500      1.000           0        0.583       1.000        0.800   22812
 phi4-mini:3.8b       Ollama       raw-schema     US          0.700      1.000           1        0.683       1.000        0.780    5180
 gemma3:1b            Ollama       raw-schema     US          0.600      0.500           0        0.533       0.000        0.690    2321
 qwen2.5:3b           Ollama       native-tools   CN          0.800      0.500           1        0.700        N/A*        0.670    3014
@@ -361,4 +375,5 @@ lfm2.5:1.2b          get_weather          OK       (none)               miss    
 granite4:3b          get_weather          OK       search_files         OK       get_weather          WRONG         1
 smollm3:3b           (none)               miss     (none)               miss     get_weather          WRONG         1
 jan-v3:4b            get_weather          OK       search_files         OK       get_weather          WRONG         1
+nanbeige4.1:3b       (none)               miss     (none)               miss     (none)               miss          0
 

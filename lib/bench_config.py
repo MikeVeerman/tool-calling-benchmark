@@ -171,6 +171,8 @@ ALL_MODELS = [
     {"name": "granite4:3b",    "backend": "ollama",  "origin": "US"},
     {"name": "smollm3:3b",     "backend": "ollama_raw",  "origin": "US"},
     {"name": "jan-v3:4b",      "backend": "ollama_raw",  "origin": "US"},
+    {"name": "nanbeige4.1:3b", "backend": "llamacpp", "origin": "CN",
+     "model_id": "Edge-Quant/Nanbeige4.1-3B-Q4_K_M-GGUF"},
 ]
 
 # Sub-2B models for the "edge agent" mini leaderboard

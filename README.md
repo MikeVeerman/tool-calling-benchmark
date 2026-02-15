@@ -2,9 +2,9 @@
 
 **Can a $1,000 laptop run an AI agent that knows when to use tools -- and when not to?**
 
-I tested 20 small open-weight models locally on CPU to see which ones can act -- and which ones know when not to. No cloud API. No GPU. Just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
+I tested 21 small open-weight models locally on CPU to see which ones can act -- and which ones know when not to. No cloud API. No GPU. Just Ollama, a handful of 1-bit and 4-bit quantised models, and a Framework 13 running Arch Linux.
 
-[Round 1](ROUND1_REPORT.md) tested 11 models from 7 organisations. After the post [went viral on r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/comments/1qyg10z/), [Round 2](ROUND2_REPORT.md) added 10 community-requested models -- including every model that was suggested in the comments. [Round 3](ROUND3_REPORT.md) reran all 20 models with 20 runs each (up from 3) to stabilize the rankings and eliminate small-sample variance.
+[Round 1](ROUND1_REPORT.md) tested 11 models from 7 organisations. After the post [went viral on r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/comments/1qyg10z/), [Round 2](ROUND2_REPORT.md) added 10 community-requested models -- including every model that was suggested in the comments. [Round 3](ROUND3_REPORT.md) reran all 20 models with 20 runs each (up from 3) to stabilize the rankings and eliminate small-sample variance, and added one community-requested model (nanbeige4.1:3b).
 
 The motivation is practical. Local and private AI agents are increasingly attractive -- no per-token costs, no data leaving the machine, no vendor lock-in. But an agent that acts incorrectly is worse than one that does nothing: a wrong API call costs money, sends the wrong message, or deletes the wrong file. The hard problem isn't generating well-formed JSON. It's deciding whether to act at all.
 
@@ -31,7 +31,7 @@ But there's a harder question: when a prompt mentions "weather" but the correct 
 
 Cloud models handle this well. But what about local models running on your laptop's CPU? The small open-weight models (0.5B-3.8B parameters) that Ollama makes trivially easy to run -- can they actually *do* this?
 
-This benchmark tests all of that: 20 models from 10 organisations across 4 countries, 12 prompts, 20 runs each, on a machine with no discrete GPU.
+This benchmark tests all of that: 21 models from 11 organisations across 4 countries, 12 prompts, 20 runs each (3 for the slowest model), on a machine with no discrete GPU.
 
 ## The test machine
 
@@ -86,6 +86,10 @@ After the [Reddit post](https://www.reddit.com/r/LocalLLaMA/comments/1qyg10z/), 
 
 **Jan v3:4B (jan.ai) -- the fine-tune.** A Qwen3-based fine-tune recommended by two users. Tests whether community fine-tuning on top of Qwen3 improves tool-calling behaviour.
 
+### Round 3: late addition
+
+**Nanbeige4.1:3B (Nanbeige Lab) -- the reasoning model.** A community-requested Chinese reasoning model built on Nanbeige4-3B-Base through SFT and RL. Claims to rival much larger models on preference alignment benchmarks. Not available in Ollama's official library, so it runs via llama.cpp with a Q4_K_M GGUF quantisation. Due to extremely high CPU latency (~23s per prompt), it was run 3 times instead of 20; its scores should be treated as preliminary.
+
 ## The prompts
 
 The benchmark uses 12 prompts that escalate in difficulty:
@@ -114,7 +118,7 @@ The benchmark uses 12 prompts that escalate in difficulty:
 - **Agent Score:** `Action × 0.4 + Restraint × 0.3 + Wrong-Tool-Avoidance × 0.3` where Wrong-Tool-Avoidance = (3 - wrong_tool_count) / 3. A model that calls tools aggressively but picks the wrong ones is penalized. A model that conservatively declines uncertain prompts is rewarded.
 - **Latency:** Wall-clock time per inference call (milliseconds).
 
-Everything is run 20 times. Correctness uses majority-vote aggregation; reliability uses per-run data.
+Everything is run 20 times (except nanbeige4.1:3b, which was run 3 times due to high latency). Correctness uses majority-vote aggregation; reliability uses per-run data.
 
 > **Context-window caveat:** All Ollama models were run with default settings. Ollama defaults to a 4,096-token context window (`num_ctx`), well below the training context of most models tested (e.g. 131,072 for Qwen 2.5). Our prompts are short enough that 4K is not a binding constraint here, but models may behave differently at longer context lengths or with `num_ctx` tuned to match `n_ctx_train`. Results should be read as "this model at Ollama defaults," not as the model's full capability ceiling.
 
@@ -129,21 +133,24 @@ Agent Score rewards correct action **and** correct inaction; wrong-tool calls ar
 | 3 | qwen3:0.6b | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | **0.880** | 3,410 |
 | 4 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.500 | 1.000 | 0 | 0.800 | 2,240 |
 | 4 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.800 | 7,505 |
-| 6 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 1 | 0.780 | 5,180 |
-| 7 | gemma3:1b | Ollama | raw-schema | US | 0.600 | 0.500 | 0 | 0.690 | 2,321 |
-| 8 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 3,014 |
-| 9 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.660 | 1,690 |
-| 10 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 1,015 |
-| 10 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 1,722 |
-| 10 | functiongemma | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 435 |
-| 13 | smollm3:3b | Ollama | raw-schema | US | 0.700 | 0.500 | 1 | 0.630 | 9,727 |
-| 14 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.600 | 1,549 |
-| 14 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.600 | 14,157 |
-| 16 | jan-v3:4b | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.560 | 2,322 |
-| 17 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.700 | 0.500 | 2 | 0.530 | 2,075 |
-| 18 | granite3.3:2b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.520 | 1,658 |
-| 18 | granite4:3b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.520 | 2,112 |
-| 20 | llama3.2:1b | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.430 | 1,596 |
+| 4 | nanbeige4.1:3b† | llama.cpp | openai-compat | CN | 0.500 | 1.000 | 0 | 0.800 | 22,812 |
+| 7 | phi4-mini:3.8b | Ollama | raw-schema | US | 0.700 | 1.000 | 1 | 0.780 | 5,180 |
+| 8 | gemma3:1b | Ollama | raw-schema | US | 0.600 | 0.500 | 0 | 0.690 | 2,321 |
+| 9 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.670 | 3,014 |
+| 10 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.660 | 1,690 |
+| 11 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.640 | 1,015 |
+| 11 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 1,722 |
+| 11 | functiongemma | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.640 | 435 |
+| 14 | smollm3:3b | Ollama | raw-schema | US | 0.700 | 0.500 | 1 | 0.630 | 9,727 |
+| 15 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.600 | 1,549 |
+| 15 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.600 | 14,157 |
+| 17 | jan-v3:4b | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.560 | 2,322 |
+| 18 | bitnet-2B-4T | bitnet.cpp | openai-compat | US/1bit | 0.700 | 0.500 | 2 | 0.530 | 2,075 |
+| 19 | granite3.3:2b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.520 | 1,658 |
+| 19 | granite4:3b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.520 | 2,112 |
+| 21 | llama3.2:1b | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.430 | 1,596 |
+
+†nanbeige4.1:3b was run 3 times (not 20) due to high CPU latency (~23s/prompt); its scores should be treated as preliminary.
 
 ### The new #1: qwen3:1.7b
 
@@ -193,7 +200,7 @@ After the Reddit post, 10 community-requested models were added. The full analys
 
 ### Round 3: The 20-run validation
 
-Round 3 reran all 20 models with 20 runs each to eliminate small-sample variance. The full analysis is in [ROUND3_REPORT.md](ROUND3_REPORT.md). Key findings:
+Round 3 reran all 20 models with 20 runs each to eliminate small-sample variance, and added nanbeige4.1:3b (3 runs only, due to high latency). The full analysis is in [ROUND3_REPORT.md](ROUND3_REPORT.md). Key findings:
 
 1. **qwen3:1.7b is the benchmark champion at 0.960.** Jumped from 11th to 1st. Its Round 2 restraint failures were borderline calls that happened to go wrong in 2/3 runs. At 20 runs, it passes P5 and P9 comfortably and is the only model to get all three hard prompts right.
 2. **The Round 2 four-way tie was a sampling artifact.** Those four models now score 0.960, 0.920, 0.880, and 0.780 -- spread across a 0.180 range.
@@ -203,7 +210,7 @@ Round 3 reran all 20 models with 20 runs each to eliminate small-sample variance
 
 ## The bottom line
 
-After testing 20 models across three rounds -- 4,800 total inference calls on CPU -- the picture is clearer and more nuanced than early results suggested.
+After testing 21 models across three rounds -- 4,836 total inference calls on CPU -- the picture is clearer and more nuanced than early results suggested.
 
 **Local tool-calling agents work today on commodity hardware**, and they're better than expected. Two models exceed 0.900 Agent Score, with lfm2.5:1.2b doing it in 1.6 seconds. Simple, unambiguous tool dispatch is a solved problem at every size from 270M up.
 
@@ -228,7 +235,7 @@ This benchmark has a narrow scope by design, and the results should be interpret
 - **Small prompt set.** 12 prompts (3 of which test judgment) is enough to reveal patterns but not enough to make strong statistical claims. Confirming the failure modes observed would require a larger and more varied prompt set.
 - **Safety-weighted scoring.** The Agent Score gives 60% combined weight to restraint and wrong-tool-avoidance, structurally favoring conservative models. Under an action-maximizing formula, aggressive models like llama3.2:3b (Action 0.900) and bitnet-2B-4T (Action 0.900) would rank much higher. The scoring reflects one deployment preference, not a universal truth.
 - **Model-protocol pairs, not models in isolation.** Each result reflects a specific model running through a specific backend (Ollama native tools, Ollama raw prompt, llama.cpp, or BitNet). The same model may behave very differently with a different interaction contract -- phi4-mini's score jumped dramatically when switched from native tools to raw prompt in Round 1. Rankings should not be read as generalizing across protocols.
-- **Twenty runs per prompt (Round 3).** Majority voting now stabilizes most prompts. The upgrade from 3 to 20 runs changed 7 of 20 models by more than 0.05, confirming that 3 runs was insufficient. Twenty runs is adequate for this prompt set but models near 50% call rate on specific prompts may still fluctuate slightly.
+- **Twenty runs per prompt (Round 3).** Majority voting now stabilizes most prompts. The upgrade from 3 to 20 runs changed 7 of 20 models by more than 0.05, confirming that 3 runs was insufficient. Twenty runs is adequate for this prompt set but models near 50% call rate on specific prompts may still fluctuate slightly. nanbeige4.1:3b was run only 3 times due to its ~23s/prompt CPU latency; its 0.800 Agent Score should be treated as preliminary.
 - **Format compliance affects scores -- and we fixed five cases.** Five models needed fallback parsers across two rounds: lfm2.5 (bracket notation), jan-v3 (bare JSON), gemma3 (funcall-in-tags), deepseek-r1 (bare funcalls), and smollm3 (mixed formats). The fixes improved some scores (lfm2.5: 0.640 → 0.880, deepseek-r1: 0.600 → 0.720) but revealed hidden problems in others (gemma3: 0.600 → 0.550, smollm3: 0.740 → 0.710). Format-blind parsing can flatter a model by hiding restraint failures. Scores partly reflect format training, and benchmarks should consider model-specific parsers.
 - **Default Ollama settings.** All Ollama models ran with default `num_ctx` (4,096 tokens) and default sampling parameters (temperature, top_p, etc.). Our prompts are short enough that context isn't a binding constraint, but results reflect "model at Ollama defaults," not full capability.
 - **CPU-only, single machine.** All inference ran on one AMD Ryzen AI 7 350. Latency numbers are specific to this hardware and would differ on other CPUs or with GPU acceleration. Relative rankings should be more stable than absolute latencies.
@@ -319,7 +326,7 @@ pip install ollama requests
 python bench.py
 ```
 
-The full run (20 models x 12 prompts x 20 runs = 4,800 inference calls) takes roughly 5 hours on the hardware described above. Most of that time is qwen3:1.7b (thinking mode), BitNet 3B (base model), smollm3:3b, and ministral-3:3b -- the other models finish faster. For a quick test, use `--num-runs 3` (runs in ~45 minutes).
+The full run (21 models x 12 prompts x 20 runs = 5,040 inference calls, though nanbeige4.1:3b defaults to 3 runs) takes roughly 5.3 hours on the hardware described above. Most of that time is qwen3:1.7b (thinking mode), BitNet 3B (base model), smollm3:3b, and ministral-3:3b -- the other models finish faster. For a quick test, use `--num-runs 3` (runs in ~45 minutes).
 
 ### Customising
 

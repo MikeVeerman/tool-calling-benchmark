@@ -1,8 +1,8 @@
 # Local LLM Tool-Calling Benchmark Report (Round 3)
 
 **Date:** 2026-02-14
-**Models:** 20 (qwen3:4b removed for impractical latency)
-**Runs:** 20 per model/prompt combination (4,800 total inference calls)
+**Models:** 21 (qwen3:4b removed for impractical latency; nanbeige4.1:3b added)
+**Runs:** 20 per model/prompt combination (4,800 total inference calls for the original 20 models; nanbeige4.1:3b ran 3 times only)
 **Hardware:** CPU-only (no GPU acceleration)
 
 ## What Changed from Round 2
@@ -13,7 +13,9 @@ Round 3 uses the same prompts, scoring formula, parsers, and backends as Round 2
 
 2. **qwen3:4b removed.** At 63.7 seconds per prompt, running 20 iterations would take ~4.25 hours for a single model. It tied with qwen3:0.6b in Round 2 (both 0.880) with identical majority-vote behavior but 17x the latency. Removing it cut total benchmark time roughly in half.
 
-Total inference: 20 models x 12 prompts x 20 runs = 4,800 calls. Runtime: ~5.1 hours on CPU.
+3. **nanbeige4.1:3b added.** A community-requested Chinese reasoning model (Nanbeige Lab). Not available in the official Ollama library, so it runs via llama.cpp with a Q4_K_M GGUF quantisation. Due to extremely high CPU latency (~23s per prompt), it was run 3 times instead of 20. Its scores should be treated as preliminary.
+
+Total inference: 20 models x 12 prompts x 20 runs + 1 model x 12 prompts x 3 runs = 4,836 calls. Runtime: ~5.3 hours on CPU.
 
 ## Machine Specs
 
@@ -38,23 +40,24 @@ Unchanged from Round 2.
 | 3 | qwen3:0.6b | Ollama | native-tools | CN | 0.700 | 1.000 | 0 | 0.729 | N/A* | 0.880 | 3,410 |
 | 4 | qwen2.5:1.5b | Ollama | native-tools | CN | 0.500 | 1.000 | 0 | 0.625 | N/A* | 0.800 | 2,240 |
 | 4 | ministral-3:3b | Ollama | native-tools | FR | 0.500 | 1.000 | 0 | 0.583 | N/A* | 0.800 | 7,505 |
-| **6** | **phi4-mini:3.8b** | Ollama | raw-schema | US | 0.700 | 1.000 | 1 | 0.683 | 1.000 | **0.780** | 5,180 |
-| **7** | **gemma3:1b** | Ollama | raw-schema | US | 0.600 | 0.500 | 0 | 0.533 | 0.000 | **0.690** | 2,321 |
-| 8 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.700 | N/A* | 0.670 | 3,014 |
-| 9 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.750 | N/A* | 0.660 | 1,690 |
-| 10 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.675 | N/A* | 0.640 | 1,015 |
-| 10 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.683 | N/A* | 0.640 | 1,722 |
-| 10 | functiongemma | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.667 | N/A* | 0.640 | 435 |
-| 13 | smollm3:3b | Ollama | raw-schema | US | 0.700 | 0.500 | 1 | 0.667 | 1.000 | 0.630 | 9,727 |
-| 14 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.296 | 0.000 | 0.600 | 1,549 |
-| 14 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 14,157 |
-| **16** | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.750 | 0.500 | **0.560** | 2,322 |
-| **17** | **bitnet-2B-4T** | bitnet.cpp | openai-compat | US/1bit | 0.700 | 0.500 | 2 | 0.721 | 1.000 | **0.530** | 2,075 |
-| 18 | granite3.3:2b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.571 | N/A* | 0.520 | 1,658 |
-| 18 | granite4:3b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.696 | N/A* | 0.520 | 2,112 |
-| 20 | llama3.2:1b | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.667 | N/A* | 0.430 | 1,596 |
+| 4 | nanbeige4.1:3b† | llama.cpp | openai-compat | CN | 0.500 | 1.000 | 0 | 0.583 | 1.000 | 0.800 | 22,812 |
+| **7** | **phi4-mini:3.8b** | Ollama | raw-schema | US | 0.700 | 1.000 | 1 | 0.683 | 1.000 | **0.780** | 5,180 |
+| **8** | **gemma3:1b** | Ollama | raw-schema | US | 0.600 | 0.500 | 0 | 0.533 | 0.000 | **0.690** | 2,321 |
+| 9 | qwen2.5:3b | Ollama | native-tools | CN | 0.800 | 0.500 | 1 | 0.700 | N/A* | 0.670 | 3,014 |
+| 10 | llama3.2:3b | Ollama | native-tools | US | 0.900 | 0.000 | 0 | 0.750 | N/A* | 0.660 | 1,690 |
+| 11 | qwen2.5:0.5b | Ollama | native-tools | CN | 0.600 | 1.000 | 2 | 0.675 | N/A* | 0.640 | 1,015 |
+| 11 | smollm2:1.7b | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.683 | N/A* | 0.640 | 1,722 |
+| 11 | functiongemma | Ollama | native-tools | US | 0.600 | 1.000 | 2 | 0.667 | N/A* | 0.640 | 435 |
+| 14 | smollm3:3b | Ollama | raw-schema | US | 0.700 | 0.500 | 1 | 0.667 | 1.000 | 0.630 | 9,727 |
+| 15 | deepseek-r1:1.5b | Ollama | raw-schema | CN | 0.000 | 1.000 | 0 | 0.296 | 0.000 | 0.600 | 1,549 |
+| 15 | bitnet-3B | bitnet.cpp | openai-compat | US/1bit | 0.000 | 1.000 | 0 | 0.167 | 0.000 | 0.600 | 14,157 |
+| **17** | **jan-v3:4b** | Ollama | raw-schema | US | 0.900 | 0.000 | 1 | 0.750 | 0.500 | **0.560** | 2,322 |
+| **18** | **bitnet-2B-4T** | bitnet.cpp | openai-compat | US/1bit | 0.700 | 0.500 | 2 | 0.721 | 1.000 | **0.530** | 2,075 |
+| 19 | granite3.3:2b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.571 | N/A* | 0.520 | 1,658 |
+| 19 | granite4:3b | Ollama | native-tools | US | 0.800 | 0.000 | 1 | 0.696 | N/A* | 0.520 | 2,112 |
+| 21 | llama3.2:1b | Ollama | native-tools | US | 0.700 | 0.500 | 3 | 0.667 | N/A* | 0.430 | 1,596 |
 
-\*Ollama native-tools API returns only the first tool call. **Bold** = significant ranking change from Round 2.
+\*Ollama native-tools API returns only the first tool call. **Bold** = significant ranking change from Round 2. †nanbeige4.1:3b was run 3 times (not 20) due to high CPU latency; its scores should be treated as preliminary.
 
 ### Edge Agent Mini Leaderboard (sub-2B models)
 
@@ -96,8 +99,9 @@ Unchanged from Round 2.
 | granite3.3:2b | get_weather | OK | (none) | miss | get_weather | WRONG | 1 |
 | granite4:3b | get_weather | OK | search_files | OK | get_weather | WRONG | 1 |
 | llama3.2:1b | schedule_meeting | WRONG | get_weather | WRONG | get_weather | WRONG | 3 |
+| nanbeige4.1:3b† | (none) | miss | (none) | miss | (none) | miss | 0 |
 
-**Only qwen3:1.7b gets all three hard prompts right.** It is the only model in the benchmark to call the correct tool on P10, P11, and P12 simultaneously across 20-run majority voting.
+†3 runs only. **Only qwen3:1.7b gets all three hard prompts right.** It is the only model in the benchmark to call the correct tool on P10, P11, and P12 simultaneously across 20-run majority voting.
 
 ## Score Changes from Round 2
 
